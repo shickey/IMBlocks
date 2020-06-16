@@ -7,10 +7,9 @@
 //
 
 #import <simd/simd.h>
-#import <ModelIO/ModelIO.h>
 
 #import "Renderer.h"
-#import "../Blocks/Blocks.h"
+#import "Blocks.h"
 #import "MetalView.h"
 
 // Include header shared between C code here, which executes Metal API commands, and .metal files
@@ -151,21 +150,24 @@ static BlockData blockData[4] = {
     _commandQueue = [_device newCommandQueue];
 }
 
-- (NSPoint)_unprojectPoint:(NSPoint)point inView:(MetalView *)view {
+- (CGPoint)_unprojectPoint:(CGPoint)point inView:(MetalView *)view {
     CGFloat projectedX = (2.0 * (point.x / view.bounds.size.width)) - 1.0;
     CGFloat projectedY = (2.0 * (point.y / view.bounds.size.height)) - 1.0;
+#if TARGET_OS_IPHONE
+    projectedY *= -1.0; // Flip Y on iOS
+#endif
     
     simd_float4 pVec = simd_make_float4(projectedX, projectedY, 0.0, 1.0);
     simd_float4 P = matrix_multiply(_unprojectionMatrix, pVec);
-    return NSMakePoint(P.x, P.y);
+    return CGPointMake(P.x, P.y);
 }
 
 - (BlocksRenderInfo)_drawBlocksWithInput:(BlocksInput)input vertBuffer:(id <MTLBuffer>)vertBuffer blockUniformsBuffer:(id <MTLBuffer>)blockUniformsBuffer 
 {
     BeginBlocks(input, [vertBuffer contents], (u32)vertBuffer.length, [blockUniformsBuffer contents], (u32)blockUniformsBuffer.length);
     for (u32 i = 0; i < 4; ++i) {
-        BlockData data = blockData[i];
-        Block(i + 1, Command, data.x, data.y);
+        BlockData *data = &blockData[i];
+        Block(i + 1, Command, &data->x, &data->y);
     }
     return EndBlocks();
 }
@@ -219,7 +221,7 @@ static BlockData blockData[4] = {
      }];
 
     Input input = view->_input;
-    NSPoint P = [self _unprojectPoint:NSMakePoint(input.mouseX, input.mouseY) inView:view];
+    CGPoint P = [self _unprojectPoint:CGPointMake(input.mouseX, input.mouseY) inView:view];
     
     BlocksInput blocksInput;
     blocksInput.mouseP = {(f32)P.x, (f32)P.y};

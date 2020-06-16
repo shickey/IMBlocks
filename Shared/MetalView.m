@@ -10,6 +10,8 @@
 
 @implementation MetalView
 
+#if TARGET_OS_OSX
+
 - (void)awakeFromNib {
     [super awakeFromNib];
     NSTrackingAreaOptions options = (NSTrackingActiveAlways | NSTrackingInVisibleRect |  
@@ -36,5 +38,36 @@
     _input.mouseX = pt.x;
     _input.mouseY = pt.y;
 }
+
+- (void)mouseDragged:(NSEvent *)event {
+    NSPoint rawPt = [event locationInWindow];
+    NSPoint pt = [self convertPoint:rawPt toView:nil];
+    _input.mouseX = pt.x;
+    _input.mouseY = pt.y;
+}
+
+#endif
+#if TARGET_OS_IPHONE
+
+- (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
+    UITouch *touch = [[event touchesForView:self] anyObject];
+    CGPoint location = [touch locationInView:self];
+    _input.touchX = location.x;
+    _input.touchY = location.y;
+    _input.touching = true;
+}
+
+- (void)touchesMoved:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
+    UITouch *touch = [[event touchesForView:self] anyObject];
+    CGPoint location = [touch locationInView:self];
+    _input.touchX = location.x;
+    _input.touchY = location.y;
+}
+
+- (void)touchesEnded:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
+    _input.touching = false;
+}
+
+#endif
 
 @end

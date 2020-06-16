@@ -9,12 +9,20 @@
 #include "Blocks.h"
 #include <string.h>
 
-void CommandBlock(BlockId id, f32 x, f32 y);
+void CommandBlock(BlockId id, f32 *x, f32 *y);
 
 struct Buffer {
     u8 *data;
     u32 size;
     u32 used;
+};
+
+struct Interactable {
+    BlockId id;
+    f32 *x;
+    f32 *y;
+    
+    V2 mouseOffset;
 };
 
 struct BlocksContext {
@@ -24,9 +32,9 @@ struct BlocksContext {
     Buffer uniforms;
     u32 nextBlockIdx;
     
-    BlockId hot;
-    BlockId interacting;
-    BlockId nextHot;
+    Interactable hot;
+    Interactable interacting;
+    Interactable nextHot;
 };
 
 inline
@@ -49,27 +57,31 @@ void BeginBlocks(BlocksInput input, void *vertexMemory, u32 vertsSize, void *uni
     
     blocksCtx.nextBlockIdx = 0;
     
-    blocksCtx.hot = 0;
-    blocksCtx.nextHot = 0;
+    blocksCtx.hot.id = 0;
+    blocksCtx.nextHot.id = 0;
 }
 
 BlocksRenderInfo EndBlocks() {
-    if (blocksCtx.interacting) {
+    if (blocksCtx.interacting.id) {
         if (!blocksCtx.input.mouseDown) {
-            blocksCtx.interacting = 0;
+            blocksCtx.interacting.id = 0;
+        }
+        else {
+            *blocksCtx.interacting.x = blocksCtx.input.mouseP.x - blocksCtx.interacting.mouseOffset.x;
+            *blocksCtx.interacting.y = blocksCtx.input.mouseP.y - blocksCtx.interacting.mouseOffset.y;
         }
     }
     else {
-        if (blocksCtx.nextHot) {
+        if (blocksCtx.nextHot.id) {
             blocksCtx.hot = blocksCtx.nextHot;
         }
-        if (blocksCtx.hot && blocksCtx.input.mouseDown) {
+        if (blocksCtx.hot.id && blocksCtx.input.mouseDown) {
             blocksCtx.interacting = blocksCtx.hot;
         }
     }
     
-    if (blocksCtx.hot) {
-        BlockUniforms *uniforms = ((BlockUniforms *)blocksCtx.uniforms.data) + (blocksCtx.hot - 1);
+    if (blocksCtx.hot.id) {
+        BlockUniforms *uniforms = ((BlockUniforms *)blocksCtx.uniforms.data) + (blocksCtx.hot.id - 1);
         uniforms->hot = true;
     }
     
@@ -77,7 +89,7 @@ BlocksRenderInfo EndBlocks() {
     Result.verts = blocksCtx.verts.data;
     Result.vertCount = blocksCtx.verts.used / (sizeof(f32) * 2);
     Result.uniforms = blocksCtx.uniforms.data;
-    Result.hot = blocksCtx.hot;
+    Result.hot = blocksCtx.hot.id;
     blocksCtx.verts.data = 0;
     blocksCtx.uniforms.data = 0;
     return Result;
@@ -93,7 +105,7 @@ void pushData_(Buffer *buffer, void *data, u32 size) {
 
 
 
-void Block(BlockId id, BlockType type, f32 x, f32 y) {
+void Block(BlockId id, BlockType type, f32 *x, f32 *y) {
     Assert(blocksCtx.verts.data);
     
     switch(type) {
@@ -105,12 +117,16 @@ void Block(BlockId id, BlockType type, f32 x, f32 y) {
     }
 }
 
-void CommandBlock(BlockId id, f32 x, f32 y) {
+void CommandBlock(BlockId id, f32 *x, f32 *y) {
     Assert(blocksCtx.verts.data);
     
-    BlocksRect blockRect = { x, y, 18, 16};
+    BlocksRect blockRect = { *x, *y, 18, 16};
     if (pointInRect(blocksCtx.input.mouseP, blockRect)) {
-        blocksCtx.nextHot = id;
+        blocksCtx.nextHot.id = id;
+        blocksCtx.nextHot.x = x;
+        blocksCtx.nextHot.y = y;
+        
+        blocksCtx.nextHot.mouseOffset = { blocksCtx.input.mouseP.x - blockRect.x, blocksCtx.input.mouseP.y - blockRect.y };
     }
     
     f32 verts[] = {
@@ -171,7 +187,7 @@ void CommandBlock(BlockId id, f32 x, f32 y) {
         16, 12,
         18, 10
     };
-    BlockUniforms uniforms = { blocksCtx.nextBlockIdx++, x, y, false }; 
+    BlockUniforms uniforms = { blocksCtx.nextBlockIdx++, *x, *y, false }; 
     
     pushVerts(verts);
     pushUniforms(uniforms);

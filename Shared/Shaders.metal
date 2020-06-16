@@ -80,8 +80,8 @@ struct WorldUniforms {
 };
 
 vertex VertexOut simple_vertex(VertexIn in [[ stage_in ]],
-                               device BlockUniforms *blockUniforms [[ buffer(1) ]],
-                               device WorldUniforms *worldUniforms [[ buffer(2) ]],
+                               const device BlockUniforms *blockUniforms [[ buffer(1) ]],
+                               const device WorldUniforms *worldUniforms [[ buffer(2) ]],
                                unsigned int vid [[ vertex_id ]]) {
     float4x4 projection = worldUniforms[0].transform;
     BlockUniforms unis = blockUniforms[vid / 36];
@@ -93,7 +93,19 @@ vertex VertexOut simple_vertex(VertexIn in [[ stage_in ]],
         out.color = float3(1, 1, 0); // yellow
     }
     else {
-        out.color = float3(0, 1, 1); // cyan
+        uint colorIdx = unis.idx % 4;
+        if (colorIdx == 0) {
+            out.color = float3(1, 0, 0);
+        }
+        else if (colorIdx == 1) {
+            out.color = float3(0, 1, 0);
+        }
+        else if (colorIdx == 2) {
+            out.color = float3(0, 0, 1);
+        }
+        else {
+            out.color = float3(1, 0, 1);
+        }
     }
     return out;
 }
@@ -106,7 +118,7 @@ fragment float4 simple_fragment(VertexOut v [[ stage_in ]]) {
 // Debug Rect drawing
 
 vertex VertexOut debug_vertex(VertexIn in [[ stage_in ]],
-                              device WorldUniforms *worldUniforms [[ buffer(2) ]]) {
+                              const device WorldUniforms *worldUniforms [[ buffer(2) ]]) {
     float4x4 projection = worldUniforms[0].transform;
     
     VertexOut out;

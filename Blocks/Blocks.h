@@ -99,6 +99,6 @@ struct BlocksRenderInfo {
 void BeginBlocks(BlocksInput input, void *vertexMemory, u32 vertsSize, void *uniformsMemory, u32 uniformsSize);
 BlocksRenderInfo EndBlocks(void);
 
-void Block(BlockId id, BlockType type, f32 x, f32 y);
+void Block(BlockId id, BlockType type, f32 *x, f32 *y);
 
 #endif /* blocks_h */

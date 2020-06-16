@@ -11,9 +11,18 @@
 NS_ASSUME_NONNULL_BEGIN
 
 typedef struct Input {
-    float mouseX;
-    float mouseY;
-    bool mouseDown;
+    union {
+        float mouseX;
+        float touchX;
+    };
+    union {
+        float mouseY;
+        float touchY;
+    };
+    union {
+        bool mouseDown;
+        bool touching;
+    };
 } Input;
 
 @interface MetalView: MTKView
