@@ -1,0 +1,521 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 50;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A3A904F02497D37F004835B7 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = A3A904EF2497D37F004835B7 /* AppDelegate.m */; };
+		A3A904F32497D37F004835B7 /* GameViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A3A904F22497D37F004835B7 /* GameViewController.m */; };
+		A3A904F62497D37F004835B7 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A3A904F42497D37F004835B7 /* Main.storyboard */; };
+		A3A904F92497D37F004835B7 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A3A904F72497D37F004835B7 /* LaunchScreen.storyboard */; };
+		A3A904FC2497D37F004835B7 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = A3A904FB2497D37F004835B7 /* main.m */; };
+		A3A905052497D37F004835B7 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = A3A905042497D37F004835B7 /* AppDelegate.m */; };
+		A3A905082497D37F004835B7 /* GameViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A3A905072497D37F004835B7 /* GameViewController.m */; };
+		A3A9050B2497D37F004835B7 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A3A905092497D37F004835B7 /* Main.storyboard */; };
+		A3A9050E2497D37F004835B7 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = A3A9050D2497D37F004835B7 /* main.m */; };
+		A3A9050F2497D37F004835B7 /* Renderer.mm in Sources */ = {isa = PBXBuildFile; fileRef = A3A904E32497D37E004835B7 /* Renderer.mm */; };
+		A3A905102497D37F004835B7 /* Renderer.mm in Sources */ = {isa = PBXBuildFile; fileRef = A3A904E32497D37E004835B7 /* Renderer.mm */; };
+		A3A905112497D37F004835B7 /* Shaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = A3A904E52497D37E004835B7 /* Shaders.metal */; };
+		A3A905122497D37F004835B7 /* Shaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = A3A904E52497D37E004835B7 /* Shaders.metal */; };
+		A3A905132497D37F004835B7 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A3A904E62497D37F004835B7 /* Assets.xcassets */; };
+		A3A905142497D37F004835B7 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A3A904E62497D37F004835B7 /* Assets.xcassets */; };
+		A3A905202497D6A1004835B7 /* Blocks.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3A9051F2497D6A1004835B7 /* Blocks.cpp */; };
+		A3A905212497D6A1004835B7 /* Blocks.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3A9051F2497D6A1004835B7 /* Blocks.cpp */; };
+		A3A90524249810B4004835B7 /* MetalView.m in Sources */ = {isa = PBXBuildFile; fileRef = A3A90523249810B4004835B7 /* MetalView.m */; };
+		A3A90525249810B4004835B7 /* MetalView.m in Sources */ = {isa = PBXBuildFile; fileRef = A3A90523249810B4004835B7 /* MetalView.m */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		A3A904E22497D37E004835B7 /* Renderer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Renderer.h; sourceTree = "<group>"; };
+		A3A904E32497D37E004835B7 /* Renderer.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = Renderer.mm; sourceTree = "<group>"; };
+		A3A904E42497D37E004835B7 /* ShaderTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ShaderTypes.h; sourceTree = "<group>"; };
+		A3A904E52497D37E004835B7 /* Shaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Shaders.metal; sourceTree = "<group>"; };
+		A3A904E62497D37F004835B7 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A3A904EB2497D37F004835B7 /* IMBlocks.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = IMBlocks.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A3A904EE2497D37F004835B7 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		A3A904EF2497D37F004835B7 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
+		A3A904F12497D37F004835B7 /* GameViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GameViewController.h; sourceTree = "<group>"; };
+		A3A904F22497D37F004835B7 /* GameViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = GameViewController.m; sourceTree = "<group>"; };
+		A3A904F52497D37F004835B7 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		A3A904F82497D37F004835B7 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		A3A904FA2497D37F004835B7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A3A904FB2497D37F004835B7 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		A3A905012497D37F004835B7 /* IMBlocks.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = IMBlocks.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A3A905032497D37F004835B7 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		A3A905042497D37F004835B7 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
+		A3A905062497D37F004835B7 /* GameViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GameViewController.h; sourceTree = "<group>"; };
+		A3A905072497D37F004835B7 /* GameViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = GameViewController.m; sourceTree = "<group>"; };
+		A3A9050A2497D37F004835B7 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		A3A9050C2497D37F004835B7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A3A9050D2497D37F004835B7 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		A3A9051E2497D6A0004835B7 /* Blocks.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.h; fileEncoding = 4; path = Blocks.h; sourceTree = "<group>"; };
+		A3A9051F2497D6A1004835B7 /* Blocks.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Blocks.cpp; sourceTree = "<group>"; };
+		A3A90522249810B4004835B7 /* MetalView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MetalView.h; sourceTree = "<group>"; };
+		A3A90523249810B4004835B7 /* MetalView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MetalView.m; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A3A904E82497D37F004835B7 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A3A904FE2497D37F004835B7 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		A3A904DC2497D37E004835B7 = {
+			isa = PBXGroup;
+			children = (
+				A3A9051D2497D663004835B7 /* Blocks */,
+				A3A904E12497D37E004835B7 /* Shared */,
+				A3A904ED2497D37F004835B7 /* iOS */,
+				A3A905022497D37F004835B7 /* macOS */,
+				A3A904EC2497D37F004835B7 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A3A904E12497D37E004835B7 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				A3A904E22497D37E004835B7 /* Renderer.h */,
+				A3A904E32497D37E004835B7 /* Renderer.mm */,
+				A3A904E42497D37E004835B7 /* ShaderTypes.h */,
+				A3A904E52497D37E004835B7 /* Shaders.metal */,
+				A3A904E62497D37F004835B7 /* Assets.xcassets */,
+				A3A90522249810B4004835B7 /* MetalView.h */,
+				A3A90523249810B4004835B7 /* MetalView.m */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		A3A904EC2497D37F004835B7 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A3A904EB2497D37F004835B7 /* IMBlocks.app */,
+				A3A905012497D37F004835B7 /* IMBlocks.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		A3A904ED2497D37F004835B7 /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				A3A904EE2497D37F004835B7 /* AppDelegate.h */,
+				A3A904EF2497D37F004835B7 /* AppDelegate.m */,
+				A3A904F12497D37F004835B7 /* GameViewController.h */,
+				A3A904F22497D37F004835B7 /* GameViewController.m */,
+				A3A904F42497D37F004835B7 /* Main.storyboard */,
+				A3A904F72497D37F004835B7 /* LaunchScreen.storyboard */,
+				A3A904FA2497D37F004835B7 /* Info.plist */,
+				A3A904FB2497D37F004835B7 /* main.m */,
+			);
+			path = iOS;
+			sourceTree = "<group>";
+		};
+		A3A905022497D37F004835B7 /* macOS */ = {
+			isa = PBXGroup;
+			children = (
+				A3A905032497D37F004835B7 /* AppDelegate.h */,
+				A3A905042497D37F004835B7 /* AppDelegate.m */,
+				A3A905062497D37F004835B7 /* GameViewController.h */,
+				A3A905072497D37F004835B7 /* GameViewController.m */,
+				A3A905092497D37F004835B7 /* Main.storyboard */,
+				A3A9050C2497D37F004835B7 /* Info.plist */,
+				A3A9050D2497D37F004835B7 /* main.m */,
+			);
+			path = macOS;
+			sourceTree = "<group>";
+		};
+		A3A9051D2497D663004835B7 /* Blocks */ = {
+			isa = PBXGroup;
+			children = (
+				A3A9051F2497D6A1004835B7 /* Blocks.cpp */,
+				A3A9051E2497D6A0004835B7 /* Blocks.h */,
+			);
+			path = Blocks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A3A904EA2497D37F004835B7 /* IMBlocks iOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A3A905172497D37F004835B7 /* Build configuration list for PBXNativeTarget "IMBlocks iOS" */;
+			buildPhases = (
+				A3A904E72497D37F004835B7 /* Sources */,
+				A3A904E82497D37F004835B7 /* Frameworks */,
+				A3A904E92497D37F004835B7 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "IMBlocks iOS";
+			productName = "IMBlocks iOS";
+			productReference = A3A904EB2497D37F004835B7 /* IMBlocks.app */;
+			productType = "com.apple.product-type.application";
+		};
+		A3A905002497D37F004835B7 /* IMBlocks macOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A3A9051A2497D37F004835B7 /* Build configuration list for PBXNativeTarget "IMBlocks macOS" */;
+			buildPhases = (
+				A3A904FD2497D37F004835B7 /* Sources */,
+				A3A904FE2497D37F004835B7 /* Frameworks */,
+				A3A904FF2497D37F004835B7 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "IMBlocks macOS";
+			productName = "IMBlocks macOS";
+			productReference = A3A905012497D37F004835B7 /* IMBlocks.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A3A904DD2497D37E004835B7 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 1130;
+				ORGANIZATIONNAME = "Lifelong Kindergarten";
+				TargetAttributes = {
+					A3A904EA2497D37F004835B7 = {
+						CreatedOnToolsVersion = 11.3.1;
+					};
+					A3A905002497D37F004835B7 = {
+						CreatedOnToolsVersion = 11.3.1;
+					};
+				};
+			};
+			buildConfigurationList = A3A904E02497D37E004835B7 /* Build configuration list for PBXProject "IMBlocks" */;
+			compatibilityVersion = "Xcode 9.3";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = A3A904DC2497D37E004835B7;
+			productRefGroup = A3A904EC2497D37F004835B7 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A3A904EA2497D37F004835B7 /* IMBlocks iOS */,
+				A3A905002497D37F004835B7 /* IMBlocks macOS */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		A3A904E92497D37F004835B7 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A3A904F62497D37F004835B7 /* Main.storyboard in Resources */,
+				A3A905132497D37F004835B7 /* Assets.xcassets in Resources */,
+				A3A904F92497D37F004835B7 /* LaunchScreen.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A3A904FF2497D37F004835B7 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A3A905142497D37F004835B7 /* Assets.xcassets in Resources */,
+				A3A9050B2497D37F004835B7 /* Main.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		A3A904E72497D37F004835B7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A3A9050F2497D37F004835B7 /* Renderer.mm in Sources */,
+				A3A904F32497D37F004835B7 /* GameViewController.m in Sources */,
+				A3A904FC2497D37F004835B7 /* main.m in Sources */,
+				A3A904F02497D37F004835B7 /* AppDelegate.m in Sources */,
+				A3A905112497D37F004835B7 /* Shaders.metal in Sources */,
+				A3A905202497D6A1004835B7 /* Blocks.cpp in Sources */,
+				A3A90524249810B4004835B7 /* MetalView.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A3A904FD2497D37F004835B7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A3A905102497D37F004835B7 /* Renderer.mm in Sources */,
+				A3A905082497D37F004835B7 /* GameViewController.m in Sources */,
+				A3A9050E2497D37F004835B7 /* main.m in Sources */,
+				A3A905052497D37F004835B7 /* AppDelegate.m in Sources */,
+				A3A905122497D37F004835B7 /* Shaders.metal in Sources */,
+				A3A905212497D6A1004835B7 /* Blocks.cpp in Sources */,
+				A3A90525249810B4004835B7 /* MetalView.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		A3A904F42497D37F004835B7 /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				A3A904F52497D37F004835B7 /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+		A3A904F72497D37F004835B7 /* LaunchScreen.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				A3A904F82497D37F004835B7 /* Base */,
+			);
+			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+		A3A905092497D37F004835B7 /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				A3A9050A2497D37F004835B7 /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		A3A905152497D37F004835B7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+			};
+			name = Debug;
+		};
+		A3A905162497D37F004835B7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+			};
+			name = Release;
+		};
+		A3A905182497D37F004835B7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 38HK43T9W4;
+				INFOPLIST_FILE = iOS/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = edu.mit.media.llk.IMBlocks;
+				PRODUCT_NAME = IMBlocks;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		A3A905192497D37F004835B7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 38HK43T9W4;
+				INFOPLIST_FILE = iOS/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = edu.mit.media.llk.IMBlocks;
+				PRODUCT_NAME = IMBlocks;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		A3A9051B2497D37F004835B7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = 38HK43T9W4;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = macOS/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				PRODUCT_BUNDLE_IDENTIFIER = edu.mit.media.llk.IMBlocks;
+				PRODUCT_NAME = IMBlocks;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		A3A9051C2497D37F004835B7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = 38HK43T9W4;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = macOS/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				PRODUCT_BUNDLE_IDENTIFIER = edu.mit.media.llk.IMBlocks;
+				PRODUCT_NAME = IMBlocks;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		A3A904E02497D37E004835B7 /* Build configuration list for PBXProject "IMBlocks" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A3A905152497D37F004835B7 /* Debug */,
+				A3A905162497D37F004835B7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A3A905172497D37F004835B7 /* Build configuration list for PBXNativeTarget "IMBlocks iOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A3A905182497D37F004835B7 /* Debug */,
+				A3A905192497D37F004835B7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A3A9051A2497D37F004835B7 /* Build configuration list for PBXNativeTarget "IMBlocks macOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A3A9051B2497D37F004835B7 /* Debug */,
+				A3A9051C2497D37F004835B7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = A3A904DD2497D37E004835B7 /* Project object */;
+}
