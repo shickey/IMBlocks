@@ -9,9 +9,11 @@
 #include "Blocks.h"
 #include <string.h>
 
-void CommandBlock(BlockId id, f32 *x, f32 *y);
+struct Block;
 
-struct Buffer {
+void DrawCommandBlock(Block *);
+
+struct Arena {
     u8 *data;
     u32 size;
     u32 used;
@@ -28,8 +30,10 @@ struct Interactable {
 struct BlocksContext {
     BlocksInput input;
     
-    Buffer verts;
-    Buffer uniforms;
+    Arena verts;
+    Arena uniforms;
+    Arena blocks;
+    u32 numBlocks;
     u32 nextBlockIdx;
     
     Interactable hot;
@@ -37,16 +41,13 @@ struct BlocksContext {
     Interactable nextHot;
 };
 
-struct BlockData {
+struct Block {
+    BlockId id;
+    BlockType type;
     f32 x;
     f32 y;
-};
-
-static BlockData blockData[4] = {
-    {-40, 30},
-    {0, 60},
-    {20, -30},
-    {-40, -30}
+    Block *next;
+    b32 topLevel;
 };
 
 inline
@@ -102,36 +103,47 @@ BlocksRenderInfo EndBlocks() {
     return Result;
 }
 
+#define pushStruct(arena, type) (type *)pushSize(arena, sizeof(type))
+#define pushArray(arena, type, count) (type *)pushSize(arena, sizeof(type) * count)
+void *pushSize(Arena *arena, u32 size) {
+  // Make sure we have enough space left in the arena
+  Assert(arena->used + size <= arena->size);
+  
+  void *result = arena->data + arena->used;
+  arena->used += size;
+  
+  return result;
+}
+
 #define pushVerts(v) pushData_(&blocksCtx->verts, (v), sizeof((v)))
 #define pushUniforms(u) pushData_(&blocksCtx->uniforms, &(u), sizeof((u)))
-void pushData_(Buffer *buffer, void *data, u32 size) {
-    Assert(buffer->used + size <= buffer->size);
-    memcpy(buffer->data + buffer->used, data, size);
-    buffer->used += size;
+void pushData_(Arena *arena, void *data, u32 size) {
+    void *location = pushSize(arena, size);
+    memcpy(location, data, size);
 }
 
 
 
-void Block(BlockId id, BlockType type, f32 *x, f32 *y) {
+void DrawBlock(Block *block) {
     Assert(blocksCtx->verts.data);
     
-    switch(type) {
+    switch(block->type) {
         case Command: {
-            CommandBlock(id, x, y);
+            DrawCommandBlock(block);
             break;
         }
         default: break;
     }
 }
 
-void CommandBlock(BlockId id, f32 *x, f32 *y) {
+void DrawCommandBlock(Block *block) {
     Assert(blocksCtx->verts.data);
     
-    BlocksRect blockRect = { *x, *y, 18, 16};
+    BlocksRect blockRect = { block->x, block->y, 18, 16};
     if (pointInRect(blocksCtx->input.mouseP, blockRect)) {
-        blocksCtx->nextHot.id = id;
-        blocksCtx->nextHot.x = x;
-        blocksCtx->nextHot.y = y;
+        blocksCtx->nextHot.id = block->id;
+        blocksCtx->nextHot.x = &block->x;
+        blocksCtx->nextHot.y = &block->y;
         
         blocksCtx->nextHot.mouseOffset = { blocksCtx->input.mouseP.x - blockRect.x, blocksCtx->input.mouseP.y - blockRect.y };
     }
@@ -194,10 +206,16 @@ void CommandBlock(BlockId id, f32 *x, f32 *y) {
         16, 12,
         18, 10
     };
-    BlockUniforms uniforms = { blocksCtx->nextBlockIdx++, *x, *y, false }; 
+    BlockUniforms uniforms = { blocksCtx->nextBlockIdx++, block->x, block->y, false }; 
     
     pushVerts(verts);
     pushUniforms(uniforms);
+    
+    if (block->next) {
+        block->next->x = block->x + 18;
+        block->next->y = block->y;
+        DrawBlock(block->next);
+    }
     
 }
 
@@ -215,18 +233,64 @@ void InitBlocks(void *mem, u32 memSize) {
     context->verts.size = VERTS_MEM_SIZE;
     context->verts.used = 0;
     
-    context->uniforms.data = ((u8 *)mem) + VERTS_MEM_SIZE + sizeof(BlocksContext);
+    context->uniforms.data = ((u8 *)mem) + sizeof(BlocksContext) + VERTS_MEM_SIZE;
     context->uniforms.size = UNIFORMS_MEM_SIZE;
     context->uniforms.used = 0;
+    
+    // All the rest of the data block
+    u32 blocksArenaSize = memSize - (sizeof(BlocksContext) + VERTS_MEM_SIZE + UNIFORMS_MEM_SIZE);
+    context->blocks.data = ((u8 *)mem) + sizeof(BlocksContext) + VERTS_MEM_SIZE + UNIFORMS_MEM_SIZE;
+    context->blocks.size = blocksArenaSize;
+    context->blocks.used = 0;
+    context->numBlocks = 0;
+    
+    // Create some blocks, y'know, for fun
+    Block *block1 = pushStruct(&context->blocks, Block);
+    block1->id = 1;
+    block1->type = Command;
+    block1->x = -20;
+    block1->y = 30;
+    block1->next = NULL;
+    block1->topLevel = true;
+    ++context->numBlocks;
+    
+    Block *block2 = pushStruct(&context->blocks, Block);
+    block2->id = 2;
+    block2->type = Command;
+    block2->x = 30;
+    block2->y = 40;
+    block2->next = NULL;
+    block2->topLevel = false;
+    ++context->numBlocks;
+    
+    Block *block3 = pushStruct(&context->blocks, Block);
+    block3->id = 3;
+    block3->type = Command;
+    block3->x = 0;
+    block3->y = 0;
+    block3->next = block2;
+    block3->topLevel = true;
+    ++context->numBlocks;
+    
+    Block *block4 = pushStruct(&context->blocks, Block);
+    block4->id = 4;
+    block4->type = Command;
+    block4->x = 40;
+    block4->y = -30;
+    block4->next = NULL;
+    block4->topLevel = true;
+    ++context->numBlocks;
 }
 
 BlocksRenderInfo RunBlocks(void *mem, BlocksInput *input) {
     // Always reset the blocksCtx pointer in case we reloaded the dylib
     blocksCtx = (BlocksContext *)mem;
     BeginBlocks(*input);
-    for (u32 i = 0; i < 3; ++i) {
-        BlockData *data = &blockData[i];
-        Block(i + 1, Command, &data->x, &data->y);
+    for (u32 i = 0; i < blocksCtx->numBlocks; ++i) {
+        Block *block = (Block *)(blocksCtx->blocks.data) + i;
+        if (block->topLevel) {
+            DrawBlock(block);
+        }
     }
     return EndBlocks();
 }

@@ -7,34 +7,16 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "5181576D-D735-453C-90D4-3C07E841F673"
+            uuid = "C5AC4AF8-BBB0-4BDE-96AD-CE752F71B02D"
             shouldBeEnabled = "No"
             ignoreCount = "0"
-            condition = "runBlocks == NULL"
             continueAfterRunningActions = "No"
-            filePath = "Shared/Renderer.mm"
+            filePath = "Blocks/Blocks.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "65"
-            endingLineNumber = "65"
-            landmarkName = "loadLibBlocks()"
-            landmarkType = "9">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "9B43A152-B794-4FFC-8373-DF5975A6BAA6"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            condition = "libBlocks == NULL"
-            continueAfterRunningActions = "No"
-            filePath = "Shared/Renderer.mm"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "63"
-            endingLineNumber = "63"
-            landmarkName = "loadLibBlocks()"
+            startingLineNumber = "121"
+            endingLineNumber = "121"
+            landmarkName = "pushData_(arena, data, size)"
             landmarkType = "9">
          </BreakpointContent>
       </BreakpointProxy>

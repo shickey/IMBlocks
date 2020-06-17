@@ -85,10 +85,6 @@ struct BlocksInput {
     };
 };
 
-enum BlockType {
-    Command = 1,
-};
-
 struct BlocksRenderInfo {
     void *verts;
     u32 vertsSize;
@@ -97,10 +93,14 @@ struct BlocksRenderInfo {
     u32 uniformsSize;
 };
 
+enum BlockType {
+    Command = 1,
+};
+
 void BeginBlocks(BlocksInput input);
 BlocksRenderInfo EndBlocks(void);
 
-void Block(BlockId id, BlockType type, f32 *x, f32 *y);
+void DrawBlock(BlockId id, BlockType type, f32 *x, f32 *y);
 
 extern "C" {
 void InitBlocks(void *mem, u32 memSize);
