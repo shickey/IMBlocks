@@ -7,6 +7,7 @@
 //
 
 #import <simd/simd.h>
+#include <dlfcn.h>
 
 #import "Renderer.h"
 #import "Blocks.h"
@@ -17,6 +18,10 @@
 
 static const u32 MAX_BUFFERS_IN_FLIGHT = 3;
 static const u32 MAX_BLOCKS = 1024;
+
+typedef void *DylibHandle;
+typedef void(*InitBlocksSignature)(void *, u32);
+typedef BlocksRenderInfo (*RunBlocksSignature)(void *, BlocksInput *);
 
 struct WorldUniforms {
     matrix_float4x4 transform;
@@ -31,17 +36,42 @@ struct DebugRect {
 
 static u32 debugRectCount = 0;
 
-struct BlockData {
-    f32 x;
-    f32 y;
-};
+static NSDate *lastLibWriteTime = 0;
+static DylibHandle libBlocks = 0;
+static InitBlocksSignature initBlocks = 0;
+static RunBlocksSignature runBlocks = 0;
 
-static BlockData blockData[4] = {
-    {-40, 30},
-    {0, 60},
-    {20, -30},
-    {-40, -30}
-};
+static void *blocksMem = 0;
+
+NSString *getLibPath() {
+    NSString *appPath = [NSBundle.mainBundle bundlePath];
+    NSString *directoryPath = [appPath stringByDeletingLastPathComponent];
+    return [directoryPath stringByAppendingPathComponent:@"libBlocks.dylib"];
+}
+
+NSDate *getLastWriteTime(NSString *filePath) {
+    NSDictionary<NSFileAttributeKey, id> *attrs = [NSFileManager.defaultManager attributesOfItemAtPath:filePath error:nil];
+    return (NSDate *)attrs[NSFileModificationDate];
+}
+
+void loadLibBlocks() {
+    NSLog(@"Loading libBlocks");
+    NSString *libPath = getLibPath();
+    const char *libPathRaw = [libPath fileSystemRepresentation];
+    
+    libBlocks = dlopen(libPathRaw, RTLD_LAZY|RTLD_LOCAL);
+    initBlocks = (InitBlocksSignature)dlsym(libBlocks, "InitBlocks");
+    runBlocks = (RunBlocksSignature)dlsym(libBlocks, "RunBlocks");
+    lastLibWriteTime = getLastWriteTime(libPath);
+}
+
+void unloadLibBlocks() {
+    NSLog(@"Unloading libBlocks");
+    initBlocks = NULL;
+    runBlocks = NULL;
+    dlclose(libBlocks);
+    libBlocks = NULL;
+}
 
 @implementation Renderer
 {
@@ -146,6 +176,12 @@ static BlockData blockData[4] = {
         _debugVertBuffers[i] = [_device newBufferWithLength:(16 * 256) options:MTLResourceStorageModeShared];
         _debugVertBuffers[i].label = @"Debug Vertex Buffer";
     }
+    
+    // Init Blocks Memory
+    loadLibBlocks();
+    u32 memSize = Megabytes(128);
+    blocksMem = malloc(memSize);
+    initBlocks(blocksMem, memSize);
 
     _commandQueue = [_device newCommandQueue];
 }
@@ -162,23 +198,13 @@ static BlockData blockData[4] = {
     return CGPointMake(P.x, P.y);
 }
 
-- (BlocksRenderInfo)_drawBlocksWithInput:(BlocksInput)input vertBuffer:(id <MTLBuffer>)vertBuffer blockUniformsBuffer:(id <MTLBuffer>)blockUniformsBuffer 
-{
-    BeginBlocks(input, [vertBuffer contents], (u32)vertBuffer.length, [blockUniformsBuffer contents], (u32)blockUniformsBuffer.length);
-    for (u32 i = 0; i < 4; ++i) {
-        BlockData *data = &blockData[i];
-        Block(i + 1, Command, &data->x, &data->y);
-    }
-    return EndBlocks();
-}
-
-- (void)renderDebugRectsInBuffer:(id<MTLBuffer>)buffer {
-    for (u32 i = 0; i < 4; ++i) {
-        BlockData data = blockData[i];
-        DebugRect rect = {data.x + 16, data.y, 12, 16};
-        [self pushDebugRectVerts:rect inBuffer:buffer];
-    }
-}
+//- (void)renderDebugRectsInBuffer:(id<MTLBuffer>)buffer {
+//    for (u32 i = 0; i < 4; ++i) {
+//        BlockData data = blockData[i];
+//        DebugRect rect = {data.x + 16, data.y, 12, 16};
+//        [self pushDebugRectVerts:rect inBuffer:buffer];
+//    }
+//}
 
 - (void)pushDebugRectVerts:(DebugRect)rect inBuffer:(id<MTLBuffer>)buffer {
     f32 *vertStorage = ((f32 *)buffer.contents) + ((debugRectCount++) * 16);
@@ -204,6 +230,19 @@ static BlockData blockData[4] = {
 
 - (void)drawInMTKView:(nonnull MetalView *)view
 {
+    // Load/Reload dylib if necessary
+    if (!libBlocks || !lastLibWriteTime || [lastLibWriteTime compare:getLastWriteTime(getLibPath())] == NSOrderedAscending) {
+        if (libBlocks) {
+            unloadLibBlocks();
+        }
+        loadLibBlocks();
+        if (!libBlocks) {
+            NSLog(@"WARNING: Missed dylib reload");
+            // The dylib may still be being written, so we spin until the next frame when (hopefully) it will be ready
+            return;
+        }
+    }
+    
     // Clear debug rects
     debugRectCount = 0;
 
@@ -229,23 +268,22 @@ static BlockData blockData[4] = {
     
     id <MTLBuffer> vertBuffer = _vertBuffers[_bufferIndex];
     id <MTLBuffer> blockUniformsBuffer = _blockUniformsBuffers[_bufferIndex];
-    BlocksRenderInfo renderInfo = [self _drawBlocksWithInput:blocksInput vertBuffer:vertBuffer blockUniformsBuffer:blockUniformsBuffer];
     
-    id <MTLBuffer> debugVertBuffer = _debugVertBuffers[_bufferIndex];
-    [self renderDebugRectsInBuffer:debugVertBuffer];
+    BlocksRenderInfo renderInfo = runBlocks(blocksMem, &blocksInput);
+    memcpy(vertBuffer.contents, renderInfo.verts, renderInfo.vertsSize);
+    memcpy(blockUniformsBuffer.contents, renderInfo.uniforms, renderInfo.uniformsSize);
+    
+//    id <MTLBuffer> debugVertBuffer = _debugVertBuffers[_bufferIndex];
+//    [self renderDebugRectsInBuffer:debugVertBuffer];
     
     // World transform
     id <MTLBuffer> worldUniformsBuffer = _worldUniformsBuffers[_bufferIndex];
     WorldUniforms *worldUniforms = (WorldUniforms *)[worldUniformsBuffer contents];
     worldUniforms->transform = _projectionMatrix;
 
-    /// Delay getting the currentRenderPassDescriptor until absolutely needed. This avoids
-    ///   holding onto the drawable and blocking the display pipeline any longer than necessary
     MTLRenderPassDescriptor* renderPassDescriptor = view.currentRenderPassDescriptor;
-
     if(renderPassDescriptor != nil)
     {
-     
         id <MTLRenderCommandEncoder> renderEncoder = [commandBuffer renderCommandEncoderWithDescriptor:renderPassDescriptor];
         renderEncoder.label = @"MyRenderEncoder";
 
@@ -256,13 +294,13 @@ static BlockData blockData[4] = {
         [renderEncoder setVertexBuffer:blockUniformsBuffer offset:0 atIndex:1];
         [renderEncoder setVertexBuffer:worldUniformsBuffer offset:0 atIndex:2];
         
-        [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:renderInfo.vertCount];
+        [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:renderInfo.vertsCount];
         
         // Debug Drawing
-        [renderEncoder setRenderPipelineState:_debugPipelineState];
-
-        [renderEncoder setVertexBuffer:debugVertBuffer offset:0 atIndex:0];
-        [renderEncoder drawPrimitives:MTLPrimitiveTypeLine vertexStart:0 vertexCount:8 * debugRectCount];
+//        [renderEncoder setRenderPipelineState:_debugPipelineState];
+//
+//        [renderEncoder setVertexBuffer:debugVertBuffer offset:0 atIndex:0];
+//        [renderEncoder drawPrimitives:MTLPrimitiveTypeLine vertexStart:0 vertexCount:8 * debugRectCount];
 
         [renderEncoder endEncoding];
 

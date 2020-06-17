@@ -91,14 +91,20 @@ enum BlockType {
 
 struct BlocksRenderInfo {
     void *verts;
-    u32 vertCount;
+    u32 vertsSize;
+    u32 vertsCount;
     void *uniforms;
-    BlockId hot;
+    u32 uniformsSize;
 };
 
-void BeginBlocks(BlocksInput input, void *vertexMemory, u32 vertsSize, void *uniformsMemory, u32 uniformsSize);
+void BeginBlocks(BlocksInput input);
 BlocksRenderInfo EndBlocks(void);
 
 void Block(BlockId id, BlockType type, f32 *x, f32 *y);
+
+extern "C" {
+void InitBlocks(void *mem, u32 memSize);
+BlocksRenderInfo RunBlocks(void *mem, BlocksInput *input);
+}
 
 #endif /* blocks_h */

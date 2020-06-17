@@ -37,66 +37,73 @@ struct BlocksContext {
     Interactable nextHot;
 };
 
+struct BlockData {
+    f32 x;
+    f32 y;
+};
+
+static BlockData blockData[4] = {
+    {-40, 30},
+    {0, 60},
+    {20, -30},
+    {-40, -30}
+};
+
 inline
 b32 pointInRect(V2 point, BlocksRect rect) {
     return (point.x >= rect.x && point.x <= rect.x + rect.w) && (point.y >= rect.y && point.y <= rect.y + rect.h);
 }
 
-global_var BlocksContext blocksCtx = { 0 };
+global_var BlocksContext *blocksCtx = 0;
 
-void BeginBlocks(BlocksInput input, void *vertexMemory, u32 vertsSize, void *uniformsMemory, u32 uniformsSize) {
-    blocksCtx.input = input;
+void BeginBlocks(BlocksInput input) {
+    blocksCtx->input = input;
     
-    blocksCtx.verts.data = (u8 *)vertexMemory;
-    blocksCtx.verts.size = vertsSize;
-    blocksCtx.verts.used = 0;
+    // Clear memory
+    blocksCtx->verts.used = 0;
+    blocksCtx->uniforms.used = 0;
     
-    blocksCtx.uniforms.data = (u8 *)uniformsMemory;
-    blocksCtx.uniforms.size = uniformsSize;
-    blocksCtx.uniforms.used = 0;
+    blocksCtx->nextBlockIdx = 0;
     
-    blocksCtx.nextBlockIdx = 0;
-    
-    blocksCtx.hot.id = 0;
-    blocksCtx.nextHot.id = 0;
+    blocksCtx->hot.id = 0;
+    blocksCtx->nextHot.id = 0;
 }
 
 BlocksRenderInfo EndBlocks() {
-    if (blocksCtx.interacting.id) {
-        if (!blocksCtx.input.mouseDown) {
-            blocksCtx.interacting.id = 0;
+    if (blocksCtx->interacting.id) {
+        if (!blocksCtx->input.mouseDown) {
+            blocksCtx->interacting.id = 0;
         }
         else {
-            *blocksCtx.interacting.x = blocksCtx.input.mouseP.x - blocksCtx.interacting.mouseOffset.x;
-            *blocksCtx.interacting.y = blocksCtx.input.mouseP.y - blocksCtx.interacting.mouseOffset.y;
+            *blocksCtx->interacting.x = blocksCtx->input.mouseP.x - blocksCtx->interacting.mouseOffset.x;
+            *blocksCtx->interacting.y = blocksCtx->input.mouseP.y - blocksCtx->interacting.mouseOffset.y;
         }
     }
     else {
-        if (blocksCtx.nextHot.id) {
-            blocksCtx.hot = blocksCtx.nextHot;
+        if (blocksCtx->nextHot.id) {
+            blocksCtx->hot = blocksCtx->nextHot;
         }
-        if (blocksCtx.hot.id && blocksCtx.input.mouseDown) {
-            blocksCtx.interacting = blocksCtx.hot;
+        if (blocksCtx->hot.id && blocksCtx->input.mouseDown) {
+            blocksCtx->interacting = blocksCtx->hot;
         }
     }
     
-    if (blocksCtx.hot.id) {
-        BlockUniforms *uniforms = ((BlockUniforms *)blocksCtx.uniforms.data) + (blocksCtx.hot.id - 1);
+    if (blocksCtx->hot.id) {
+        BlockUniforms *uniforms = ((BlockUniforms *)blocksCtx->uniforms.data) + (blocksCtx->hot.id - 1);
         uniforms->hot = true;
     }
     
     BlocksRenderInfo Result;
-    Result.verts = blocksCtx.verts.data;
-    Result.vertCount = blocksCtx.verts.used / (sizeof(f32) * 2);
-    Result.uniforms = blocksCtx.uniforms.data;
-    Result.hot = blocksCtx.hot.id;
-    blocksCtx.verts.data = 0;
-    blocksCtx.uniforms.data = 0;
+    Result.verts = blocksCtx->verts.data;
+    Result.vertsCount = blocksCtx->verts.used / (sizeof(f32) * 2);
+    Result.vertsSize = blocksCtx->verts.used;
+    Result.uniforms = blocksCtx->uniforms.data;
+    Result.uniformsSize = blocksCtx->uniforms.used; 
     return Result;
 }
 
-#define pushVerts(v) pushData_(&blocksCtx.verts, (v), sizeof((v)))
-#define pushUniforms(u) pushData_(&blocksCtx.uniforms, &(u), sizeof((u)))
+#define pushVerts(v) pushData_(&blocksCtx->verts, (v), sizeof((v)))
+#define pushUniforms(u) pushData_(&blocksCtx->uniforms, &(u), sizeof((u)))
 void pushData_(Buffer *buffer, void *data, u32 size) {
     Assert(buffer->used + size <= buffer->size);
     memcpy(buffer->data + buffer->used, data, size);
@@ -106,7 +113,7 @@ void pushData_(Buffer *buffer, void *data, u32 size) {
 
 
 void Block(BlockId id, BlockType type, f32 *x, f32 *y) {
-    Assert(blocksCtx.verts.data);
+    Assert(blocksCtx->verts.data);
     
     switch(type) {
         case Command: {
@@ -118,15 +125,15 @@ void Block(BlockId id, BlockType type, f32 *x, f32 *y) {
 }
 
 void CommandBlock(BlockId id, f32 *x, f32 *y) {
-    Assert(blocksCtx.verts.data);
+    Assert(blocksCtx->verts.data);
     
     BlocksRect blockRect = { *x, *y, 18, 16};
-    if (pointInRect(blocksCtx.input.mouseP, blockRect)) {
-        blocksCtx.nextHot.id = id;
-        blocksCtx.nextHot.x = x;
-        blocksCtx.nextHot.y = y;
+    if (pointInRect(blocksCtx->input.mouseP, blockRect)) {
+        blocksCtx->nextHot.id = id;
+        blocksCtx->nextHot.x = x;
+        blocksCtx->nextHot.y = y;
         
-        blocksCtx.nextHot.mouseOffset = { blocksCtx.input.mouseP.x - blockRect.x, blocksCtx.input.mouseP.y - blockRect.y };
+        blocksCtx->nextHot.mouseOffset = { blocksCtx->input.mouseP.x - blockRect.x, blocksCtx->input.mouseP.y - blockRect.y };
     }
     
     f32 verts[] = {
@@ -187,9 +194,41 @@ void CommandBlock(BlockId id, f32 *x, f32 *y) {
         16, 12,
         18, 10
     };
-    BlockUniforms uniforms = { blocksCtx.nextBlockIdx++, *x, *y, false }; 
+    BlockUniforms uniforms = { blocksCtx->nextBlockIdx++, *x, *y, false }; 
     
     pushVerts(verts);
     pushUniforms(uniforms);
     
+}
+
+extern "C" {
+
+void InitBlocks(void *mem, u32 memSize) {
+    static const u32 VERTS_MEM_SIZE = 65535 * (2 * sizeof(f32));
+    static const u32 UNIFORMS_MEM_SIZE = 4096 * sizeof(BlockUniforms);
+    
+    Assert(memSize >= sizeof(BlocksContext) + VERTS_MEM_SIZE + UNIFORMS_MEM_SIZE);
+    
+    BlocksContext *context = (BlocksContext *)mem;
+    
+    context->verts.data = ((u8 *)mem) + sizeof(BlocksContext);
+    context->verts.size = VERTS_MEM_SIZE;
+    context->verts.used = 0;
+    
+    context->uniforms.data = ((u8 *)mem) + VERTS_MEM_SIZE + sizeof(BlocksContext);
+    context->uniforms.size = UNIFORMS_MEM_SIZE;
+    context->uniforms.used = 0;
+}
+
+BlocksRenderInfo RunBlocks(void *mem, BlocksInput *input) {
+    // Always reset the blocksCtx pointer in case we reloaded the dylib
+    blocksCtx = (BlocksContext *)mem;
+    BeginBlocks(*input);
+    for (u32 i = 0; i < 3; ++i) {
+        BlockData *data = &blockData[i];
+        Block(i + 1, Command, &data->x, &data->y);
+    }
+    return EndBlocks();
+}
+
 }

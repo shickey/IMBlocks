@@ -7,48 +7,34 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "FCCDC544-CF44-4210-B108-C2B6513A90CD"
+            uuid = "5181576D-D735-453C-90D4-3C07E841F673"
             shouldBeEnabled = "No"
             ignoreCount = "0"
+            condition = "runBlocks == NULL"
             continueAfterRunningActions = "No"
             filePath = "Shared/Renderer.mm"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "230"
-            endingLineNumber = "230"
-            landmarkName = "-drawInMTKView:"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "24B4213C-2264-434C-8DB7-3C5097D5405C"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "Blocks/Blocks.cpp"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "79"
-            endingLineNumber = "79"
-            landmarkName = "EndBlocks()"
+            startingLineNumber = "65"
+            endingLineNumber = "65"
+            landmarkName = "loadLibBlocks()"
             landmarkType = "9">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "3176F049-ECDC-49DB-BD57-692FB54EACF2"
+            uuid = "9B43A152-B794-4FFC-8373-DF5975A6BAA6"
             shouldBeEnabled = "No"
             ignoreCount = "0"
+            condition = "libBlocks == NULL"
             continueAfterRunningActions = "No"
-            filePath = "Blocks/Blocks.cpp"
+            filePath = "Shared/Renderer.mm"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "125"
-            endingLineNumber = "125"
-            landmarkName = "CommandBlock(id, x, y)"
+            startingLineNumber = "63"
+            endingLineNumber = "63"
+            landmarkName = "loadLibBlocks()"
             landmarkType = "9">
          </BreakpointContent>
       </BreakpointProxy>
