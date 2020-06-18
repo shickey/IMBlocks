@@ -44,9 +44,15 @@ static RunBlocksSignature runBlocks = 0;
 static void *blocksMem = 0;
 
 NSString *getLibPath() {
+#if TARGET_OS_OSX
     NSString *appPath = [NSBundle.mainBundle bundlePath];
     NSString *directoryPath = [appPath stringByDeletingLastPathComponent];
     return [directoryPath stringByAppendingPathComponent:@"libBlocks.dylib"];
+#else
+    NSURL *frameworkUrl = [NSBundle.mainBundle URLForResource:@"libBlocksARM" withExtension:@"framework" subdirectory:@"Frameworks"];
+    NSURL *dylibUrl = [frameworkUrl URLByAppendingPathComponent:@"libBlocksARM"];
+    return [dylibUrl path];
+#endif
 }
 
 NSDate *getLastWriteTime(NSString *filePath) {

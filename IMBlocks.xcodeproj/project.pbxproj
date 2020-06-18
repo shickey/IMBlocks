@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A308405E249BF10100AC2EEB /* libBlocksARM.h in Headers */ = {isa = PBXBuildFile; fileRef = A308405C249BF10100AC2EEB /* libBlocksARM.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		A3084062249BF10100AC2EEB /* libBlocksARM.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = A308405A249BF10100AC2EEB /* libBlocksARM.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		A3084067249BF10D00AC2EEB /* Blocks.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3A9051F2497D6A1004835B7 /* Blocks.cpp */; };
 		A32B6DDC2499C2D00084106E /* Blocks.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3A9051F2497D6A1004835B7 /* Blocks.cpp */; };
 		A3A904F02497D37F004835B7 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = A3A904EF2497D37F004835B7 /* AppDelegate.m */; };
 		A3A904F32497D37F004835B7 /* GameViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A3A904F22497D37F004835B7 /* GameViewController.m */; };
@@ -31,6 +34,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		A308405F249BF10100AC2EEB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A3A904DD2497D37E004835B7 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A3084059249BF10100AC2EEB;
+			remoteInfo = libBlocksARM;
+		};
 		A3AA9848249AAC5500928544 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = A3A904DD2497D37E004835B7 /* Project object */;
@@ -41,6 +51,17 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		A3084066249BF10100AC2EEB /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				A3084062249BF10100AC2EEB /* libBlocksARM.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		A3AA984D249B04AB00928544 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 12;
@@ -53,6 +74,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		A308405A249BF10100AC2EEB /* libBlocksARM.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = libBlocksARM.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		A308405C249BF10100AC2EEB /* libBlocksARM.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = libBlocksARM.h; sourceTree = "<group>"; };
+		A308405D249BF10100AC2EEB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A32B6DD82499C2B60084106E /* libBlocks.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libBlocks.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		A3A904E22497D37E004835B7 /* Renderer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Renderer.h; sourceTree = "<group>"; };
 		A3A904E32497D37E004835B7 /* Renderer.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = Renderer.mm; sourceTree = "<group>"; };
@@ -87,6 +111,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		A3084057249BF10100AC2EEB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		A32B6DD62499C2B60084106E /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -118,6 +149,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		A308405B249BF10100AC2EEB /* libBlocksARM */ = {
+			isa = PBXGroup;
+			children = (
+				A308405C249BF10100AC2EEB /* libBlocksARM.h */,
+				A308405D249BF10100AC2EEB /* Info.plist */,
+			);
+			path = libBlocksARM;
+			sourceTree = "<group>";
+		};
 		A3A904DC2497D37E004835B7 = {
 			isa = PBXGroup;
 			children = (
@@ -126,6 +166,7 @@
 				A3A904ED2497D37F004835B7 /* iOS */,
 				A3A905022497D37F004835B7 /* macOS */,
 				A3AA9850249B04AB00928544 /* GenTextures */,
+				A308405B249BF10100AC2EEB /* libBlocksARM */,
 				A3A904EC2497D37F004835B7 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -152,6 +193,7 @@
 				A3A905012497D37F004835B7 /* IMBlocks.app */,
 				A32B6DD82499C2B60084106E /* libBlocks.dylib */,
 				A3AA984F249B04AB00928544 /* GenTextures */,
+				A308405A249BF10100AC2EEB /* libBlocksARM.framework */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -214,6 +256,14 @@
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
+		A3084055249BF10100AC2EEB /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A308405E249BF10100AC2EEB /* libBlocksARM.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		A32B6DD42499C2B60084106E /* Headers */ = {
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
@@ -224,6 +274,24 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
+		A3084059249BF10100AC2EEB /* libBlocksARM */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A3084063249BF10100AC2EEB /* Build configuration list for PBXNativeTarget "libBlocksARM" */;
+			buildPhases = (
+				A3084055249BF10100AC2EEB /* Headers */,
+				A3084056249BF10100AC2EEB /* Sources */,
+				A3084057249BF10100AC2EEB /* Frameworks */,
+				A3084058249BF10100AC2EEB /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = libBlocksARM;
+			productName = libBlocksARM;
+			productReference = A308405A249BF10100AC2EEB /* libBlocksARM.framework */;
+			productType = "com.apple.product-type.framework";
+		};
 		A32B6DD72499C2B60084106E /* libBlocks */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = A32B6DD92499C2B60084106E /* Build configuration list for PBXNativeTarget "libBlocks" */;
@@ -248,10 +316,12 @@
 				A3A904E72497D37F004835B7 /* Sources */,
 				A3A904E82497D37F004835B7 /* Frameworks */,
 				A3A904E92497D37F004835B7 /* Resources */,
+				A3084066249BF10100AC2EEB /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				A3084060249BF10100AC2EEB /* PBXTargetDependency */,
 			);
 			name = "IMBlocks iOS";
 			productName = "IMBlocks iOS";
@@ -302,6 +372,9 @@
 				LastUpgradeCheck = 1130;
 				ORGANIZATIONNAME = "Lifelong Kindergarten";
 				TargetAttributes = {
+					A3084059249BF10100AC2EEB = {
+						CreatedOnToolsVersion = 11.3.1;
+					};
 					A32B6DD72499C2B60084106E = {
 						CreatedOnToolsVersion = 11.3.1;
 					};
@@ -333,11 +406,19 @@
 				A3A905002497D37F004835B7 /* IMBlocks macOS */,
 				A32B6DD72499C2B60084106E /* libBlocks */,
 				A3AA984E249B04AB00928544 /* GenTextures */,
+				A3084059249BF10100AC2EEB /* libBlocksARM */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		A3084058249BF10100AC2EEB /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		A3A904E92497D37F004835B7 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -362,6 +443,14 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		A3084056249BF10100AC2EEB /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A3084067249BF10D00AC2EEB /* Blocks.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		A32B6DD52499C2B60084106E /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -407,6 +496,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		A3084060249BF10100AC2EEB /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A3084059249BF10100AC2EEB /* libBlocksARM */;
+			targetProxy = A308405F249BF10100AC2EEB /* PBXContainerItemProxy */;
+		};
 		A3AA9849249AAC5500928544 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = A32B6DD72499C2B60084106E /* libBlocks */;
@@ -442,6 +536,63 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		A3084064249BF10100AC2EEB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = 38HK43T9W4;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				INFOPLIST_FILE = libBlocksARM/Info.plist;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 13.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = edu.mit.media.llk.libBlocksARM;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Debug;
+		};
+		A3084065249BF10100AC2EEB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = 38HK43T9W4;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				INFOPLIST_FILE = libBlocksARM/Info.plist;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 13.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = edu.mit.media.llk.libBlocksARM;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
+		};
 		A32B6DDA2499C2B60084106E /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -584,6 +735,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 38HK43T9W4;
 				INFOPLIST_FILE = iOS/Info.plist;
+				INSTALL_PATH = "$(LOCAL_APPS_DIR)";
 				IPHONEOS_DEPLOYMENT_TARGET = 13.2;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -603,6 +755,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 38HK43T9W4;
 				INFOPLIST_FILE = iOS/Info.plist;
+				INSTALL_PATH = "$(LOCAL_APPS_DIR)";
 				IPHONEOS_DEPLOYMENT_TARGET = 13.2;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -683,6 +836,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		A3084063249BF10100AC2EEB /* Build configuration list for PBXNativeTarget "libBlocksARM" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A3084064249BF10100AC2EEB /* Debug */,
+				A3084065249BF10100AC2EEB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		A32B6DD92499C2B60084106E /* Build configuration list for PBXNativeTarget "libBlocks" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
