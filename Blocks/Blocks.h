@@ -64,8 +64,6 @@ struct BlocksRect {
 
 #define Assert(expr) if(!(expr)) { *(volatile u32 *)0 = 0; }
 
-typedef u32 BlockId;
-
 struct BlockUniforms {
     u32 idx;
     f32 xOffset;
@@ -99,8 +97,6 @@ enum BlockType {
 
 void BeginBlocks(BlocksInput input);
 BlocksRenderInfo EndBlocks(void);
-
-void DrawBlock(BlockId id, BlockType type, f32 *x, f32 *y);
 
 extern "C" {
 void InitBlocks(void *mem, u32 memSize);

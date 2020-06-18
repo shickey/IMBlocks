@@ -10,8 +10,14 @@
 #include <string.h>
 
 struct Block;
+struct Script;
+struct RenderBasis;
 
-void DrawCommandBlock(Block *);
+typedef u32 BlockId;
+typedef u32 ScriptId;
+
+void DrawBlock(Block *, RenderBasis *);
+void DrawCommandBlock(Block *, RenderBasis *);
 
 struct Arena {
     u8 *data;
@@ -20,11 +26,24 @@ struct Arena {
 };
 
 struct Interactable {
-    BlockId id;
+    ScriptId id;
     f32 *x;
     f32 *y;
     
     V2 mouseOffset;
+};
+
+struct Block {
+    Script *script;
+    BlockType type;
+    Block *next;
+};
+
+struct Script {
+    ScriptId id;
+    f32 x;
+    f32 y;
+    Block *topBlock;
 };
 
 struct BlocksContext {
@@ -33,21 +52,14 @@ struct BlocksContext {
     Arena verts;
     Arena uniforms;
     Arena blocks;
-    u32 numBlocks;
     u32 nextBlockIdx;
+    
+    Script scripts[1024];
+    u32 scriptCount;
     
     Interactable hot;
     Interactable interacting;
     Interactable nextHot;
-};
-
-struct Block {
-    BlockId id;
-    BlockType type;
-    f32 x;
-    f32 y;
-    Block *next;
-    b32 topLevel;
 };
 
 inline
@@ -122,28 +134,35 @@ void pushData_(Arena *arena, void *data, u32 size) {
     memcpy(location, data, size);
 }
 
+struct RenderBasis {
+    f32 x;
+    f32 y;
+};
 
-
-void DrawBlock(Block *block) {
-    Assert(blocksCtx->verts.data);
+void RenderScript(Script *script) {
+    if (!script->topBlock) { return; }
     
+    RenderBasis at = { script->x, script->y };
+    DrawBlock(script->topBlock, &at);
+}
+
+void DrawBlock(Block *block, RenderBasis *at) {
     switch(block->type) {
         case Command: {
-            DrawCommandBlock(block);
+            DrawCommandBlock(block, at);
             break;
         }
         default: break;
     }
 }
 
-void DrawCommandBlock(Block *block) {
-    Assert(blocksCtx->verts.data);
+void DrawCommandBlock(Block *block, RenderBasis *at) {
     
-    BlocksRect blockRect = { block->x, block->y, 18, 16};
+    BlocksRect blockRect = { at->x, at->y, 18, 16};
     if (pointInRect(blocksCtx->input.mouseP, blockRect)) {
-        blocksCtx->nextHot.id = block->id;
-        blocksCtx->nextHot.x = &block->x;
-        blocksCtx->nextHot.y = &block->y;
+        blocksCtx->nextHot.id = block->script->id;
+        blocksCtx->nextHot.x = &block->script->x;
+        blocksCtx->nextHot.y = &block->script->y;
         
         blocksCtx->nextHot.mouseOffset = { blocksCtx->input.mouseP.x - blockRect.x, blocksCtx->input.mouseP.y - blockRect.y };
     }
@@ -159,15 +178,14 @@ void DrawCommandBlock(Block *block) {
         18, 16, (472.0 / 512.0), (440.0 / 512.0)
     };
     
-    BlockUniforms uniforms = { blocksCtx->nextBlockIdx++, block->x, block->y, false }; 
+    BlockUniforms uniforms = { blocksCtx->nextBlockIdx++, at->x, at->y, false }; 
     
     pushVerts(verts);
     pushUniforms(uniforms);
     
     if (block->next) {
-        block->next->x = block->x + 16;
-        block->next->y = block->y;
-        DrawBlock(block->next);
+        at->x += 16;
+        DrawBlock(block->next, at);
     }
     
 }
@@ -195,55 +213,63 @@ void InitBlocks(void *mem, u32 memSize) {
     context->blocks.data = ((u8 *)mem) + sizeof(BlocksContext) + VERTS_MEM_SIZE + UNIFORMS_MEM_SIZE;
     context->blocks.size = blocksArenaSize;
     context->blocks.used = 0;
-    context->numBlocks = 0;
+    
+    context->scriptCount = 0;
     
     // Create some blocks, y'know, for fun
     Block *block1 = pushStruct(&context->blocks, Block);
-    block1->id = 1;
     block1->type = Command;
-    block1->x = -20;
-    block1->y = 30;
     block1->next = NULL;
-    block1->topLevel = true;
-    ++context->numBlocks;
+    
+    Script *script1 = &context->scripts[context->scriptCount++];
+    script1->id = 1;
+    script1->x = -20;
+    script1->y = 30;
+    script1->topBlock = block1;
+    
+    block1->script = script1;
+    
+    
     
     Block *block2 = pushStruct(&context->blocks, Block);
-    block2->id = 2;
     block2->type = Command;
-    block2->x = 30;
-    block2->y = 40;
     block2->next = NULL;
-    block2->topLevel = false;
-    ++context->numBlocks;
     
     Block *block3 = pushStruct(&context->blocks, Block);
-    block3->id = 3;
     block3->type = Command;
-    block3->x = 0;
-    block3->y = 0;
     block3->next = block2;
-    block3->topLevel = true;
-    ++context->numBlocks;
+    
+    Script *script2 = &context->scripts[context->scriptCount++];
+    script2->id = 2;
+    script2->x = 30;
+    script2->y = 40;
+    script2->topBlock = block3;
+    
+    block2->script = script2;
+    block3->script = script2;
+    
+    
     
     Block *block4 = pushStruct(&context->blocks, Block);
-    block4->id = 4;
     block4->type = Command;
-    block4->x = 40;
-    block4->y = -30;
     block4->next = NULL;
-    block4->topLevel = true;
-    ++context->numBlocks;
+    
+    Script *script3 = &context->scripts[context->scriptCount++];
+    script3->id = 3;
+    script3->x = 40;
+    script3->y = -30;
+    script3->topBlock = block4;
+    
+    block4->script = script3;
 }
 
 BlocksRenderInfo RunBlocks(void *mem, BlocksInput *input) {
     // Always reset the blocksCtx pointer in case we reloaded the dylib
     blocksCtx = (BlocksContext *)mem;
     BeginBlocks(*input);
-    for (u32 i = 0; i < blocksCtx->numBlocks; ++i) {
-        Block *block = (Block *)(blocksCtx->blocks.data) + i;
-        if (block->topLevel) {
-            DrawBlock(block);
-        }
+    for (u32 i = 0; i < blocksCtx->scriptCount; ++i) {
+        Script *script = &blocksCtx->scripts[i];
+        RenderScript(script);
     }
     return EndBlocks();
 }
