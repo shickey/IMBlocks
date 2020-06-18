@@ -25,6 +25,7 @@
 		A3A905142497D37F004835B7 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A3A904E62497D37F004835B7 /* Assets.xcassets */; };
 		A3A90524249810B4004835B7 /* MetalView.m in Sources */ = {isa = PBXBuildFile; fileRef = A3A90523249810B4004835B7 /* MetalView.m */; };
 		A3A90525249810B4004835B7 /* MetalView.m in Sources */ = {isa = PBXBuildFile; fileRef = A3A90523249810B4004835B7 /* MetalView.m */; };
+		A3AA9852249B04AC00928544 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = A3AA9851249B04AC00928544 /* main.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -36,6 +37,18 @@
 			remoteInfo = libBlocks;
 		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		A3AA984D249B04AB00928544 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 12;
+			dstPath = "";
+			dstSubfolderSpec = 6;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		A32B6DD82499C2B60084106E /* libBlocks.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libBlocks.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -65,6 +78,9 @@
 		A3A9051F2497D6A1004835B7 /* Blocks.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Blocks.cpp; sourceTree = "<group>"; };
 		A3A90522249810B4004835B7 /* MetalView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MetalView.h; sourceTree = "<group>"; };
 		A3A90523249810B4004835B7 /* MetalView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MetalView.m; sourceTree = "<group>"; };
+		A3AA984F249B04AB00928544 /* GenTextures */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = GenTextures; sourceTree = BUILT_PRODUCTS_DIR; };
+		A3AA9851249B04AC00928544 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		A3AA9856249B04C300928544 /* horizontal-command-block.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "horizontal-command-block.png"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -89,6 +105,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		A3AA984C249B04AB00928544 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -99,6 +122,7 @@
 				A3A904E12497D37E004835B7 /* Shared */,
 				A3A904ED2497D37F004835B7 /* iOS */,
 				A3A905022497D37F004835B7 /* macOS */,
+				A3AA9850249B04AB00928544 /* GenTextures */,
 				A3A904EC2497D37F004835B7 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -123,6 +147,7 @@
 				A3A904EB2497D37F004835B7 /* IMBlocks.app */,
 				A3A905012497D37F004835B7 /* IMBlocks.app */,
 				A32B6DD82499C2B60084106E /* libBlocks.dylib */,
+				A3AA984F249B04AB00928544 /* GenTextures */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -163,6 +188,15 @@
 				A3A9051E2497D6A0004835B7 /* Blocks.h */,
 			);
 			path = Blocks;
+			sourceTree = "<group>";
+		};
+		A3AA9850249B04AB00928544 /* GenTextures */ = {
+			isa = PBXGroup;
+			children = (
+				A3AA9851249B04AC00928544 /* main.m */,
+				A3AA9856249B04C300928544 /* horizontal-command-block.png */,
+			);
+			path = GenTextures;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -230,6 +264,23 @@
 			productReference = A3A905012497D37F004835B7 /* IMBlocks.app */;
 			productType = "com.apple.product-type.application";
 		};
+		A3AA984E249B04AB00928544 /* GenTextures */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A3AA9853249B04AC00928544 /* Build configuration list for PBXNativeTarget "GenTextures" */;
+			buildPhases = (
+				A3AA984B249B04AB00928544 /* Sources */,
+				A3AA984C249B04AB00928544 /* Frameworks */,
+				A3AA984D249B04AB00928544 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = GenTextures;
+			productName = GenTextures;
+			productReference = A3AA984F249B04AB00928544 /* GenTextures */;
+			productType = "com.apple.product-type.tool";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -246,6 +297,9 @@
 						CreatedOnToolsVersion = 11.3.1;
 					};
 					A3A905002497D37F004835B7 = {
+						CreatedOnToolsVersion = 11.3.1;
+					};
+					A3AA984E249B04AB00928544 = {
 						CreatedOnToolsVersion = 11.3.1;
 					};
 				};
@@ -266,6 +320,7 @@
 				A3A904EA2497D37F004835B7 /* IMBlocks iOS */,
 				A3A905002497D37F004835B7 /* IMBlocks macOS */,
 				A32B6DD72499C2B60084106E /* libBlocks */,
+				A3AA984E249B04AB00928544 /* GenTextures */,
 			);
 		};
 /* End PBXProject section */
@@ -324,6 +379,14 @@
 				A3A905052497D37F004835B7 /* AppDelegate.m in Sources */,
 				A3A905122497D37F004835B7 /* Shaders.metal in Sources */,
 				A3A90525249810B4004835B7 /* MetalView.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A3AA984B249B04AB00928544 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A3AA9852249B04AC00928544 /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -579,6 +642,30 @@
 			};
 			name = Release;
 		};
+		A3AA9854249B04AC00928544 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 38HK43T9W4;
+				ENABLE_HARDENED_RUNTIME = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		A3AA9855249B04AC00928544 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 38HK43T9W4;
+				ENABLE_HARDENED_RUNTIME = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -614,6 +701,15 @@
 			buildConfigurations = (
 				A3A9051B2497D37F004835B7 /* Debug */,
 				A3A9051C2497D37F004835B7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A3AA9853249B04AC00928544 /* Build configuration list for PBXNativeTarget "GenTextures" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A3AA9854249B04AC00928544 /* Debug */,
+				A3AA9855249B04AC00928544 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
