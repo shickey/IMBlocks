@@ -96,7 +96,7 @@ BlocksRenderInfo EndBlocks() {
     
     BlocksRenderInfo Result;
     Result.verts = blocksCtx->verts.data;
-    Result.vertsCount = blocksCtx->verts.used / (sizeof(f32) * 2);
+    Result.vertsCount = blocksCtx->verts.used / (sizeof(f32) * 4);
     Result.vertsSize = blocksCtx->verts.used;
     Result.uniforms = blocksCtx->uniforms.data;
     Result.uniformsSize = blocksCtx->uniforms.used; 
@@ -149,70 +149,23 @@ void DrawCommandBlock(Block *block) {
     }
     
     f32 verts[] = {
-    //  X   Y
-    // Bottom left lobe
-        0,  0,
-        2,  0,
-        0,  4,
+    //  X    Y                U               V
+        0,   0,  (40.0 / 512.0),  (56.0 / 512.0), 
+        18,  0, (472.0 / 512.0),  (56.0 / 512.0),
+        0,  16,  (40.0 / 512.0), (440.0 / 512.0),
         
-        2,  0,
-        0,  4,
-        2,  4,
-        
-    // Left notch, lower tri
-        0,  4,
-        2,  4,
-        2,  6,
-        
-    // Left notch, upper tri
-        2, 10,
-        2, 12,
-        0, 12,
-        
-    // Upper left lobe
-        2, 12,
-        2, 16,
-        0, 12,
-        
-        2, 16,
-        0, 12,
-        0, 16,
-    
-    // Main part
-        2,  0,
-        16, 0,
-        2, 16,
-        
-        16, 0,
-        2, 16,
-        16, 16,
-        
-    // Right lobe
-        16, 6,
-        18, 6,
-        16, 10,
-        
-        18, 6,
-        16, 10,
-        18, 10,
-        
-    // Right lobe, lower tri
-        16, 4,
-        16, 6,
-        18, 6,
-        
-    // Right lobe, upper tri
-        16, 10,
-        16, 12,
-        18, 10
+        18,  0, (472.0 / 512.0),  (56.0 / 512.0),
+        0,  16,  (40.0 / 512.0), (440.0 / 512.0),
+        18, 16, (472.0 / 512.0), (440.0 / 512.0)
     };
+    
     BlockUniforms uniforms = { blocksCtx->nextBlockIdx++, block->x, block->y, false }; 
     
     pushVerts(verts);
     pushUniforms(uniforms);
     
     if (block->next) {
-        block->next->x = block->x + 18;
+        block->next->x = block->x + 16;
         block->next->y = block->y;
         DrawBlock(block->next);
     }

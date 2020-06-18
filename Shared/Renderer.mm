@@ -84,6 +84,9 @@ void unloadLibBlocks() {
     id <MTLBuffer> _blockUniformsBuffers[MAX_BUFFERS_IN_FLIGHT];
     id <MTLBuffer> _worldUniformsBuffers[MAX_BUFFERS_IN_FLIGHT];
     id <MTLBuffer> _debugVertBuffers[MAX_BUFFERS_IN_FLIGHT];
+    
+    id <MTLTexture> blockTexture;
+    
     id <MTLRenderPipelineState> _pipelineState;
     id <MTLRenderPipelineState> _debugPipelineState;
     MTLVertexDescriptor *_mtlVertexDescriptor;
@@ -121,8 +124,13 @@ void unloadLibBlocks() {
     _mtlVertexDescriptor.attributes[0].bufferIndex = 0;
     _mtlVertexDescriptor.attributes[0].offset = 0;
     
+        // Tex UV
+    _mtlVertexDescriptor.attributes[1].format = MTLVertexFormatFloat2;
+    _mtlVertexDescriptor.attributes[1].bufferIndex = 0;
+    _mtlVertexDescriptor.attributes[1].offset = 2 * sizeof(f32);
+    
         // Stride
-    _mtlVertexDescriptor.layouts[0].stride = 2 * sizeof(f32);
+    _mtlVertexDescriptor.layouts[0].stride = 4 * sizeof(f32);
     _mtlVertexDescriptor.layouts[0].stepFunction = MTLVertexStepFunctionPerVertex;
 
     
@@ -176,6 +184,16 @@ void unloadLibBlocks() {
         _debugVertBuffers[i] = [_device newBufferWithLength:(16 * 256) options:MTLResourceStorageModeShared];
         _debugVertBuffers[i].label = @"Debug Vertex Buffer";
     }
+    
+    // Load block texture
+    MTLTextureDescriptor *texDescriptor = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatR8Uint 
+                                                                                             width:512 
+                                                                                            height:512 
+                                                                                         mipmapped:false];
+    blockTexture = [_device newTextureWithDescriptor:texDescriptor];
+    
+    NSData *texData = [NSData dataWithContentsOfURL:[NSBundle.mainBundle URLForResource:@"horizontal-command-block" withExtension:@"dat"]];
+    [blockTexture replaceRegion:MTLRegionMake2D(0, 0, 512, 512) mipmapLevel:0 withBytes:texData.bytes bytesPerRow:512];
     
     // Init Blocks Memory
     loadLibBlocks();
@@ -294,6 +312,8 @@ void unloadLibBlocks() {
         [renderEncoder setVertexBuffer:blockUniformsBuffer offset:0 atIndex:1];
         [renderEncoder setVertexBuffer:worldUniformsBuffer offset:0 atIndex:2];
         
+        [renderEncoder setFragmentTexture:blockTexture atIndex:0];
+        
         [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:renderInfo.vertsCount];
         
         // Debug Drawing
@@ -312,7 +332,7 @@ void unloadLibBlocks() {
 
 - (void)mtkView:(nonnull MTKView *)view drawableSizeWillChange:(CGSize)size
 {   
-    static f32 zoomLevel = 2.0;
+    static f32 zoomLevel = 4.0;
     
 //    f32 aspect = size.width / (float)size.height;
     

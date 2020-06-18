@@ -26,6 +26,8 @@
 		A3A90524249810B4004835B7 /* MetalView.m in Sources */ = {isa = PBXBuildFile; fileRef = A3A90523249810B4004835B7 /* MetalView.m */; };
 		A3A90525249810B4004835B7 /* MetalView.m in Sources */ = {isa = PBXBuildFile; fileRef = A3A90523249810B4004835B7 /* MetalView.m */; };
 		A3AA9852249B04AC00928544 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = A3AA9851249B04AC00928544 /* main.m */; };
+		A3AA985C249B208100928544 /* horizontal-command-block.dat in Resources */ = {isa = PBXBuildFile; fileRef = A3AA985B249B208100928544 /* horizontal-command-block.dat */; };
+		A3AA985D249B208100928544 /* horizontal-command-block.dat in Resources */ = {isa = PBXBuildFile; fileRef = A3AA985B249B208100928544 /* horizontal-command-block.dat */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -81,6 +83,7 @@
 		A3AA984F249B04AB00928544 /* GenTextures */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = GenTextures; sourceTree = BUILT_PRODUCTS_DIR; };
 		A3AA9851249B04AC00928544 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		A3AA9856249B04C300928544 /* horizontal-command-block.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "horizontal-command-block.png"; sourceTree = "<group>"; };
+		A3AA985B249B208100928544 /* horizontal-command-block.dat */ = {isa = PBXFileReference; lastKnownFileType = file; path = "horizontal-command-block.dat"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -130,6 +133,7 @@
 		A3A904E12497D37E004835B7 /* Shared */ = {
 			isa = PBXGroup;
 			children = (
+				A3AA9857249B1C1300928544 /* Textures */,
 				A3A904E22497D37E004835B7 /* Renderer.h */,
 				A3A904E32497D37E004835B7 /* Renderer.mm */,
 				A3A904E42497D37E004835B7 /* ShaderTypes.h */,
@@ -197,6 +201,14 @@
 				A3AA9856249B04C300928544 /* horizontal-command-block.png */,
 			);
 			path = GenTextures;
+			sourceTree = "<group>";
+		};
+		A3AA9857249B1C1300928544 /* Textures */ = {
+			isa = PBXGroup;
+			children = (
+				A3AA985B249B208100928544 /* horizontal-command-block.dat */,
+			);
+			path = Textures;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -331,6 +343,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A3A904F62497D37F004835B7 /* Main.storyboard in Resources */,
+				A3AA985C249B208100928544 /* horizontal-command-block.dat in Resources */,
 				A3A905132497D37F004835B7 /* Assets.xcassets in Resources */,
 				A3A904F92497D37F004835B7 /* LaunchScreen.storyboard in Resources */,
 			);
@@ -342,6 +355,7 @@
 			files = (
 				A3A905142497D37F004835B7 /* Assets.xcassets in Resources */,
 				A3A9050B2497D37F004835B7 /* Main.storyboard in Resources */,
+				A3AA985D249B208100928544 /* horizontal-command-block.dat in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
