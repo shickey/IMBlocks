@@ -36,10 +36,17 @@ struct V2 {
     f32 y;
 };
 
-struct V3 {
-    f32 x;
-    f32 y;
-    f32 z;
+union V3 {
+    struct {
+        f32 x;
+        f32 y;
+        f32 z;
+    };
+    struct {
+        f32 r;
+        f32 g;
+        f32 b;
+    };
 };
 
 struct V4 {
@@ -89,10 +96,6 @@ struct BlocksRenderInfo {
     u32 vertsCount;
     void *uniforms;
     u32 uniformsSize;
-};
-
-enum BlockType {
-    Command = 1,
 };
 
 void BeginBlocks(BlocksInput input);

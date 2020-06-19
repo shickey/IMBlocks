@@ -34,7 +34,7 @@ typedef struct Pt {
 int main(int argc, const char * argv[]) {
     @autoreleasepool {
         
-        NSImage *nsImage = [[NSImage alloc] initWithContentsOfFile:@"/Users/seanhickey/Projects/IMBlocks/GenTextures/horizontal-command-block.png"];
+        NSImage *nsImage = [[NSImage alloc] initWithContentsOfFile:@"/Users/seanhickey/Projects/IMBlocks/GenTextures/block-textures.png"];
         u32 width = nsImage.size.width;
         u32 height = nsImage.size.height;
         u32 numPixels = (u32)width * (u32)height;
@@ -69,8 +69,8 @@ int main(int argc, const char * argv[]) {
         memset(borderPoints, 0xFF, numPixels * sizeof(Pt));
         
         // Init points that are exactly along the boundary of an object
-        for (u32 y = 1; y < height; ++y) {
-            for (u32 x = 1; x < width; ++x) {
+        for (u32 y = 1; y < height - 1; ++y) {
+            for (u32 x = 1; x < width - 1; ++x) {
                 u8 p = pix(x, y);
                 if (pix(x - 1, y) != p ||
                     pix(x + 1, y) != p ||
@@ -85,8 +85,8 @@ int main(int argc, const char * argv[]) {
         }
         
         // Forward pass
-        for (u32 y = 1; y < height; ++y) {
-            for (u32 x = 1; x < width; ++x) {
+        for (u32 y = 1; y < height - 2; ++y) {
+            for (u32 x = 1; x < width - 2; ++x) {
                 if (outPix(x - 1, y - 1) + distDiag < outPix(x, y)) {
                     border(x, y) = border(x - 1, y - 1);
                     Pt p = border(x, y);
@@ -146,16 +146,16 @@ int main(int argc, const char * argv[]) {
         // Convert back in u8s
         for (u32 idx = 0; idx < width * height; ++idx) {
             s16 p = (s16)outPixels[idx];
-            outPixels[idx] = (u8)(p + 128);
+            outPixels[idx] = (u8)(p + 127);
         }
         
         NSData *pixelData = [NSData dataWithBytes:outPixels length:numPixels];
-        [pixelData writeToFile:@"/Users/seanhickey/Projects/IMBlocks/GenTextures/horizontal-command-block.dat" atomically:YES];
+        [pixelData writeToFile:@"/Users/seanhickey/Projects/IMBlocks/GenTextures/block-textures.dat" atomically:YES];
         
         CGContextRef outCtx = CGBitmapContextCreate(outPixels, width, height, 8, width, colorSpace, kCGImageAlphaNone);
         CGImageRef outImage = CGBitmapContextCreateImage(outCtx);
         
-        CFURLRef url = (__bridge CFURLRef)[NSURL fileURLWithPath:@"/Users/seanhickey/Projects/IMBlocks/GenTextures/horizontal-command-block-CONVERTED.png"];
+        CFURLRef url = (__bridge CFURLRef)[NSURL fileURLWithPath:@"/Users/seanhickey/Projects/IMBlocks/GenTextures/block-textures-CONVERTED.png"];
         CGImageDestinationRef dest = CGImageDestinationCreateWithURL(url, kUTTypePNG, 1, nil);
         CGImageDestinationAddImage(dest, outImage, nil);
         CGImageDestinationFinalize(dest);

@@ -16,13 +16,23 @@ struct RenderBasis;
 typedef u32 BlockId;
 typedef u32 ScriptId;
 
+enum BlockType {
+    Command = 1,
+    Loop
+};
+
 void DrawBlock(Block *, RenderBasis *);
 void DrawCommandBlock(Block *, RenderBasis *);
+void DrawLoopBlock(Block *, RenderBasis *);
 
 struct Arena {
     u8 *data;
     u32 size;
     u32 used;
+};
+
+struct RenderBasis {
+    V2 at;
 };
 
 struct Interactable {
@@ -37,6 +47,9 @@ struct Block {
     Script *script;
     BlockType type;
     Block *next;
+    
+    // Loop
+    Block *inner;
 };
 
 struct Script {
@@ -62,12 +75,37 @@ struct BlocksContext {
     Interactable nextHot;
 };
 
+global_var BlocksContext *blocksCtx = 0;
+
+#define pushStruct(arena, type) (type *)pushSize(arena, sizeof(type))
+#define pushArray(arena, type, count) (type *)pushSize(arena, sizeof(type) * count)
+void *pushSize(Arena *arena, u32 size) {
+  // Make sure we have enough space left in the arena
+  Assert(arena->used + size <= arena->size);
+  
+  void *result = arena->data + arena->used;
+  arena->used += size;
+  
+  return result;
+}
+
+#define pushVerts(v) pushData_(&blocksCtx->verts, (v), sizeof((v)))
+#define pushUniforms(u) pushData_(&blocksCtx->uniforms, &(u), sizeof((u)))
+void pushData_(Arena *arena, void *data, u32 size) {
+    void *location = pushSize(arena, size);
+    memcpy(location, data, size);
+}
+
+#include "BlocksVerts.h"
+
+
+
+
+
 inline
 b32 pointInRect(V2 point, BlocksRect rect) {
     return (point.x >= rect.x && point.x <= rect.x + rect.w) && (point.y >= rect.y && point.y <= rect.y + rect.h);
 }
-
-global_var BlocksContext *blocksCtx = 0;
 
 void BeginBlocks(BlocksInput input) {
     blocksCtx->input = input;
@@ -108,84 +146,76 @@ BlocksRenderInfo EndBlocks() {
     
     BlocksRenderInfo Result;
     Result.verts = blocksCtx->verts.data;
-    Result.vertsCount = blocksCtx->verts.used / (sizeof(f32) * 4);
+    Result.vertsCount = blocksCtx->verts.used / (sizeof(f32) * 7);
     Result.vertsSize = blocksCtx->verts.used;
     Result.uniforms = blocksCtx->uniforms.data;
     Result.uniformsSize = blocksCtx->uniforms.used; 
     return Result;
 }
 
-#define pushStruct(arena, type) (type *)pushSize(arena, sizeof(type))
-#define pushArray(arena, type, count) (type *)pushSize(arena, sizeof(type) * count)
-void *pushSize(Arena *arena, u32 size) {
-  // Make sure we have enough space left in the arena
-  Assert(arena->used + size <= arena->size);
-  
-  void *result = arena->data + arena->used;
-  arena->used += size;
-  
-  return result;
-}
-
-#define pushVerts(v) pushData_(&blocksCtx->verts, (v), sizeof((v)))
-#define pushUniforms(u) pushData_(&blocksCtx->uniforms, &(u), sizeof((u)))
-void pushData_(Arena *arena, void *data, u32 size) {
-    void *location = pushSize(arena, size);
-    memcpy(location, data, size);
-}
-
-struct RenderBasis {
-    f32 x;
-    f32 y;
-};
-
 void RenderScript(Script *script) {
     if (!script->topBlock) { return; }
     
-    RenderBasis at = { script->x, script->y };
-    DrawBlock(script->topBlock, &at);
+    RenderBasis basis = { script->x, script->y };
+    DrawBlock(script->topBlock, &basis);
 }
 
-void DrawBlock(Block *block, RenderBasis *at) {
+void DrawBlock(Block *block, RenderBasis *basis) {
     switch(block->type) {
         case Command: {
-            DrawCommandBlock(block, at);
+            DrawCommandBlock(block, basis);
             break;
+        }
+        case Loop: {
+            DrawLoopBlock(block, basis);
         }
         default: break;
     }
 }
 
-void DrawCommandBlock(Block *block, RenderBasis *at) {
+void DrawCommandBlock(Block *block, RenderBasis *basis) {
     
-    BlocksRect blockRect = { at->x, at->y, 18, 16};
-    if (pointInRect(blocksCtx->input.mouseP, blockRect)) {
+    PushCommandBlockVerts(V2{basis->at.x, basis->at.y}, V3{0, 1, 1});
+    
+    if (block->next) {
+        basis->at.x += 16;
+        DrawBlock(block->next, basis);
+    }
+    
+    BlocksRect hitBox = { basis->at.x, basis->at.y, 18, 16};
+    if (pointInRect(blocksCtx->input.mouseP, hitBox)) {
         blocksCtx->nextHot.id = block->script->id;
         blocksCtx->nextHot.x = &block->script->x;
         blocksCtx->nextHot.y = &block->script->y;
         
-        blocksCtx->nextHot.mouseOffset = { blocksCtx->input.mouseP.x - blockRect.x, blocksCtx->input.mouseP.y - blockRect.y };
+        blocksCtx->nextHot.mouseOffset = { blocksCtx->input.mouseP.x - block->script->x, blocksCtx->input.mouseP.y - block->script->y };
     }
     
-    f32 verts[] = {
-    //  X    Y                U               V
-        0,   0,  (40.0 / 512.0),  (56.0 / 512.0), 
-        18,  0, (472.0 / 512.0),  (56.0 / 512.0),
-        0,  16,  (40.0 / 512.0), (440.0 / 512.0),
-        
-        18,  0, (472.0 / 512.0),  (56.0 / 512.0),
-        0,  16,  (40.0 / 512.0), (440.0 / 512.0),
-        18, 16, (472.0 / 512.0), (440.0 / 512.0)
-    };
+}
+
+void DrawLoopBlock(Block *block, RenderBasis *basis) {
     
-    BlockUniforms uniforms = { blocksCtx->nextBlockIdx++, at->x, at->y, false }; 
+    u32 stretch = 0;
+    if (block->inner) {
+        RenderBasis innerBasis = { basis->at.x + 6, basis->at.y };
+        DrawBlock(block->inner, &innerBasis);
+        stretch = (u32)(innerBasis.at.x - (basis->at.x + 6));
+    }
     
-    pushVerts(verts);
-    pushUniforms(uniforms);
+    PushLoopBlockVerts(V2{basis->at.x, basis->at.y}, V3{1, 0, 1}, stretch);
     
     if (block->next) {
-        at->x += 16;
-        DrawBlock(block->next, at);
+        basis->at.x += 38 + stretch;
+        DrawBlock(block->next, basis);
+    }
+    
+    BlocksRect hitBox = { basis->at.x, basis->at.y, 40 + (f32)stretch, 20};
+    if (pointInRect(blocksCtx->input.mouseP, hitBox)) {
+        blocksCtx->nextHot.id = block->script->id;
+        blocksCtx->nextHot.x = &block->script->x;
+        blocksCtx->nextHot.y = &block->script->y;
+        
+        blocksCtx->nextHot.mouseOffset = { blocksCtx->input.mouseP.x - block->script->x, blocksCtx->input.mouseP.y - block->script->y };
     }
     
 }
@@ -223,8 +253,8 @@ void InitBlocks(void *mem, u32 memSize) {
     
     Script *script1 = &context->scripts[context->scriptCount++];
     script1->id = 1;
-    script1->x = -20;
-    script1->y = 30;
+    script1->x = 0;
+    script1->y = 0;
     script1->topBlock = block1;
     
     block1->script = script1;
@@ -235,17 +265,22 @@ void InitBlocks(void *mem, u32 memSize) {
     block2->type = Command;
     block2->next = NULL;
     
+    Block *loop = pushStruct(&context->blocks, Block);
+    loop->type = Loop;
+    loop->next = block2;
+    
     Block *block3 = pushStruct(&context->blocks, Block);
     block3->type = Command;
-    block3->next = block2;
+    block3->next = loop;
     
     Script *script2 = &context->scripts[context->scriptCount++];
     script2->id = 2;
-    script2->x = 30;
+    script2->x = -20;
     script2->y = 40;
     script2->topBlock = block3;
     
     block2->script = script2;
+    loop->script = script2;
     block3->script = script2;
     
     
@@ -261,6 +296,42 @@ void InitBlocks(void *mem, u32 memSize) {
     script3->topBlock = block4;
     
     block4->script = script3;
+    
+    
+    
+    Block *block5 = pushStruct(&context->blocks, Block);
+    block5->type = Command;
+    block5->next = NULL;
+    
+    Block *block6 = pushStruct(&context->blocks, Block);
+    block6->type = Command;
+    block6->next = NULL;
+    
+    Block *block7 = pushStruct(&context->blocks, Block);
+    block7->type = Command;
+    block7->next = block6;
+    
+    Block *loop2 = pushStruct(&context->blocks, Block);
+    loop2->type = Loop;
+    loop2->next = block5;
+    loop2->inner = block7;
+    
+    Block *block8 = pushStruct(&context->blocks, Block);
+    block8->type = Command;
+    block8->next = loop2;
+    
+    Script *script4 = &context->scripts[context->scriptCount++];
+    script4->id = 2;
+    script4->x = 30;
+    script4->y = -40;
+    script4->topBlock = block8;
+    
+    block5->script = script4;
+    block6->script = script4;
+    block7->script = script4;
+    loop2->script = script4;
+    block8->script = script4;
+    
 }
 
 BlocksRenderInfo RunBlocks(void *mem, BlocksInput *input) {

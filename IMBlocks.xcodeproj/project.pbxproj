@@ -10,6 +10,8 @@
 		A308405E249BF10100AC2EEB /* libBlocksARM.h in Headers */ = {isa = PBXBuildFile; fileRef = A308405C249BF10100AC2EEB /* libBlocksARM.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		A3084062249BF10100AC2EEB /* libBlocksARM.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = A308405A249BF10100AC2EEB /* libBlocksARM.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		A3084067249BF10D00AC2EEB /* Blocks.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3A9051F2497D6A1004835B7 /* Blocks.cpp */; };
+		A3084069249C051600AC2EEB /* block-textures.dat in Resources */ = {isa = PBXBuildFile; fileRef = A3084068249C051500AC2EEB /* block-textures.dat */; };
+		A308406A249C051600AC2EEB /* block-textures.dat in Resources */ = {isa = PBXBuildFile; fileRef = A3084068249C051500AC2EEB /* block-textures.dat */; };
 		A32B6DDC2499C2D00084106E /* Blocks.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3A9051F2497D6A1004835B7 /* Blocks.cpp */; };
 		A3A904F02497D37F004835B7 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = A3A904EF2497D37F004835B7 /* AppDelegate.m */; };
 		A3A904F32497D37F004835B7 /* GameViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A3A904F22497D37F004835B7 /* GameViewController.m */; };
@@ -77,6 +79,8 @@
 		A308405A249BF10100AC2EEB /* libBlocksARM.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = libBlocksARM.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		A308405C249BF10100AC2EEB /* libBlocksARM.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = libBlocksARM.h; sourceTree = "<group>"; };
 		A308405D249BF10100AC2EEB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A3084068249C051500AC2EEB /* block-textures.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "block-textures.dat"; sourceTree = "<group>"; };
+		A308406B249C0D8900AC2EEB /* BlocksVerts.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BlocksVerts.h; sourceTree = "<group>"; };
 		A32B6DD82499C2B60084106E /* libBlocks.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libBlocks.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		A3A904E22497D37E004835B7 /* Renderer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Renderer.h; sourceTree = "<group>"; };
 		A3A904E32497D37E004835B7 /* Renderer.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = Renderer.mm; sourceTree = "<group>"; };
@@ -106,7 +110,6 @@
 		A3A90523249810B4004835B7 /* MetalView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MetalView.m; sourceTree = "<group>"; };
 		A3AA984F249B04AB00928544 /* GenTextures */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = GenTextures; sourceTree = BUILT_PRODUCTS_DIR; };
 		A3AA9851249B04AC00928544 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
-		A3AA9856249B04C300928544 /* horizontal-command-block.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "horizontal-command-block.png"; sourceTree = "<group>"; };
 		A3AA985B249B208100928544 /* horizontal-command-block.dat */ = {isa = PBXFileReference; lastKnownFileType = file; path = "horizontal-command-block.dat"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -230,8 +233,9 @@
 		A3A9051D2497D663004835B7 /* Blocks */ = {
 			isa = PBXGroup;
 			children = (
-				A3A9051F2497D6A1004835B7 /* Blocks.cpp */,
 				A3A9051E2497D6A0004835B7 /* Blocks.h */,
+				A3A9051F2497D6A1004835B7 /* Blocks.cpp */,
+				A308406B249C0D8900AC2EEB /* BlocksVerts.h */,
 			);
 			path = Blocks;
 			sourceTree = "<group>";
@@ -240,7 +244,6 @@
 			isa = PBXGroup;
 			children = (
 				A3AA9851249B04AC00928544 /* main.m */,
-				A3AA9856249B04C300928544 /* horizontal-command-block.png */,
 			);
 			path = GenTextures;
 			sourceTree = "<group>";
@@ -248,6 +251,7 @@
 		A3AA9857249B1C1300928544 /* Textures */ = {
 			isa = PBXGroup;
 			children = (
+				A3084068249C051500AC2EEB /* block-textures.dat */,
 				A3AA985B249B208100928544 /* horizontal-command-block.dat */,
 			);
 			path = Textures;
@@ -427,6 +431,7 @@
 				A3AA985C249B208100928544 /* horizontal-command-block.dat in Resources */,
 				A3A905132497D37F004835B7 /* Assets.xcassets in Resources */,
 				A3A904F92497D37F004835B7 /* LaunchScreen.storyboard in Resources */,
+				A3084069249C051600AC2EEB /* block-textures.dat in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -435,6 +440,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A3A905142497D37F004835B7 /* Assets.xcassets in Resources */,
+				A308406A249C051600AC2EEB /* block-textures.dat in Resources */,
 				A3A9050B2497D37F004835B7 /* Main.storyboard in Resources */,
 				A3AA985D249B208100928544 /* horizontal-command-block.dat in Resources */,
 			);

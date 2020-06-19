@@ -135,8 +135,13 @@ void unloadLibBlocks() {
     _mtlVertexDescriptor.attributes[1].bufferIndex = 0;
     _mtlVertexDescriptor.attributes[1].offset = 2 * sizeof(f32);
     
+        // Tex UV
+    _mtlVertexDescriptor.attributes[2].format = MTLVertexFormatFloat3;
+    _mtlVertexDescriptor.attributes[2].bufferIndex = 0;
+    _mtlVertexDescriptor.attributes[2].offset = 4 * sizeof(f32);
+    
         // Stride
-    _mtlVertexDescriptor.layouts[0].stride = 4 * sizeof(f32);
+    _mtlVertexDescriptor.layouts[0].stride = 7 * sizeof(f32);
     _mtlVertexDescriptor.layouts[0].stepFunction = MTLVertexStepFunctionPerVertex;
 
     
@@ -152,6 +157,13 @@ void unloadLibBlocks() {
     pipelineStateDescriptor.fragmentFunction = fragmentFunction;
     pipelineStateDescriptor.vertexDescriptor = _mtlVertexDescriptor;
     pipelineStateDescriptor.colorAttachments[0].pixelFormat = view.colorPixelFormat;
+    pipelineStateDescriptor.colorAttachments[0].blendingEnabled = YES;
+    pipelineStateDescriptor.colorAttachments[0].rgbBlendOperation = MTLBlendOperationAdd;
+    pipelineStateDescriptor.colorAttachments[0].alphaBlendOperation = MTLBlendOperationAdd;
+    pipelineStateDescriptor.colorAttachments[0].sourceRGBBlendFactor = MTLBlendFactorSourceAlpha;
+    pipelineStateDescriptor.colorAttachments[0].sourceAlphaBlendFactor = MTLBlendFactorSourceAlpha;
+    pipelineStateDescriptor.colorAttachments[0].destinationRGBBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
+    pipelineStateDescriptor.colorAttachments[0].destinationAlphaBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
     
     NSError *error = NULL;
     _pipelineState = [_device newRenderPipelineStateWithDescriptor:pipelineStateDescriptor error:&error];
@@ -192,13 +204,18 @@ void unloadLibBlocks() {
     }
     
     // Load block texture
-    MTLTextureDescriptor *texDescriptor = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatR8Uint 
+    MTLTextureDescriptor *texDescriptor = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatR8Unorm 
                                                                                              width:512 
                                                                                             height:512 
                                                                                          mipmapped:false];
     blockTexture = [_device newTextureWithDescriptor:texDescriptor];
     
-    NSData *texData = [NSData dataWithContentsOfURL:[NSBundle.mainBundle URLForResource:@"horizontal-command-block" withExtension:@"dat"]];
+    NSData *texData = [NSData dataWithContentsOfURL:[NSBundle.mainBundle URLForResource:@"block-textures" withExtension:@"dat"]];
+//    u8 *texBytes = (u8 *)texData.bytes;
+//    f32 *texFloats = (f32 *)malloc(512 * 512 * sizeof(f32));
+//    for(u32 i = 0; i < 512 * 512; ++i) {
+//        texFloats[i] = texBytes[i] / 255.0f;
+//    }
     [blockTexture replaceRegion:MTLRegionMake2D(0, 0, 512, 512) mipmapLevel:0 withBytes:texData.bytes bytesPerRow:512];
     
     // Init Blocks Memory
