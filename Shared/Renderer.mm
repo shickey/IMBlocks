@@ -193,8 +193,8 @@ void unloadLibBlocks() {
         _vertBuffers[i] = [_device newBufferWithLength:(BLOCK_BYTE_SIZE * MAX_BLOCKS) options:MTLResourceStorageModeShared];
         _vertBuffers[i].label = @"Vertex Buffer";
         
-        _blockUniformsBuffers[i] = [_device newBufferWithLength:(sizeof(BlockUniforms) * MAX_BLOCKS) options:MTLResourceStorageModeShared];
-        _blockUniformsBuffers[i].label = @"Block Uniforms Buffer";
+//        _blockUniformsBuffers[i] = [_device newBufferWithLength:(sizeof(BlockUniforms) * MAX_BLOCKS) options:MTLResourceStorageModeShared];
+//        _blockUniformsBuffers[i].label = @"Block Uniforms Buffer";
         
         _worldUniformsBuffers[i] = [_device newBufferWithLength:(sizeof(WorldUniforms)) options:MTLResourceStorageModeShared];
         _worldUniformsBuffers[i].label = @"World Uniforms Buffer";
@@ -312,7 +312,6 @@ void unloadLibBlocks() {
     
     BlocksRenderInfo renderInfo = runBlocks(blocksMem, &blocksInput);
     memcpy(vertBuffer.contents, renderInfo.verts, renderInfo.vertsSize);
-    memcpy(blockUniformsBuffer.contents, renderInfo.uniforms, renderInfo.uniformsSize);
     
 //    id <MTLBuffer> debugVertBuffer = _debugVertBuffers[_bufferIndex];
 //    [self renderDebugRectsInBuffer:debugVertBuffer];

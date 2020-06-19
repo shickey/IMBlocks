@@ -849,7 +849,7 @@
 				A3084065249BF10100AC2EEB /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 		A32B6DD92499C2B60084106E /* Build configuration list for PBXNativeTarget "libBlocks" */ = {
 			isa = XCConfigurationList;
@@ -858,7 +858,7 @@
 				A32B6DDB2499C2B60084106E /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 		A3A904E02497D37E004835B7 /* Build configuration list for PBXProject "IMBlocks" */ = {
 			isa = XCConfigurationList;
@@ -867,7 +867,7 @@
 				A3A905162497D37F004835B7 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 		A3A905172497D37F004835B7 /* Build configuration list for PBXNativeTarget "IMBlocks iOS" */ = {
 			isa = XCConfigurationList;
@@ -876,7 +876,7 @@
 				A3A905192497D37F004835B7 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 		A3A9051A2497D37F004835B7 /* Build configuration list for PBXNativeTarget "IMBlocks macOS" */ = {
 			isa = XCConfigurationList;
@@ -885,7 +885,7 @@
 				A3A9051C2497D37F004835B7 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 		A3AA9853249B04AC00928544 /* Build configuration list for PBXNativeTarget "GenTextures" */ = {
 			isa = XCConfigurationList;
@@ -894,7 +894,7 @@
 				A3AA9855249B04AC00928544 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
 	};

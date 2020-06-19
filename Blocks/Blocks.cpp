@@ -1,109 +1,21 @@
-//
-//  blocks.cpp
-//  gpu-blocks-test
-//
-//  Created by Sean Hickey on 6/10/20.
-//  Copyright © 2020 Lifelong Kindergarten. All rights reserved.
-//
+/*********************************************************
+*
+* Blocks.cpp
+* IMBlocks
+*
+* Sean Hickey
+* 2020
+*
+**********************************************************/
 
 #include "Blocks.h"
-#include <string.h>
-
-struct Block;
-struct Script;
-struct RenderBasis;
-
-typedef u32 BlockId;
-typedef u32 ScriptId;
-
-enum BlockType {
-    Command = 1,
-    Loop
-};
-
-void DrawBlock(Block *, RenderBasis *);
-void DrawCommandBlock(Block *, RenderBasis *);
-void DrawLoopBlock(Block *, RenderBasis *);
-
-struct Arena {
-    u8 *data;
-    u32 size;
-    u32 used;
-};
-
-struct RenderBasis {
-    V2 at;
-};
-
-struct Interactable {
-    ScriptId id;
-    f32 *x;
-    f32 *y;
-    
-    V2 mouseOffset;
-};
-
-struct Block {
-    Script *script;
-    BlockType type;
-    Block *next;
-    
-    // Loop
-    Block *inner;
-};
-
-struct Script {
-    ScriptId id;
-    f32 x;
-    f32 y;
-    Block *topBlock;
-};
-
-struct BlocksContext {
-    BlocksInput input;
-    
-    Arena verts;
-    Arena uniforms;
-    Arena blocks;
-    u32 nextBlockIdx;
-    
-    Script scripts[1024];
-    u32 scriptCount;
-    
-    Interactable hot;
-    Interactable interacting;
-    Interactable nextHot;
-};
+#include "BlocksInternal.h"
+#include "BlocksVerts.h"
 
 global_var BlocksContext *blocksCtx = 0;
 
-#define pushStruct(arena, type) (type *)pushSize(arena, sizeof(type))
-#define pushArray(arena, type, count) (type *)pushSize(arena, sizeof(type) * count)
-void *pushSize(Arena *arena, u32 size) {
-  // Make sure we have enough space left in the arena
-  Assert(arena->used + size <= arena->size);
-  
-  void *result = arena->data + arena->used;
-  arena->used += size;
-  
-  return result;
-}
-
-#define pushVerts(v) pushData_(&blocksCtx->verts, (v), sizeof((v)))
-#define pushUniforms(u) pushData_(&blocksCtx->uniforms, &(u), sizeof((u)))
-void pushData_(Arena *arena, void *data, u32 size) {
-    void *location = pushSize(arena, size);
-    memcpy(location, data, size);
-}
-
-#include "BlocksVerts.h"
-
-
-
-
-
 inline
-b32 pointInRect(V2 point, BlocksRect rect) {
+b32 pointInRect(v2 point, BlocksRect rect) {
     return (point.x >= rect.x && point.x <= rect.x + rect.w) && (point.y >= rect.y && point.y <= rect.y + rect.h);
 }
 
@@ -112,9 +24,6 @@ void BeginBlocks(BlocksInput input) {
     
     // Clear memory
     blocksCtx->verts.used = 0;
-    blocksCtx->uniforms.used = 0;
-    
-    blocksCtx->nextBlockIdx = 0;
     
     blocksCtx->hot.id = 0;
     blocksCtx->nextHot.id = 0;
@@ -139,17 +48,10 @@ BlocksRenderInfo EndBlocks() {
         }
     }
     
-    if (blocksCtx->hot.id) {
-        BlockUniforms *uniforms = ((BlockUniforms *)blocksCtx->uniforms.data) + (blocksCtx->hot.id - 1);
-        uniforms->hot = true;
-    }
-    
     BlocksRenderInfo Result;
     Result.verts = blocksCtx->verts.data;
     Result.vertsCount = blocksCtx->verts.used / (sizeof(f32) * 7);
     Result.vertsSize = blocksCtx->verts.used;
-    Result.uniforms = blocksCtx->uniforms.data;
-    Result.uniformsSize = blocksCtx->uniforms.used; 
     return Result;
 }
 
@@ -175,7 +77,7 @@ void DrawBlock(Block *block, RenderBasis *basis) {
 
 void DrawCommandBlock(Block *block, RenderBasis *basis) {
     
-    PushCommandBlockVerts(V2{basis->at.x, basis->at.y}, V3{0, 1, 1});
+    PushCommandBlockVerts(blocksCtx, v2{basis->at.x, basis->at.y}, v3{0, 1, 1});
     
     if (block->next) {
         basis->at.x += 16;
@@ -202,7 +104,7 @@ void DrawLoopBlock(Block *block, RenderBasis *basis) {
         stretch = (u32)(innerBasis.at.x - (basis->at.x + 6));
     }
     
-    PushLoopBlockVerts(V2{basis->at.x, basis->at.y}, V3{1, 0, 1}, stretch);
+    PushLoopBlockVerts(blocksCtx, v2{basis->at.x, basis->at.y}, v3{1, 0, 1}, stretch);
     
     if (block->next) {
         basis->at.x += 38 + stretch;
@@ -220,13 +122,11 @@ void DrawLoopBlock(Block *block, RenderBasis *basis) {
     
 }
 
-extern "C" {
 
-void InitBlocks(void *mem, u32 memSize) {
+extern "C" void InitBlocks(void *mem, u32 memSize) {
     static const u32 VERTS_MEM_SIZE = 65535 * (2 * sizeof(f32));
-    static const u32 UNIFORMS_MEM_SIZE = 4096 * sizeof(BlockUniforms);
     
-    Assert(memSize >= sizeof(BlocksContext) + VERTS_MEM_SIZE + UNIFORMS_MEM_SIZE);
+    Assert(memSize >= sizeof(BlocksContext) + VERTS_MEM_SIZE);
     
     BlocksContext *context = (BlocksContext *)mem;
     
@@ -234,13 +134,9 @@ void InitBlocks(void *mem, u32 memSize) {
     context->verts.size = VERTS_MEM_SIZE;
     context->verts.used = 0;
     
-    context->uniforms.data = ((u8 *)mem) + sizeof(BlocksContext) + VERTS_MEM_SIZE;
-    context->uniforms.size = UNIFORMS_MEM_SIZE;
-    context->uniforms.used = 0;
-    
     // All the rest of the data block
-    u32 blocksArenaSize = memSize - (sizeof(BlocksContext) + VERTS_MEM_SIZE + UNIFORMS_MEM_SIZE);
-    context->blocks.data = ((u8 *)mem) + sizeof(BlocksContext) + VERTS_MEM_SIZE + UNIFORMS_MEM_SIZE;
+    u32 blocksArenaSize = memSize - (sizeof(BlocksContext) + VERTS_MEM_SIZE);
+    context->blocks.data = ((u8 *)mem) + sizeof(BlocksContext) + VERTS_MEM_SIZE;
     context->blocks.size = blocksArenaSize;
     context->blocks.used = 0;
     
@@ -334,7 +230,7 @@ void InitBlocks(void *mem, u32 memSize) {
     
 }
 
-BlocksRenderInfo RunBlocks(void *mem, BlocksInput *input) {
+extern "C" BlocksRenderInfo RunBlocks(void *mem, BlocksInput *input) {
     // Always reset the blocksCtx pointer in case we reloaded the dylib
     blocksCtx = (BlocksContext *)mem;
     BeginBlocks(*input);
@@ -343,6 +239,4 @@ BlocksRenderInfo RunBlocks(void *mem, BlocksInput *input) {
         RenderScript(script);
     }
     return EndBlocks();
-}
-
 }
