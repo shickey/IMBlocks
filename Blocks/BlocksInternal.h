@@ -28,6 +28,7 @@ struct Arena {
 
 struct RenderBasis {
     v2 at;
+    v2 bounds;
 };
 
 struct Interactable {

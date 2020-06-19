@@ -58,7 +58,7 @@ BlocksRenderInfo EndBlocks() {
 void RenderScript(Script *script) {
     if (!script->topBlock) { return; }
     
-    RenderBasis basis = { script->x, script->y };
+    RenderBasis basis = { script->x, script->y, 0, 0 };
     DrawBlock(script->topBlock, &basis);
 }
 
@@ -77,6 +77,8 @@ void DrawBlock(Block *block, RenderBasis *basis) {
 
 void DrawCommandBlock(Block *block, RenderBasis *basis) {
     
+    BlocksRect hitBox = { basis->at.x, basis->at.y, 16, 16};
+    
     PushCommandBlockVerts(blocksCtx, v2{basis->at.x, basis->at.y}, v3{0, 1, 1});
     
     if (block->next) {
@@ -84,7 +86,9 @@ void DrawCommandBlock(Block *block, RenderBasis *basis) {
         DrawBlock(block->next, basis);
     }
     
-    BlocksRect hitBox = { basis->at.x, basis->at.y, 18, 16};
+    basis->bounds.x += 16;
+    basis->bounds.y = Max(basis->bounds.y, 16);
+    
     if (pointInRect(blocksCtx->input.mouseP, hitBox)) {
         blocksCtx->nextHot.id = block->script->id;
         blocksCtx->nextHot.x = &block->script->x;
@@ -97,21 +101,27 @@ void DrawCommandBlock(Block *block, RenderBasis *basis) {
 
 void DrawLoopBlock(Block *block, RenderBasis *basis) {
     
-    u32 stretch = 0;
+    u32 horizStretch = 0;
+    u32 vertStretch = 0;
     if (block->inner) {
-        RenderBasis innerBasis = { basis->at.x + 6, basis->at.y };
+        RenderBasis innerBasis = { basis->at.x + 6, basis->at.y, 0, 0 };
         DrawBlock(block->inner, &innerBasis);
-        stretch = (u32)(innerBasis.at.x - (basis->at.x + 6));
+        horizStretch = (u32)(innerBasis.bounds.w - 16);
+        vertStretch = (u32)(innerBasis.bounds.h - 16);
     }
     
-    PushLoopBlockVerts(blocksCtx, v2{basis->at.x, basis->at.y}, v3{1, 0, 1}, stretch);
+    BlocksRect hitBox = { basis->at.x, basis->at.y, 38 + (f32)horizStretch, 20 + (f32)vertStretch };
+    
+    PushLoopBlockVerts(blocksCtx, v2{basis->at.x, basis->at.y}, v3{1, 0, 1}, horizStretch, vertStretch);
     
     if (block->next) {
-        basis->at.x += 38 + stretch;
+        basis->at.x += 38 + horizStretch;
         DrawBlock(block->next, basis);
     }
     
-    BlocksRect hitBox = { basis->at.x, basis->at.y, 40 + (f32)stretch, 20};
+    basis->bounds.x += 38 + horizStretch;
+    basis->bounds.y = Max(basis->bounds.y, 20 + vertStretch);
+    
     if (pointInRect(blocksCtx->input.mouseP, hitBox)) {
         blocksCtx->nextHot.id = block->script->id;
         blocksCtx->nextHot.x = &block->script->x;
@@ -216,17 +226,28 @@ extern "C" void InitBlocks(void *mem, u32 memSize) {
     block8->type = Command;
     block8->next = loop2;
     
+    Block *loop3 = pushStruct(&context->blocks, Block);
+    loop3->type = Loop;
+    loop3->next = NULL;
+    loop3->inner = block8;
+    
+    Block *block9 = pushStruct(&context->blocks, Block);
+    block9->type = Command;
+    block9->next = loop3;
+    
     Script *script4 = &context->scripts[context->scriptCount++];
-    script4->id = 2;
+    script4->id = 4;
     script4->x = 30;
     script4->y = -40;
-    script4->topBlock = block8;
+    script4->topBlock = block9;
     
     block5->script = script4;
     block6->script = script4;
     block7->script = script4;
     loop2->script = script4;
     block8->script = script4;
+    loop3->script = script4;
+    block9->script = script4;
     
 }
 

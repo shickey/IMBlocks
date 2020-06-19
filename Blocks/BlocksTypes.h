@@ -37,12 +37,19 @@ typedef uint64_t b64;
 
 #define ArrayCount(array) (sizeof(array) / sizeof(array[0]))
 
+#define Max(a, b) (((a) > (b)) ? (a) : (b))
+#define Min(a, b) (((a) < (b)) ? (a) : (b))
+
 #define Assert(expr) if(!(expr)) { *(volatile u32 *)0 = 0; }
 
 union v2 {
     struct {
         f32 x;
         f32 y;
+    };
+    struct {
+        f32 w;
+        f32 h;
     };
 };
 
