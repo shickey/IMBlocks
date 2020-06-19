@@ -8,7 +8,7 @@
 *
 **********************************************************/
 
-#define pushVerts(ctx, v) pushData_(&ctx->verts, (v), sizeof((v)))
+#define PushVerts(ctx, v) PushData_(&ctx->verts, (v), sizeof((v)))
 
 void PushCommandBlockVerts(BlocksContext *ctx, v2 position, v3 color) {
     #define unitSize 8.0f
@@ -26,7 +26,7 @@ void PushCommandBlockVerts(BlocksContext *ctx, v2 position, v3 color) {
         19 + position.x, 17 + position.y, (((19 * unitSize) + originX) / (texSize)), ((originY - (17 * unitSize)) / (texSize)), color.r, color.g, color.b
     };
     
-    pushVerts(ctx, verts);
+    PushVerts(ctx, verts);
     
     #undef unitSize
     #undef texSize
@@ -105,7 +105,7 @@ void PushLoopBlockVerts(BlocksContext *ctx, v2 position, v3 color, u32 horizonta
         41 + position.x + horizontalStretch, 13 + position.y,                   (((41 * unitSize) + originX) / (texSize)), ((originY - (13 * unitSize)) / (texSize)), color.r, color.g, color.b
     };
     
-    pushVerts(ctx, verts);
+    PushVerts(ctx, verts);
     
     #undef unitSize
     #undef texSize

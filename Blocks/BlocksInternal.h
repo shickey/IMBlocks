@@ -12,8 +12,7 @@ struct Block;
 struct Script;
 struct RenderBasis;
 
-typedef u32 BlockId;
-typedef u32 ScriptId;
+typedef u32 RenderingIndex;
 
 enum BlockType {
     Command = 1,
@@ -31,8 +30,26 @@ struct RenderBasis {
     v2 bounds;
 };
 
+enum RenderEntryType {
+    RenderEntryType_Command,
+    RenderEntryType_Loop
+};
+
+struct RenderEntry {
+    RenderingIndex idx;
+    RenderEntryType type;
+    v2 P;
+    v3 color;
+    union {
+        struct {
+            u32 hStretch;
+            u32 vStretch;
+        };
+    };
+};
+
 struct Interactable {
-    ScriptId id;
+    RenderingIndex renderingIdx; // 0 indicates none
     f32 *x;
     f32 *y;
     
@@ -49,7 +66,6 @@ struct Block {
 };
 
 struct Script {
-    ScriptId id;
     f32 x;
     f32 y;
     Block *topBlock;
@@ -68,6 +84,9 @@ struct BlocksContext {
     Arena verts;
     Arena blocks;
     
+    RenderEntry renderEntries[4096];
+    RenderingIndex nextRenderingIdx;
+    
     Script scripts[1024];
     u32 scriptCount;
     
@@ -83,7 +102,7 @@ void DrawCommandBlock(Block *, RenderBasis *);
 void DrawLoopBlock(Block *, RenderBasis *);
 
 
-void *pushSize(Arena *arena, u32 size) {
+void *PushSize(Arena *arena, u32 size) {
   // Make sure we have enough space left in the arena
   Assert(arena->used + size <= arena->size);
   
@@ -93,10 +112,18 @@ void *pushSize(Arena *arena, u32 size) {
   return result;
 }
 
-void pushData_(Arena *arena, void *data, u32 size) {
-    void *location = pushSize(arena, size);
+void PushData_(Arena *arena, void *data, u32 size) {
+    void *location = PushSize(arena, size);
     memcpy(location, data, size);
 }
 
-#define pushStruct(arena, type) (type *)pushSize(arena, sizeof(type))
-#define pushArray(arena, type, count) (type *)pushSize(arena, sizeof(type) * count)
+Arena SubArena(Arena *arena, u32 size) {
+    Arena subArena = {};
+    subArena.data = (u8 *)PushSize(arena, size);
+    subArena.size = size;
+    subArena.used = 0;
+    return subArena;
+}
+
+#define PushStruct(arena, type) (type *)PushSize(arena, sizeof(type))
+#define PushArray(arena, type, count) (type *)PushSize(arena, sizeof(type) * count)
