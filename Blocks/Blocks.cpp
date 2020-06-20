@@ -48,6 +48,32 @@ void Connect(Block *from, Block *to) {
 void ConnectInner(Block *from, Block *to) {
     Assert(from->type == BlockType_Loop);
     from->inner = to;
+    to->parent = from;
+}
+
+Script *TearOff(Block *block, v2 position) {
+    Assert(block->prev || block->parent);
+    Script *script = CreateScript(position);
+    if (block->prev) {
+        block->prev->next = NULL;
+        block->prev = NULL;
+    }
+    else if (block->parent) {
+        block->parent->inner = NULL;
+        block->parent = NULL;
+    }
+    script->topBlock = block;
+    return script;
+}
+
+b32 IsTopBlockOfScript(Block *block) {
+    // Simple linear search
+    for (u32 i = 0; i < blocksCtx->scriptCount; ++i) {
+        if (blocksCtx->scripts[i].topBlock == block) {
+            return true;
+        }
+    }
+    return false;
 }
 
 void BeginBlocks(BlocksInput input) {
@@ -82,6 +108,16 @@ BlocksRenderInfo EndBlocks() {
             blocksCtx->interacting = blocksCtx->hot;
             
             // // If we're in the middle of a stack, tear off into a new stack
+            Interactable *interact = &blocksCtx->interacting;
+            Block *hotBlock = interact->block;
+            if (!IsTopBlockOfScript(hotBlock)) {
+                Script *newScript = TearOff(hotBlock, interact->blockP);
+                interact->script = newScript;
+                
+                v2 mouseOffset = interact->mouseOffset;
+                interact->mouseOffset = { blocksCtx->input.mouseP.x - interact->blockP.x, blocksCtx->input.mouseP.y - interact->blockP.y };
+            }
+            
             // Block *hotBlock = getBlockById(blocksCtx, blocksCtx->hot.blockId);
             
             // if (hotBlock != hotBlock->script->topBlock) {
@@ -166,6 +202,7 @@ void DrawCommandBlock(Block *block, Script *script, RenderBasis *basis) {
     if (PointInRect(blocksCtx->input.mouseP, hitBox)) {
         blocksCtx->nextHot.renderingIdx = entry->idx;
         blocksCtx->nextHot.script = script;
+        blocksCtx->nextHot.block = block;
         blocksCtx->nextHot.blockP = entry->P;
         blocksCtx->nextHot.mouseOffset = { blocksCtx->input.mouseP.x - script->P.x, blocksCtx->input.mouseP.y - script->P.y };
     }
@@ -204,6 +241,7 @@ void DrawLoopBlock(Block *block, Script *script, RenderBasis *basis) {
     if (PointInRect(blocksCtx->input.mouseP, hitBox) && !PointInRect(blocksCtx->input.mouseP, innerHitBox)) {
         blocksCtx->nextHot.renderingIdx = entry->idx;
         blocksCtx->nextHot.script = script;
+        blocksCtx->nextHot.block = block;
         blocksCtx->nextHot.blockP = entry->P;
         blocksCtx->nextHot.mouseOffset = { blocksCtx->input.mouseP.x - script->P.x, blocksCtx->input.mouseP.y - script->P.y };
     }

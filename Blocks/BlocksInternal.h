@@ -51,6 +51,7 @@ struct RenderEntry {
 struct Interactable {
     RenderingIndex renderingIdx; // 0 indicates none
     Script *script;
+    Block *block;
     v2 blockP;
     
     v2 mouseOffset;
@@ -63,6 +64,7 @@ struct Block {
     
     // Loops
     Block *inner;
+    Block *parent; // Points to the loop block that encloses this sub-stack
 };
 
 struct Script {
