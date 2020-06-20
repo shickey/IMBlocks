@@ -26,58 +26,28 @@ RenderEntry *PushRenderEntry(BlocksContext *ctx) {
     return entry;
 }
 
-void SetTopBlock(Script *script, Block *block) {
-    script->topBlock = block;
-    block->script = script;
-}
-
-Script *CreateScript(v2 position, Block *topBlock) {
+Script *CreateScript(v2 position) {
     Script *script = &blocksCtx->scripts[blocksCtx->scriptCount++];
     *script = { 0 };
     script->P = position;
-    
-    // @TODO: We need to recursively go through all the blocks and set the new script pointer
-    
-    SetTopBlock(script, topBlock);
     return script;
 }
 
-Script *CreateScript(v2 position, BlockType type) {
-    Script *script = &blocksCtx->scripts[blocksCtx->scriptCount++];
-    *script = { 0 };
-    script->P = position;
-    
-    Block *topBlock = PushStruct(&blocksCtx->blocks, Block);
-    *topBlock = { 0 };
-    topBlock->type = type;
-    
-    SetTopBlock(script, topBlock);
-    return script;
-}
-
-Block *CreateBlock(Script *script, BlockType type) {
+Block *CreateBlock(BlockType type) {
     Block *block = PushStruct(&blocksCtx->blocks, Block);
     *block = { 0 };
     block->type = type;
-    block->script = script;
     return block;
 }
 
 void Connect(Block *from, Block *to) {
-    // The `to` block always moves to `from`s script
     from->next = to;
     to->prev = from;
-    to->script = from->script;
 }
 
 void ConnectInner(Block *from, Block *to) {
     Assert(from->type == BlockType_Loop);
-    
-    // The `to` block always moves to `from`s script
     from->inner = to;
-    to->script = from->script;
-    
-    // @TODO: We need to recursively go through all the blocks and set the new script pointer
 }
 
 void BeginBlocks(BlocksInput input) {
@@ -98,8 +68,9 @@ BlocksRenderInfo EndBlocks() {
             blocksCtx->interacting.renderingIdx = 0;
         }
         else {
-            *blocksCtx->interacting.x = blocksCtx->input.mouseP.x - blocksCtx->interacting.mouseOffset.x;
-            *blocksCtx->interacting.y = blocksCtx->input.mouseP.y - blocksCtx->interacting.mouseOffset.y;
+            Script *script = blocksCtx->interacting.script;
+            script->P.x = blocksCtx->input.mouseP.x - blocksCtx->interacting.mouseOffset.x;
+            script->P.y = blocksCtx->input.mouseP.y - blocksCtx->interacting.mouseOffset.y;
         }
     }
     else {
@@ -159,27 +130,26 @@ void RenderScript(Script *script) {
     if (!script->topBlock) { return; }
     
     RenderBasis basis = { script->P, 0, 0 };
-    DrawBlock(script->topBlock, &basis);
+    DrawBlock(script->topBlock, script, &basis);
 }
 
-void DrawBlock(Block *block, RenderBasis *basis) {
+void DrawBlock(Block *block, Script *script, RenderBasis *basis) {
     switch(block->type) {
         case BlockType_Command: {
-            DrawCommandBlock(block, basis);
+            DrawCommandBlock(block, script, basis);
             break;
         }
         case BlockType_Loop: {
-            DrawLoopBlock(block, basis);
+            DrawLoopBlock(block, script, basis);
         }
         default: break;
     }
 }
 
-void DrawCommandBlock(Block *block, RenderBasis *basis) {
+void DrawCommandBlock(Block *block, Script *script, RenderBasis *basis) {
     
     BlocksRect hitBox = { basis->at.x, basis->at.y, 16, 16};
     
-    // PushCommandBlockVerts(blocksCtx, v2{basis->at.x, basis->at.y}, v3{0, 1, 1});
     RenderEntry *entry = PushRenderEntry(blocksCtx);
     entry->type = RenderEntryType_Command;
     entry->P = v2{basis->at.x, basis->at.y};
@@ -187,7 +157,7 @@ void DrawCommandBlock(Block *block, RenderBasis *basis) {
     
     if (block->next) {
         basis->at.x += 16;
-        DrawBlock(block->next, basis);
+        DrawBlock(block->next, script, basis);
     }
     
     basis->bounds.x += 16;
@@ -195,21 +165,20 @@ void DrawCommandBlock(Block *block, RenderBasis *basis) {
     
     if (PointInRect(blocksCtx->input.mouseP, hitBox)) {
         blocksCtx->nextHot.renderingIdx = entry->idx;
-        blocksCtx->nextHot.x = &block->script->P.x;
-        blocksCtx->nextHot.y = &block->script->P.y;
-        
-        blocksCtx->nextHot.mouseOffset = { blocksCtx->input.mouseP.x - block->script->P.x, blocksCtx->input.mouseP.y - block->script->P.y };
+        blocksCtx->nextHot.script = script;
+        blocksCtx->nextHot.blockP = entry->P;
+        blocksCtx->nextHot.mouseOffset = { blocksCtx->input.mouseP.x - script->P.x, blocksCtx->input.mouseP.y - script->P.y };
     }
     
 }
 
-void DrawLoopBlock(Block *block, RenderBasis *basis) {
+void DrawLoopBlock(Block *block, Script *script, RenderBasis *basis) {
     
     u32 horizStretch = 0;
     u32 vertStretch = 0;
     if (block->inner) {
         RenderBasis innerBasis = { basis->at.x + 6, basis->at.y, 0, 0 };
-        DrawBlock(block->inner, &innerBasis);
+        DrawBlock(block->inner, script, &innerBasis);
         horizStretch = (u32)(innerBasis.bounds.w - 16);
         vertStretch = (u32)(innerBasis.bounds.h - 16);
     }
@@ -217,7 +186,6 @@ void DrawLoopBlock(Block *block, RenderBasis *basis) {
     BlocksRect hitBox = { basis->at.x, basis->at.y, 38 + (f32)horizStretch, 20 + (f32)vertStretch };
     BlocksRect innerHitBox = { basis->at.x + 6, basis->at.y, (f32)horizStretch + 16, (f32)vertStretch + 16 };
     
-    // PushLoopBlockVerts(blocksCtx, v2{basis->at.x, basis->at.y}, v3{1, 0, 1}, horizStretch, vertStretch);
     RenderEntry *entry = PushRenderEntry(blocksCtx);
     entry->type = RenderEntryType_Loop;
     entry->P = v2{basis->at.x, basis->at.y};
@@ -227,7 +195,7 @@ void DrawLoopBlock(Block *block, RenderBasis *basis) {
     
     if (block->next) {
         basis->at.x += 38 + horizStretch;
-        DrawBlock(block->next, basis);
+        DrawBlock(block->next, script, basis);
     }
     
     basis->bounds.x += 38 + horizStretch;
@@ -235,10 +203,9 @@ void DrawLoopBlock(Block *block, RenderBasis *basis) {
     
     if (PointInRect(blocksCtx->input.mouseP, hitBox) && !PointInRect(blocksCtx->input.mouseP, innerHitBox)) {
         blocksCtx->nextHot.renderingIdx = entry->idx;
-        blocksCtx->nextHot.x = &block->script->P.x;
-        blocksCtx->nextHot.y = &block->script->P.y;
-        
-        blocksCtx->nextHot.mouseOffset = { blocksCtx->input.mouseP.x - block->script->P.x, blocksCtx->input.mouseP.y - block->script->P.y };
+        blocksCtx->nextHot.script = script;
+        blocksCtx->nextHot.blockP = entry->P;
+        blocksCtx->nextHot.mouseOffset = { blocksCtx->input.mouseP.x - script->P.x, blocksCtx->input.mouseP.y - script->P.y };
     }
     
 }
@@ -268,39 +235,44 @@ extern "C" void InitBlocks(void *mem, u32 memSize) {
     // Create some blocks, y'know, for fun
     {
         // A script with a single command block
-        CreateScript(v2{0, 0}, BlockType_Command);
+        Script *script = CreateScript(v2{0, 0});
+        Block *block = CreateBlock(BlockType_Command);
+        script->topBlock = block;
     }
     
     {
         // A script with three blocks in a row
-        Script *script = CreateScript(v2{40, -30}, BlockType_Command);
-        Block *topBlock = script->topBlock;
+        Script *script = CreateScript(v2{40, -30});
+        Block *topBlock = CreateBlock(BlockType_Command);
+        script->topBlock = topBlock;
         
-        Block *loop = CreateBlock(script, BlockType_Loop);
+        Block *loop = CreateBlock(BlockType_Loop);
         Connect(topBlock, loop);
         
-        Block *otherBlock = CreateBlock(script, BlockType_Command);
-        Connect(loop, otherBlock);
+        Block *block2 = CreateBlock(BlockType_Command);
+        Connect(loop, block2);
     }
+    
     
     {
         // A script with nested loops
-        Script *script = CreateScript(v2{-30, -40}, BlockType_Command);
-        Block *block1 = script->topBlock;
+        Script *script = CreateScript(v2{-30, 50});
+        Block *block1 = CreateBlock(BlockType_Command);
+        script->topBlock = block1;
         
-        Block *outerLoop = CreateBlock(script, BlockType_Loop);
+        Block *outerLoop = CreateBlock(BlockType_Loop);
         Connect(block1, outerLoop);
         
-            Block *block2 = CreateBlock(script, BlockType_Command);
-            Block *innerLoop = CreateBlock(script, BlockType_Loop);
-            Block *block3 = CreateBlock(script, BlockType_Command);
+            Block *block2 = CreateBlock(BlockType_Command);
+            Block *innerLoop = CreateBlock(BlockType_Loop);
+            Block *block3 = CreateBlock(BlockType_Command);
             
             Connect(block2, innerLoop);
             Connect(innerLoop, block3);
         
         ConnectInner(outerLoop, block2);
         
-        Block *last = CreateBlock(script, BlockType_Command);
+        Block *last = CreateBlock(BlockType_Command);
         Connect(outerLoop, last);
     }
     

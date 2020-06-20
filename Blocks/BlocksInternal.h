@@ -15,7 +15,7 @@ struct RenderBasis;
 typedef u32 RenderingIndex;
 
 enum BlockType {
-    BlockType_Command = 1,
+    BlockType_Command,
     BlockType_Loop
 };
 
@@ -50,17 +50,16 @@ struct RenderEntry {
 
 struct Interactable {
     RenderingIndex renderingIdx; // 0 indicates none
-    f32 *x;
-    f32 *y;
+    Script *script;
+    v2 blockP;
     
     v2 mouseOffset;
 };
 
 struct Block {
-    Script *script;
-    BlockType type;
     Block *prev;
     Block *next;
+    BlockType type;
     
     // Loops
     Block *inner;
@@ -97,9 +96,9 @@ struct BlocksContext {
 
 void BeginBlocks(BlocksInput input);
 BlocksRenderInfo EndBlocks(void);
-void DrawBlock(Block *, RenderBasis *);
-void DrawCommandBlock(Block *, RenderBasis *);
-void DrawLoopBlock(Block *, RenderBasis *);
+void DrawBlock(Block *, Script *, RenderBasis *);
+void DrawCommandBlock(Block *, Script *, RenderBasis *);
+void DrawLoopBlock(Block *, Script *, RenderBasis *);
 
 
 void *PushSize(Arena *arena, u32 size) {

@@ -90,7 +90,7 @@ fragment float4 simple_fragment(VertexOut v [[ stage_in ]],
     if (dist < 0.5) {
         discard_fragment();
     }
-    if (dist < 0.52) {
+    if (dist < 0.51) {
         return float4(v.color.r * 3.0 / 4.0, v.color.g * 3.0 / 4.0, v.color.b * 3.0 / 4.0, 1.0);
     }
     return float4(v.color.rgb, 1.0);
