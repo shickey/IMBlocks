@@ -15,8 +15,8 @@ struct RenderBasis;
 typedef u32 RenderingIndex;
 
 enum BlockType {
-    Command = 1,
-    Loop
+    BlockType_Command = 1,
+    BlockType_Loop
 };
 
 struct Arena {
@@ -59,15 +59,15 @@ struct Interactable {
 struct Block {
     Script *script;
     BlockType type;
+    Block *prev;
     Block *next;
     
-    // Loop
+    // Loops
     Block *inner;
 };
 
 struct Script {
-    f32 x;
-    f32 y;
+    v2 P;
     Block *topBlock;
 };
 

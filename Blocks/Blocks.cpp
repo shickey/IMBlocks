@@ -26,6 +26,60 @@ RenderEntry *PushRenderEntry(BlocksContext *ctx) {
     return entry;
 }
 
+void SetTopBlock(Script *script, Block *block) {
+    script->topBlock = block;
+    block->script = script;
+}
+
+Script *CreateScript(v2 position, Block *topBlock) {
+    Script *script = &blocksCtx->scripts[blocksCtx->scriptCount++];
+    *script = { 0 };
+    script->P = position;
+    
+    // @TODO: We need to recursively go through all the blocks and set the new script pointer
+    
+    SetTopBlock(script, topBlock);
+    return script;
+}
+
+Script *CreateScript(v2 position, BlockType type) {
+    Script *script = &blocksCtx->scripts[blocksCtx->scriptCount++];
+    *script = { 0 };
+    script->P = position;
+    
+    Block *topBlock = PushStruct(&blocksCtx->blocks, Block);
+    *topBlock = { 0 };
+    topBlock->type = type;
+    
+    SetTopBlock(script, topBlock);
+    return script;
+}
+
+Block *CreateBlock(Script *script, BlockType type) {
+    Block *block = PushStruct(&blocksCtx->blocks, Block);
+    *block = { 0 };
+    block->type = type;
+    block->script = script;
+    return block;
+}
+
+void Connect(Block *from, Block *to) {
+    // The `to` block always moves to `from`s script
+    from->next = to;
+    to->prev = from;
+    to->script = from->script;
+}
+
+void ConnectInner(Block *from, Block *to) {
+    Assert(from->type == BlockType_Loop);
+    
+    // The `to` block always moves to `from`s script
+    from->inner = to;
+    to->script = from->script;
+    
+    // @TODO: We need to recursively go through all the blocks and set the new script pointer
+}
+
 void BeginBlocks(BlocksInput input) {
     blocksCtx->input = input;
     
@@ -53,7 +107,23 @@ BlocksRenderInfo EndBlocks() {
             blocksCtx->hot = blocksCtx->nextHot;
         }
         if (blocksCtx->hot.renderingIdx && blocksCtx->input.mouseDown) {
+            // Begin interacting
             blocksCtx->interacting = blocksCtx->hot;
+            
+            // // If we're in the middle of a stack, tear off into a new stack
+            // Block *hotBlock = getBlockById(blocksCtx, blocksCtx->hot.blockId);
+            
+            // if (hotBlock != hotBlock->script->topBlock) {
+            //     RenderEntry *hotEntry = &blocksCtx->renderEntries[blocksCtx->interacting.renderingIdx];
+            //     hotBlock->prev->next = NULL;
+            //     hotBlock->prev = NULL;
+            //     v2 scriptP = { hotEntry->x, hotEntry->y };
+            //     Script *script = CreateScript(scriptP, hotBlock);
+            //     blocksCtx->interacting.x = &script->x;
+            //     blocksCtx->interacting.y = &script->y;
+            //     v2 mouseOffset = blocksCtx->interacting.mouseOffset;
+            //     blocksCtx->interacting.mouseOffset = { mouseOffset.x - hotEntry->x, mouseOffset.y - hotEntry->y };
+            // }
         }
     }
     
@@ -88,17 +158,17 @@ BlocksRenderInfo EndBlocks() {
 void RenderScript(Script *script) {
     if (!script->topBlock) { return; }
     
-    RenderBasis basis = { script->x, script->y, 0, 0 };
+    RenderBasis basis = { script->P, 0, 0 };
     DrawBlock(script->topBlock, &basis);
 }
 
 void DrawBlock(Block *block, RenderBasis *basis) {
     switch(block->type) {
-        case Command: {
+        case BlockType_Command: {
             DrawCommandBlock(block, basis);
             break;
         }
-        case Loop: {
+        case BlockType_Loop: {
             DrawLoopBlock(block, basis);
         }
         default: break;
@@ -125,10 +195,10 @@ void DrawCommandBlock(Block *block, RenderBasis *basis) {
     
     if (PointInRect(blocksCtx->input.mouseP, hitBox)) {
         blocksCtx->nextHot.renderingIdx = entry->idx;
-        blocksCtx->nextHot.x = &block->script->x;
-        blocksCtx->nextHot.y = &block->script->y;
+        blocksCtx->nextHot.x = &block->script->P.x;
+        blocksCtx->nextHot.y = &block->script->P.y;
         
-        blocksCtx->nextHot.mouseOffset = { blocksCtx->input.mouseP.x - block->script->x, blocksCtx->input.mouseP.y - block->script->y };
+        blocksCtx->nextHot.mouseOffset = { blocksCtx->input.mouseP.x - block->script->P.x, blocksCtx->input.mouseP.y - block->script->P.y };
     }
     
 }
@@ -165,10 +235,10 @@ void DrawLoopBlock(Block *block, RenderBasis *basis) {
     
     if (PointInRect(blocksCtx->input.mouseP, hitBox) && !PointInRect(blocksCtx->input.mouseP, innerHitBox)) {
         blocksCtx->nextHot.renderingIdx = entry->idx;
-        blocksCtx->nextHot.x = &block->script->x;
-        blocksCtx->nextHot.y = &block->script->y;
+        blocksCtx->nextHot.x = &block->script->P.x;
+        blocksCtx->nextHot.y = &block->script->P.y;
         
-        blocksCtx->nextHot.mouseOffset = { blocksCtx->input.mouseP.x - block->script->x, blocksCtx->input.mouseP.y - block->script->y };
+        blocksCtx->nextHot.mouseOffset = { blocksCtx->input.mouseP.x - block->script->P.x, blocksCtx->input.mouseP.y - block->script->P.y };
     }
     
 }
@@ -193,98 +263,47 @@ extern "C" void InitBlocks(void *mem, u32 memSize) {
     
     context->scriptCount = 0;
     
+    blocksCtx = context;
+    
     // Create some blocks, y'know, for fun
-    Block *block1 = PushStruct(&context->blocks, Block);
-    block1->type = Command;
-    block1->next = NULL;
+    {
+        // A script with a single command block
+        CreateScript(v2{0, 0}, BlockType_Command);
+    }
     
-    Script *script1 = &context->scripts[context->scriptCount++];
-    script1->x = 0;
-    script1->y = 0;
-    script1->topBlock = block1;
+    {
+        // A script with three blocks in a row
+        Script *script = CreateScript(v2{40, -30}, BlockType_Command);
+        Block *topBlock = script->topBlock;
+        
+        Block *loop = CreateBlock(script, BlockType_Loop);
+        Connect(topBlock, loop);
+        
+        Block *otherBlock = CreateBlock(script, BlockType_Command);
+        Connect(loop, otherBlock);
+    }
     
-    block1->script = script1;
+    {
+        // A script with nested loops
+        Script *script = CreateScript(v2{-30, -40}, BlockType_Command);
+        Block *block1 = script->topBlock;
+        
+        Block *outerLoop = CreateBlock(script, BlockType_Loop);
+        Connect(block1, outerLoop);
+        
+            Block *block2 = CreateBlock(script, BlockType_Command);
+            Block *innerLoop = CreateBlock(script, BlockType_Loop);
+            Block *block3 = CreateBlock(script, BlockType_Command);
+            
+            Connect(block2, innerLoop);
+            Connect(innerLoop, block3);
+        
+        ConnectInner(outerLoop, block2);
+        
+        Block *last = CreateBlock(script, BlockType_Command);
+        Connect(outerLoop, last);
+    }
     
-    
-    
-    Block *block2 = PushStruct(&context->blocks, Block);
-    block2->type = Command;
-    block2->next = NULL;
-    
-    Block *loop = PushStruct(&context->blocks, Block);
-    loop->type = Loop;
-    loop->next = block2;
-    
-    Block *block3 = PushStruct(&context->blocks, Block);
-    block3->type = Command;
-    block3->next = loop;
-    
-    Script *script2 = &context->scripts[context->scriptCount++];
-    script2->x = -20;
-    script2->y = 40;
-    script2->topBlock = block3;
-    
-    block2->script = script2;
-    loop->script = script2;
-    block3->script = script2;
-    
-    
-    
-    Block *block4 = PushStruct(&context->blocks, Block);
-    block4->type = Command;
-    block4->next = NULL;
-    
-    Script *script3 = &context->scripts[context->scriptCount++];
-    script3->x = 40;
-    script3->y = -30;
-    script3->topBlock = block4;
-    
-    block4->script = script3;
-    
-    
-    
-    Block *block5 = PushStruct(&context->blocks, Block);
-    block5->type = Command;
-    block5->next = NULL;
-    
-    Block *block6 = PushStruct(&context->blocks, Block);
-    block6->type = Command;
-    block6->next = NULL;
-    
-    Block *block7 = PushStruct(&context->blocks, Block);
-    block7->type = Command;
-    block7->next = block6;
-    
-    Block *loop2 = PushStruct(&context->blocks, Block);
-    loop2->type = Loop;
-    loop2->next = block5;
-    loop2->inner = block7;
-    
-    Block *block8 = PushStruct(&context->blocks, Block);
-    block8->type = Command;
-    block8->next = loop2;
-    
-    Block *loop3 = PushStruct(&context->blocks, Block);
-    loop3->type = Loop;
-    loop3->next = NULL;
-    loop3->inner = block8;
-    
-    Block *block9 = PushStruct(&context->blocks, Block);
-    block9->type = Command;
-    block9->next = loop3;
-    
-    Script *script4 = &context->scripts[context->scriptCount++];
-    script4->x = 30;
-    script4->y = -40;
-    script4->topBlock = block9;
-    
-    block5->script = script4;
-    block6->script = script4;
-    block7->script = script4;
-    loop2->script = script4;
-    block8->script = script4;
-    loop3->script = script4;
-    block9->script = script4;
     
 }
 
