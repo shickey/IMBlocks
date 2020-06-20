@@ -48,12 +48,20 @@ struct RenderEntry {
     };
 };
 
-struct Interactable {
-    RenderingIndex renderingIdx; // 0 indicates none
-    Script *script;
+enum InteractionType {
+    InteractionType_None,
+    InteractionType_Select,
+    InteractionType_Drag
+};
+
+struct Interaction {
+    InteractionType type;
     Block *block;
     v2 blockP;
+    Script *script;
+    RenderingIndex renderingIdx;
     
+    v2 mouseStartP;
     v2 mouseOffset;
 };
 
@@ -91,9 +99,9 @@ struct BlocksContext {
     Script scripts[1024];
     u32 scriptCount;
     
-    Interactable hot;
-    Interactable interacting;
-    Interactable nextHot;
+    Interaction hot;
+    Interaction interacting;
+    Interaction nextHot;
 };
 
 void BeginBlocks(BlocksInput input);

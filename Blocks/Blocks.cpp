@@ -10,7 +10,10 @@
 
 #include "Blocks.h"
 #include "BlocksInternal.h"
+#include "BlocksMath.h"
 #include "BlocksVerts.h"
+
+#define MIN_DRAG_DIST 4.0
 
 global_var BlocksContext *blocksCtx = 0;
 
@@ -20,8 +23,8 @@ b32 PointInRect(v2 point, BlocksRect rect) {
 }
 
 RenderEntry *PushRenderEntry(BlocksContext *ctx) {
-    Assert(ctx->nextRenderingIdx - 1 < ArrayCount(ctx->renderEntries));
-    RenderEntry *entry = &ctx->renderEntries[ctx->nextRenderingIdx - 1];
+    Assert(ctx->nextRenderingIdx < ArrayCount(ctx->renderEntries));
+    RenderEntry *entry = &ctx->renderEntries[ctx->nextRenderingIdx];
     entry->idx = ctx->nextRenderingIdx++;
     return entry;
 }
@@ -76,71 +79,76 @@ b32 IsTopBlockOfScript(Block *block) {
     return false;
 }
 
+inline
+b32 Interacting() {
+    return blocksCtx->interacting.type != InteractionType_None;
+}
+
 void BeginBlocks(BlocksInput input) {
     blocksCtx->input = input;
     
     // Clear memory
     blocksCtx->verts.used = 0;
     
-    blocksCtx->hot.renderingIdx = 0;
-    blocksCtx->nextHot.renderingIdx = 0;
+    blocksCtx->hot.block = 0;
+    blocksCtx->nextHot.block = 0;
     
-    blocksCtx->nextRenderingIdx = 1;
+    blocksCtx->nextRenderingIdx = 0;
 }
 
 BlocksRenderInfo EndBlocks() {
-    if (blocksCtx->interacting.renderingIdx) {
+    if (Interacting()) {
         if (!blocksCtx->input.mouseDown) {
-            blocksCtx->interacting.renderingIdx = 0;
+            // Stop interaction
+            blocksCtx->interacting = {};
         }
         else {
-            Script *script = blocksCtx->interacting.script;
-            script->P.x = blocksCtx->input.mouseP.x - blocksCtx->interacting.mouseOffset.x;
-            script->P.y = blocksCtx->input.mouseP.y - blocksCtx->interacting.mouseOffset.y;
+            // Update interation
+            Interaction *interact = &blocksCtx->interacting;
+            Assert(interact->type != InteractionType_None)
+            switch(interact->type) {
+                case InteractionType_Select: {
+                    // If the mouse has moved far enough, start dragging
+                    if (DistSq(blocksCtx->input.mouseP, interact->mouseStartP) > MIN_DRAG_DIST * MIN_DRAG_DIST) {
+                        interact->type = InteractionType_Drag;
+                        
+                        // If we're in the middle of a stack, tear off into a new stack
+                        Block *hotBlock = interact->block;
+                        if (!IsTopBlockOfScript(hotBlock)) {
+                            Script *newScript = TearOff(hotBlock, interact->blockP);
+                            interact->script = newScript;
+                            interact->mouseOffset = { interact->mouseStartP.x - interact->blockP.x, interact->mouseStartP.y - interact->blockP.y };
+                        }
+                    }
+                    break;
+                }
+                case InteractionType_Drag: {
+                    Script *script = interact->script;
+                    script->P.x = blocksCtx->input.mouseP.x - interact->mouseOffset.x;
+                    script->P.y = blocksCtx->input.mouseP.y - interact->mouseOffset.y;
+                    break;
+                }
+                default: { break; }
+            }
         }
     }
     else {
-        if (blocksCtx->nextHot.renderingIdx) {
+        if (blocksCtx->nextHot.block) {
             blocksCtx->hot = blocksCtx->nextHot;
         }
-        if (blocksCtx->hot.renderingIdx && blocksCtx->input.mouseDown) {
-            // Begin interacting
+        if (blocksCtx->hot.block && blocksCtx->input.mouseDown) {
+            // Begin interaction
             blocksCtx->interacting = blocksCtx->hot;
-            
-            // // If we're in the middle of a stack, tear off into a new stack
-            Interactable *interact = &blocksCtx->interacting;
-            Block *hotBlock = interact->block;
-            if (!IsTopBlockOfScript(hotBlock)) {
-                Script *newScript = TearOff(hotBlock, interact->blockP);
-                interact->script = newScript;
-                
-                v2 mouseOffset = interact->mouseOffset;
-                interact->mouseOffset = { blocksCtx->input.mouseP.x - interact->blockP.x, blocksCtx->input.mouseP.y - interact->blockP.y };
-            }
-            
-            // Block *hotBlock = getBlockById(blocksCtx, blocksCtx->hot.blockId);
-            
-            // if (hotBlock != hotBlock->script->topBlock) {
-            //     RenderEntry *hotEntry = &blocksCtx->renderEntries[blocksCtx->interacting.renderingIdx];
-            //     hotBlock->prev->next = NULL;
-            //     hotBlock->prev = NULL;
-            //     v2 scriptP = { hotEntry->x, hotEntry->y };
-            //     Script *script = CreateScript(scriptP, hotBlock);
-            //     blocksCtx->interacting.x = &script->x;
-            //     blocksCtx->interacting.y = &script->y;
-            //     v2 mouseOffset = blocksCtx->interacting.mouseOffset;
-            //     blocksCtx->interacting.mouseOffset = { mouseOffset.x - hotEntry->x, mouseOffset.y - hotEntry->y };
-            // }
         }
     }
     
     // Change the color of the hot block
-    if (blocksCtx->hot.renderingIdx) {
-        blocksCtx->renderEntries[blocksCtx->hot.renderingIdx - 1].color = v3{1, 1, 0};
+    if (blocksCtx->hot.block) {
+        blocksCtx->renderEntries[blocksCtx->hot.renderingIdx].color = v3{1, 1, 0};
     }
     
     // Assemble vertex buffer
-    for (u32 i = 0; i < blocksCtx->nextRenderingIdx - 1; ++i) {
+    for (u32 i = 0; i < blocksCtx->nextRenderingIdx; ++i) {
         RenderEntry *entry = &blocksCtx->renderEntries[i];
         switch(entry->type) {
             case RenderEntryType_Command: {
@@ -157,7 +165,7 @@ BlocksRenderInfo EndBlocks() {
     
     BlocksRenderInfo Result;
     Result.verts = blocksCtx->verts.data;
-    Result.vertsCount = blocksCtx->verts.used / (sizeof(f32) * 7);
+    Result.vertsCount = blocksCtx->verts.used / VERTEX_SIZE;
     Result.vertsSize = blocksCtx->verts.used;
     return Result;
 }
@@ -200,10 +208,12 @@ void DrawCommandBlock(Block *block, Script *script, RenderBasis *basis) {
     basis->bounds.y = Max(basis->bounds.y, 16);
     
     if (PointInRect(blocksCtx->input.mouseP, hitBox)) {
-        blocksCtx->nextHot.renderingIdx = entry->idx;
-        blocksCtx->nextHot.script = script;
+        blocksCtx->nextHot.type = InteractionType_Select;
         blocksCtx->nextHot.block = block;
         blocksCtx->nextHot.blockP = entry->P;
+        blocksCtx->nextHot.script = script;
+        blocksCtx->nextHot.renderingIdx = entry->idx;
+        blocksCtx->nextHot.mouseStartP = blocksCtx->input.mouseP;
         blocksCtx->nextHot.mouseOffset = { blocksCtx->input.mouseP.x - script->P.x, blocksCtx->input.mouseP.y - script->P.y };
     }
     
@@ -239,10 +249,12 @@ void DrawLoopBlock(Block *block, Script *script, RenderBasis *basis) {
     basis->bounds.y = Max(basis->bounds.y, 20 + vertStretch);
     
     if (PointInRect(blocksCtx->input.mouseP, hitBox) && !PointInRect(blocksCtx->input.mouseP, innerHitBox)) {
-        blocksCtx->nextHot.renderingIdx = entry->idx;
-        blocksCtx->nextHot.script = script;
+        blocksCtx->nextHot.type = InteractionType_Select;
         blocksCtx->nextHot.block = block;
         blocksCtx->nextHot.blockP = entry->P;
+        blocksCtx->nextHot.script = script;
+        blocksCtx->nextHot.renderingIdx = entry->idx;
+        blocksCtx->nextHot.mouseStartP = blocksCtx->input.mouseP;
         blocksCtx->nextHot.mouseOffset = { blocksCtx->input.mouseP.x - script->P.x, blocksCtx->input.mouseP.y - script->P.y };
     }
     

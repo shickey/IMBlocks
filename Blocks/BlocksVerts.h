@@ -9,6 +9,7 @@
 **********************************************************/
 
 #define PushVerts(ctx, v) PushData_(&ctx->verts, (v), sizeof((v)))
+#define VERTEX_SIZE (7 * sizeof(f32))
 
 void PushCommandBlockVerts(BlocksContext *ctx, v2 position, v3 color) {
     #define unitSize 8.0f
