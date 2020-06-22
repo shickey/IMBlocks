@@ -74,26 +74,17 @@ vertex VertexOut simple_vertex(VertexIn in [[ stage_in ]],
 }
 
 fragment float4 simple_fragment(VertexOut v [[ stage_in ]],
-                                texture2d<float> blockTex [[ texture(0) ]]) {
-    constexpr sampler s(coord::normalized, filter::linear);
+                                sampler samplr [[sampler(0)]],
+                                texture2d<float, access::sample> blockTex [[ texture(0) ]]) {
     
-//    float edgeDistance = 0.5;
-//    float dist = (float)blockTex.sample(s, v.texCoord).r;
-////    float dist = (float)blockTex.sample(s, v.texCoord).r / 255.0;
-//    float edgeWidth = 0.75 * length(float2(dfdx(dist), dfdy(dist)));
-//    float opacity = smoothstep(edgeDistance - edgeWidth, edgeDistance + edgeWidth, dist);
-//    
-//    return float4(v.color.rgb, opacity);
+    float edgeDistance = 0.5;
+    float dist = blockTex.sample(samplr, v.texCoord).r;
+    float dx = dfdx(dist);
+    float dy = dfdy(dist);
+    float edgeWidth = 1.0 * length(float2(dx, dy));
+    float opacity = smoothstep(edgeDistance - edgeWidth, edgeDistance + edgeWidth, dist);
     
-//    uint edgeDistance = 127;
-    float dist = blockTex.sample(s, v.texCoord).r;
-    if (dist < 0.5) {
-        discard_fragment();
-    }
-    if (dist < 0.51) {
-        return float4(v.color.r * 3.0 / 4.0, v.color.g * 3.0 / 4.0, v.color.b * 3.0 / 4.0, 1.0);
-    }
-    return float4(v.color.rgb, 1.0);
+    return float4(v.color.rgb, opacity);
 }
 
 

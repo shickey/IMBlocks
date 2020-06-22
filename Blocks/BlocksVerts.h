@@ -11,6 +11,55 @@
 #define PushVerts(ctx, v) PushData_(&ctx->verts, (v), sizeof((v)))
 #define VERTEX_SIZE (7 * sizeof(f32))
 
+void PushSimpleRect(BlocksContext *ctx, BlocksRect rect, v3 color) {
+    #define rectWidth 0.5f
+    #define rectHalfWidth (rectWidth / 2.0f)
+    
+    // @TODO: @NOTE: The UV coords here are just a silly hack. They point at a texel firmly inside one of the block shapes (to force shader to definitely draw the fragments)
+    f32 verts[] = {
+        // Bottom
+        rect.x - rectHalfWidth,          rect.y - rectHalfWidth,          100.0f / 512.0f, 100.0f / 512.0f, color.r, color.g, color.b,
+        rect.x + rect.w + rectHalfWidth, rect.y - rectHalfWidth,          100.0f / 512.0f, 100.0f / 512.0f, color.r, color.g, color.b,
+        rect.x - rectHalfWidth,          rect.y + rectHalfWidth,          100.0f / 512.0f, 100.0f / 512.0f, color.r, color.g, color.b,
+        
+        rect.x + rect.w + rectHalfWidth, rect.y - rectHalfWidth,          100.0f / 512.0f, 100.0f / 512.0f, color.r, color.g, color.b,
+        rect.x - rectHalfWidth,          rect.y + rectHalfWidth,          100.0f / 512.0f, 100.0f / 512.0f, color.r, color.g, color.b,
+        rect.x + rect.w + rectHalfWidth, rect.y + rectHalfWidth,          100.0f / 512.0f, 100.0f / 512.0f, color.r, color.g, color.b,
+        
+        // Top
+        rect.x - rectHalfWidth,          rect.y + rect.h - rectHalfWidth, 100.0f / 512.0f, 100.0f / 512.0f, color.r, color.g, color.b,
+        rect.x + rect.w + rectHalfWidth, rect.y + rect.h - rectHalfWidth, 100.0f / 512.0f, 100.0f / 512.0f, color.r, color.g, color.b,
+        rect.x - rectHalfWidth,          rect.y + rect.h + rectHalfWidth, 100.0f / 512.0f, 100.0f / 512.0f, color.r, color.g, color.b,
+        
+        rect.x + rect.w + rectHalfWidth, rect.y + rect.h - rectHalfWidth, 100.0f / 512.0f, 100.0f / 512.0f, color.r, color.g, color.b,
+        rect.x - rectHalfWidth,          rect.y + rect.h + rectHalfWidth, 100.0f / 512.0f, 100.0f / 512.0f, color.r, color.g, color.b,
+        rect.x + rect.w + rectHalfWidth, rect.y + rect.h + rectHalfWidth, 100.0f / 512.0f, 100.0f / 512.0f, color.r, color.g, color.b,
+        
+        // Left
+        rect.x - rectHalfWidth,          rect.y + rectHalfWidth,          100.0f / 512.0f, 100.0f / 512.0f, color.r, color.g, color.b,
+        rect.x + rectHalfWidth,          rect.y + rectHalfWidth,          100.0f / 512.0f, 100.0f / 512.0f, color.r, color.g, color.b,
+        rect.x - rectHalfWidth,          rect.y + rect.h - rectHalfWidth, 100.0f / 512.0f, 100.0f / 512.0f, color.r, color.g, color.b,
+        
+        rect.x + rectHalfWidth,          rect.y + rectHalfWidth,          100.0f / 512.0f, 100.0f / 512.0f, color.r, color.g, color.b,
+        rect.x - rectHalfWidth,          rect.y + rect.h - rectHalfWidth, 100.0f / 512.0f, 100.0f / 512.0f, color.r, color.g, color.b,
+        rect.x + rectHalfWidth,          rect.y + rect.h - rectHalfWidth, 100.0f / 512.0f, 100.0f / 512.0f, color.r, color.g, color.b,
+        
+        // Right
+        rect.x + rect.w - rectHalfWidth, rect.y + rectHalfWidth,          100.0f / 512.0f, 100.0f / 512.0f, color.r, color.g, color.b,
+        rect.x + rect.w + rectHalfWidth, rect.y + rectHalfWidth,          100.0f / 512.0f, 100.0f / 512.0f, color.r, color.g, color.b,
+        rect.x + rect.w - rectHalfWidth, rect.y + rect.h - rectHalfWidth, 100.0f / 512.0f, 100.0f / 512.0f, color.r, color.g, color.b,
+        
+        rect.x + rect.w + rectHalfWidth, rect.y + rectHalfWidth,          100.0f / 512.0f, 100.0f / 512.0f, color.r, color.g, color.b,
+        rect.x + rect.w - rectHalfWidth, rect.y + rect.h - rectHalfWidth, 100.0f / 512.0f, 100.0f / 512.0f, color.r, color.g, color.b,
+        rect.x + rect.w + rectHalfWidth, rect.y + rect.h - rectHalfWidth, 100.0f / 512.0f, 100.0f / 512.0f, color.r, color.g, color.b,
+    };
+    
+    PushVerts(ctx, verts);
+    
+    #undef rectHalfWidth
+    #undef rectWidth
+}
+
 void PushCommandBlockVerts(BlocksContext *ctx, v2 position, v3 color) {
     #define unitSize 8.0f
     #define texSize  512.0f

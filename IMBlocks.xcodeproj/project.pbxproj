@@ -10,9 +10,9 @@
 		A308405E249BF10100AC2EEB /* libBlocksARM.h in Headers */ = {isa = PBXBuildFile; fileRef = A308405C249BF10100AC2EEB /* libBlocksARM.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		A3084062249BF10100AC2EEB /* libBlocksARM.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = A308405A249BF10100AC2EEB /* libBlocksARM.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		A3084067249BF10D00AC2EEB /* Blocks.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3A9051F2497D6A1004835B7 /* Blocks.cpp */; };
-		A3084069249C051600AC2EEB /* block-textures.dat in Resources */ = {isa = PBXBuildFile; fileRef = A3084068249C051500AC2EEB /* block-textures.dat */; };
-		A308406A249C051600AC2EEB /* block-textures.dat in Resources */ = {isa = PBXBuildFile; fileRef = A3084068249C051500AC2EEB /* block-textures.dat */; };
 		A32B6DDC2499C2D00084106E /* Blocks.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3A9051F2497D6A1004835B7 /* Blocks.cpp */; };
+		A37CB53E24A1565B008FF9E0 /* block-textures.dat in Resources */ = {isa = PBXBuildFile; fileRef = A37CB53D24A1565B008FF9E0 /* block-textures.dat */; };
+		A37CB53F24A1565B008FF9E0 /* block-textures.dat in Resources */ = {isa = PBXBuildFile; fileRef = A37CB53D24A1565B008FF9E0 /* block-textures.dat */; };
 		A3A904F02497D37F004835B7 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = A3A904EF2497D37F004835B7 /* AppDelegate.m */; };
 		A3A904F32497D37F004835B7 /* GameViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A3A904F22497D37F004835B7 /* GameViewController.m */; };
 		A3A904F62497D37F004835B7 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A3A904F42497D37F004835B7 /* Main.storyboard */; };
@@ -31,8 +31,6 @@
 		A3A90524249810B4004835B7 /* MetalView.m in Sources */ = {isa = PBXBuildFile; fileRef = A3A90523249810B4004835B7 /* MetalView.m */; };
 		A3A90525249810B4004835B7 /* MetalView.m in Sources */ = {isa = PBXBuildFile; fileRef = A3A90523249810B4004835B7 /* MetalView.m */; };
 		A3AA9852249B04AC00928544 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = A3AA9851249B04AC00928544 /* main.m */; };
-		A3AA985C249B208100928544 /* horizontal-command-block.dat in Resources */ = {isa = PBXBuildFile; fileRef = A3AA985B249B208100928544 /* horizontal-command-block.dat */; };
-		A3AA985D249B208100928544 /* horizontal-command-block.dat in Resources */ = {isa = PBXBuildFile; fileRef = A3AA985B249B208100928544 /* horizontal-command-block.dat */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -79,9 +77,9 @@
 		A308405A249BF10100AC2EEB /* libBlocksARM.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = libBlocksARM.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		A308405C249BF10100AC2EEB /* libBlocksARM.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = libBlocksARM.h; sourceTree = "<group>"; };
 		A308405D249BF10100AC2EEB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		A3084068249C051500AC2EEB /* block-textures.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "block-textures.dat"; sourceTree = "<group>"; };
 		A308406B249C0D8900AC2EEB /* BlocksVerts.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BlocksVerts.h; sourceTree = "<group>"; };
 		A32B6DD82499C2B60084106E /* libBlocks.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libBlocks.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
+		A37CB53D24A1565B008FF9E0 /* block-textures.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "block-textures.dat"; sourceTree = "<group>"; };
 		A3A904E22497D37E004835B7 /* Renderer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Renderer.h; sourceTree = "<group>"; };
 		A3A904E32497D37E004835B7 /* Renderer.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = Renderer.mm; sourceTree = "<group>"; };
 		A3A904E42497D37E004835B7 /* ShaderTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ShaderTypes.h; sourceTree = "<group>"; };
@@ -110,7 +108,6 @@
 		A3A90523249810B4004835B7 /* MetalView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MetalView.m; sourceTree = "<group>"; };
 		A3AA984F249B04AB00928544 /* GenTextures */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = GenTextures; sourceTree = BUILT_PRODUCTS_DIR; };
 		A3AA9851249B04AC00928544 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
-		A3AA985B249B208100928544 /* horizontal-command-block.dat */ = {isa = PBXFileReference; lastKnownFileType = file; path = "horizontal-command-block.dat"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -251,8 +248,7 @@
 		A3AA9857249B1C1300928544 /* Textures */ = {
 			isa = PBXGroup;
 			children = (
-				A3084068249C051500AC2EEB /* block-textures.dat */,
-				A3AA985B249B208100928544 /* horizontal-command-block.dat */,
+				A37CB53D24A1565B008FF9E0 /* block-textures.dat */,
 			);
 			path = Textures;
 			sourceTree = "<group>";
@@ -428,10 +424,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				A3A904F62497D37F004835B7 /* Main.storyboard in Resources */,
-				A3AA985C249B208100928544 /* horizontal-command-block.dat in Resources */,
+				A37CB53E24A1565B008FF9E0 /* block-textures.dat in Resources */,
 				A3A905132497D37F004835B7 /* Assets.xcassets in Resources */,
 				A3A904F92497D37F004835B7 /* LaunchScreen.storyboard in Resources */,
-				A3084069249C051600AC2EEB /* block-textures.dat in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -440,9 +435,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				A3A905142497D37F004835B7 /* Assets.xcassets in Resources */,
-				A308406A249C051600AC2EEB /* block-textures.dat in Resources */,
+				A37CB53F24A1565B008FF9E0 /* block-textures.dat in Resources */,
 				A3A9050B2497D37F004835B7 /* Main.storyboard in Resources */,
-				A3AA985D249B208100928544 /* horizontal-command-block.dat in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

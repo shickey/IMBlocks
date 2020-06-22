@@ -38,6 +38,7 @@ enum RenderEntryType {
 struct RenderEntry {
     RenderingIndex idx;
     RenderEntryType type;
+    Block* block;
     v2 P;
     v3 color;
     union {
@@ -87,6 +88,12 @@ struct BlocksRect {
     f32 h;
 };
 
+enum GhostBlockInsert {
+    GhostBlockInsert_Before,
+    GhostBlockInsert_After,
+    GhostBlockInsert_Inner
+};
+
 struct BlocksContext {
     BlocksInput input;
     
@@ -102,6 +109,10 @@ struct BlocksContext {
     Interaction hot;
     Interaction interacting;
     Interaction nextHot;
+    
+    Block *ghostBlockParent;
+    GhostBlockInsert ghostBlockInsert;
+    BlockType ghostBlockType;
 };
 
 void BeginBlocks(BlocksInput input);

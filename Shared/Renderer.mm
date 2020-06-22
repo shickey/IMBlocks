@@ -93,6 +93,8 @@ void unloadLibBlocks() {
     
     id <MTLTexture> blockTexture;
     
+    id<MTLSamplerState> _sampler;
+    
     id <MTLRenderPipelineState> _pipelineState;
     id <MTLRenderPipelineState> _debugPipelineState;
     MTLVertexDescriptor *_mtlVertexDescriptor;
@@ -144,6 +146,13 @@ void unloadLibBlocks() {
     _mtlVertexDescriptor.layouts[0].stride = 7 * sizeof(f32);
     _mtlVertexDescriptor.layouts[0].stepFunction = MTLVertexStepFunctionPerVertex;
 
+    // Sampler
+    MTLSamplerDescriptor *samplerDescriptor = [[MTLSamplerDescriptor alloc] init];
+    samplerDescriptor.minFilter = MTLSamplerMinMagFilterNearest;
+    samplerDescriptor.magFilter = MTLSamplerMinMagFilterLinear;
+    samplerDescriptor.sAddressMode = MTLSamplerAddressModeClampToZero;
+    samplerDescriptor.tAddressMode = MTLSamplerAddressModeClampToZero;
+    _sampler = [_device newSamplerStateWithDescriptor:samplerDescriptor];
     
     // Set up shaders
     id<MTLLibrary> defaultLibrary = [_device newDefaultLibrary];
@@ -335,6 +344,7 @@ void unloadLibBlocks() {
         [renderEncoder setVertexBuffer:worldUniformsBuffer offset:0 atIndex:2];
         
         [renderEncoder setFragmentTexture:blockTexture atIndex:0];
+        [renderEncoder setFragmentSamplerState:_sampler atIndex:0];
         
         [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:renderInfo.vertsCount];
         
@@ -354,7 +364,7 @@ void unloadLibBlocks() {
 
 - (void)mtkView:(nonnull MTKView *)view drawableSizeWillChange:(CGSize)size
 {   
-    static f32 zoomLevel = 4.0;
+    static f32 zoomLevel = 8.0;
     
 //    f32 aspect = size.width / (float)size.height;
     
