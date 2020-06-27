@@ -364,7 +364,7 @@ void unloadLibBlocks() {
 
 - (void)mtkView:(nonnull MTKView *)view drawableSizeWillChange:(CGSize)size
 {   
-    static f32 zoomLevel = 8.0;
+    static f32 zoomLevel = 3.0;
     
 //    f32 aspect = size.width / (float)size.height;
     

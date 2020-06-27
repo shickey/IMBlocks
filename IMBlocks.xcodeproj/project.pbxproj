@@ -9,8 +9,6 @@
 /* Begin PBXBuildFile section */
 		A308405E249BF10100AC2EEB /* libBlocksARM.h in Headers */ = {isa = PBXBuildFile; fileRef = A308405C249BF10100AC2EEB /* libBlocksARM.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		A3084062249BF10100AC2EEB /* libBlocksARM.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = A308405A249BF10100AC2EEB /* libBlocksARM.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		A3084067249BF10D00AC2EEB /* Blocks.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3A9051F2497D6A1004835B7 /* Blocks.cpp */; };
-		A32B6DDC2499C2D00084106E /* Blocks.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3A9051F2497D6A1004835B7 /* Blocks.cpp */; };
 		A37CB53E24A1565B008FF9E0 /* block-textures.dat in Resources */ = {isa = PBXBuildFile; fileRef = A37CB53D24A1565B008FF9E0 /* block-textures.dat */; };
 		A37CB53F24A1565B008FF9E0 /* block-textures.dat in Resources */ = {isa = PBXBuildFile; fileRef = A37CB53D24A1565B008FF9E0 /* block-textures.dat */; };
 		A3A904F02497D37F004835B7 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = A3A904EF2497D37F004835B7 /* AppDelegate.m */; };
@@ -31,6 +29,7 @@
 		A3A90524249810B4004835B7 /* MetalView.m in Sources */ = {isa = PBXBuildFile; fileRef = A3A90523249810B4004835B7 /* MetalView.m */; };
 		A3A90525249810B4004835B7 /* MetalView.m in Sources */ = {isa = PBXBuildFile; fileRef = A3A90523249810B4004835B7 /* MetalView.m */; };
 		A3AA9852249B04AC00928544 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = A3AA9851249B04AC00928544 /* main.m */; };
+		A3C07B0624A6F31D0031BF23 /* Blocks.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3C07B0524A6F3180031BF23 /* Blocks.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -77,7 +76,6 @@
 		A308405A249BF10100AC2EEB /* libBlocksARM.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = libBlocksARM.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		A308405C249BF10100AC2EEB /* libBlocksARM.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = libBlocksARM.h; sourceTree = "<group>"; };
 		A308405D249BF10100AC2EEB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		A308406B249C0D8900AC2EEB /* BlocksVerts.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BlocksVerts.h; sourceTree = "<group>"; };
 		A32B6DD82499C2B60084106E /* libBlocks.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libBlocks.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		A37CB53D24A1565B008FF9E0 /* block-textures.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "block-textures.dat"; sourceTree = "<group>"; };
 		A3A904E22497D37E004835B7 /* Renderer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Renderer.h; sourceTree = "<group>"; };
@@ -102,12 +100,16 @@
 		A3A9050A2497D37F004835B7 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		A3A9050C2497D37F004835B7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A3A9050D2497D37F004835B7 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
-		A3A9051E2497D6A0004835B7 /* Blocks.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.h; fileEncoding = 4; path = Blocks.h; sourceTree = "<group>"; };
-		A3A9051F2497D6A1004835B7 /* Blocks.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Blocks.cpp; sourceTree = "<group>"; };
 		A3A90522249810B4004835B7 /* MetalView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MetalView.h; sourceTree = "<group>"; };
 		A3A90523249810B4004835B7 /* MetalView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MetalView.m; sourceTree = "<group>"; };
 		A3AA984F249B04AB00928544 /* GenTextures */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = GenTextures; sourceTree = BUILT_PRODUCTS_DIR; };
 		A3AA9851249B04AC00928544 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		A3C07B0024A6F3180031BF23 /* BlocksInternal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BlocksInternal.h; sourceTree = "<group>"; };
+		A3C07B0124A6F3180031BF23 /* BlocksVerts.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BlocksVerts.h; sourceTree = "<group>"; };
+		A3C07B0224A6F3180031BF23 /* BlocksTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BlocksTypes.h; sourceTree = "<group>"; };
+		A3C07B0324A6F3180031BF23 /* Blocks.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Blocks.h; sourceTree = "<group>"; };
+		A3C07B0424A6F3180031BF23 /* BlocksMath.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BlocksMath.h; sourceTree = "<group>"; };
+		A3C07B0524A6F3180031BF23 /* Blocks.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Blocks.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -161,7 +163,7 @@
 		A3A904DC2497D37E004835B7 = {
 			isa = PBXGroup;
 			children = (
-				A3A9051D2497D663004835B7 /* Blocks */,
+				A3C07AFF24A6F3180031BF23 /* Blocks */,
 				A3A904E12497D37E004835B7 /* Shared */,
 				A3A904ED2497D37F004835B7 /* iOS */,
 				A3A905022497D37F004835B7 /* macOS */,
@@ -227,16 +229,6 @@
 			path = macOS;
 			sourceTree = "<group>";
 		};
-		A3A9051D2497D663004835B7 /* Blocks */ = {
-			isa = PBXGroup;
-			children = (
-				A3A9051E2497D6A0004835B7 /* Blocks.h */,
-				A3A9051F2497D6A1004835B7 /* Blocks.cpp */,
-				A308406B249C0D8900AC2EEB /* BlocksVerts.h */,
-			);
-			path = Blocks;
-			sourceTree = "<group>";
-		};
 		A3AA9850249B04AB00928544 /* GenTextures */ = {
 			isa = PBXGroup;
 			children = (
@@ -251,6 +243,19 @@
 				A37CB53D24A1565B008FF9E0 /* block-textures.dat */,
 			);
 			path = Textures;
+			sourceTree = "<group>";
+		};
+		A3C07AFF24A6F3180031BF23 /* Blocks */ = {
+			isa = PBXGroup;
+			children = (
+				A3C07B0024A6F3180031BF23 /* BlocksInternal.h */,
+				A3C07B0124A6F3180031BF23 /* BlocksVerts.h */,
+				A3C07B0224A6F3180031BF23 /* BlocksTypes.h */,
+				A3C07B0324A6F3180031BF23 /* Blocks.h */,
+				A3C07B0424A6F3180031BF23 /* BlocksMath.h */,
+				A3C07B0524A6F3180031BF23 /* Blocks.cpp */,
+			);
+			path = Blocks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -447,7 +452,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A3084067249BF10D00AC2EEB /* Blocks.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -455,7 +459,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A32B6DDC2499C2D00084106E /* Blocks.cpp in Sources */,
+				A3C07B0624A6F31D0031BF23 /* Blocks.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

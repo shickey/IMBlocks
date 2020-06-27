@@ -122,6 +122,7 @@ BlocksRenderInfo EndBlocks() {
                             interact->script = newScript;
                             interact->mouseOffset = { interact->mouseStartP.x - interact->blockP.x, interact->mouseStartP.y - interact->blockP.y };
                         }
+                        
                     }
                     break;
                 }
@@ -130,32 +131,59 @@ BlocksRenderInfo EndBlocks() {
                     script->P.x = blocksCtx->input.mouseP.x - interact->mouseOffset.x;
                     script->P.y = blocksCtx->input.mouseP.y - interact->mouseOffset.y;
                     
+                    Block *dragBlock = interact->block;
                     for (u32 i = 0; i < blocksCtx->nextRenderingIdx; ++i) {
                         RenderEntry *entry = &blocksCtx->renderEntries[i];
                         switch(entry->type) {
                             case RenderEntryType_Command: {
-                                BlocksRect dropZone = { entry->P.x + 16, entry->P.y, 6, 16 };
-                                if (PointInRect(script->P, dropZone)) {
-                                    PushSimpleRect(blocksCtx, dropZone, v3{1, 0, 0} );
+                                // Check the common case first (putting in after a block)
+                                BlocksRect dropZoneNext = { entry->P.x + 16, entry->P.y, 6, 16 };
+                                PushSimpleRect(blocksCtx, dropZoneNext, v3{0, 1, 0} );
+                                if (PointInRect(v2{script->P.x, script->P.y + 8}, dropZoneNext)) {
                                     blocksCtx->ghostBlockParent = entry->block;
-                                    blocksCtx->ghostBlockType = interact->block->type;
-                                    blocksCtx->ghostBlockInsert = GhostBlockInsert_After;
+                                    blocksCtx->ghostBlockType = dragBlock->type;
+                                    blocksCtx->ghostBlockInsert = GhostBlockInsert_Next;
                                 }
+                                
+                                // Only check for connecting before a block at the beginning of a script
+                                if (IsTopBlockOfScript(entry->block)) {
+                                    BlocksRect dropZonePrev = { entry->P.x - 8, entry->P.y, 8, 16 };
+                                    if (PointInRect(v2{script->P.x + 16, script->P.y + 8}, dropZonePrev)) {
+                                        blocksCtx->ghostBlockParent = entry->block;
+                                        blocksCtx->ghostBlockType = dragBlock->type;
+                                        blocksCtx->ghostBlockInsert = GhostBlockInsert_Prev;
+                                    }
+                                }
+                                
                                 break;
                             }
                             case RenderEntryType_Loop: {
-                                BlocksRect dropZoneInner = { entry->P.x + 6, entry->P.y, 6, 16 };
-                                if (PointInRect(script->P, dropZoneInner)) {
-                                    PushSimpleRect(blocksCtx, dropZoneInner, v3{1, 0, 0} );
+                                // Check the common case first (putting in after a block)
+                                BlocksRect dropZoneNext = { entry->P.x + 38 + entry->hStretch, entry->P.y, 8, 16 };
+                                if (PointInRect(v2{script->P.x, script->P.y + 8}, dropZoneNext)) {
+                                    blocksCtx->ghostBlockParent = entry->block;
+                                    blocksCtx->ghostBlockType = dragBlock->type;
+                                    blocksCtx->ghostBlockInsert = GhostBlockInsert_Next;
                                 }
                                 
-                                BlocksRect dropZoneNext = { entry->P.x + 38 + entry->hStretch, entry->P.y, 6, 16 };
-                                if (PointInRect(script->P, dropZoneNext)) {
-                                    PushSimpleRect(blocksCtx, dropZoneNext, v3{1, 0, 0} );
-                                    blocksCtx->ghostBlockParent = entry->block;
-                                    blocksCtx->ghostBlockType = interact->block->type;
-                                    blocksCtx->ghostBlockInsert = GhostBlockInsert_After;
+                                // Only check for connecting before a block at the beginning of a script
+                                if (IsTopBlockOfScript(entry->block)) {
+                                    BlocksRect dropZonePrev = { entry->P.x - 8, entry->P.y, 8, 16 };
+                                    if (PointInRect(v2{script->P.x + 16, script->P.y + 8}, dropZonePrev)) {
+                                        blocksCtx->ghostBlockParent = entry->block;
+                                        blocksCtx->ghostBlockType = dragBlock->type;
+                                        blocksCtx->ghostBlockInsert = GhostBlockInsert_Prev;
+                                    }
                                 }
+                                
+                                // Check for connecting inside the loop
+                                BlocksRect dropZoneInner = { entry->P.x + 6, entry->P.y, 8, 16 };
+                                if (PointInRect(v2{script->P.x, script->P.y + 8}, dropZoneInner)) {
+                                    blocksCtx->ghostBlockParent = entry->block;
+                                    blocksCtx->ghostBlockType = dragBlock->type;
+                                    blocksCtx->ghostBlockInsert = GhostBlockInsert_Inner;
+                                }
+                                
                                 break;
                             }
                         }
@@ -192,6 +220,35 @@ BlocksRenderInfo EndBlocks() {
             }
             case RenderEntryType_Loop: {
                 PushLoopBlockVerts(blocksCtx, entry->P, entry->color, entry->hStretch, entry->vStretch);
+                break;
+            }
+        }
+    }
+    
+    // Draw drop zone rects
+    for (u32 i = 0; i < blocksCtx->nextRenderingIdx; ++i) {
+        RenderEntry *entry = &blocksCtx->renderEntries[i];
+        switch(entry->type) {
+            case RenderEntryType_Command: {
+                if (IsTopBlockOfScript(entry->block)) {
+                    BlocksRect dropZonePrev = { entry->P.x - 4, entry->P.y, 8, 16 };
+                    PushSimpleRect(blocksCtx, dropZonePrev, v3{1, 0, 0} );
+                }
+                BlocksRect dropZoneNext = { entry->P.x + 12, entry->P.y, 8, 16 };
+                PushSimpleRect(blocksCtx, dropZoneNext, v3{0, 1, 0} );
+                break;
+            }
+            case RenderEntryType_Loop: {
+                if (IsTopBlockOfScript(entry->block)) {
+                    BlocksRect dropZonePrev = { entry->P.x - 4, entry->P.y, 8, 16 };
+                    PushSimpleRect(blocksCtx, dropZonePrev, v3{1, 0, 0} );
+                }
+                
+                BlocksRect dropZoneInner = { entry->P.x + 4, entry->P.y, 8, 16 };
+                PushSimpleRect(blocksCtx, dropZoneInner, v3{0, 0, 1} );
+                
+                BlocksRect dropZoneNext = { entry->P.x + 34 + entry->hStretch, entry->P.y, 8, 16 };
+                PushSimpleRect(blocksCtx, dropZoneNext, v3{0, 1, 0} );
                 break;
             }
         }
@@ -254,7 +311,7 @@ void DrawBlock(Block *block, Script *script, RenderBasis *basis) {
 
 void DrawCommandBlock(Block *block, Script *script, RenderBasis *basis) {
     
-    if (block == blocksCtx->ghostBlockParent && blocksCtx->ghostBlockInsert == GhostBlockInsert_Before) {
+    if (block == blocksCtx->ghostBlockParent && blocksCtx->ghostBlockInsert == GhostBlockInsert_Prev) {
         // Draw ghost block before this block (which should only happen with the top block in a stack)
         switch(blocksCtx->ghostBlockType) {
             case BlockType_Command: {
@@ -276,11 +333,11 @@ void DrawCommandBlock(Block *block, Script *script, RenderBasis *basis) {
     entry->type = RenderEntryType_Command;
     entry->block = block;
     entry->P = v2{basis->at.x, basis->at.y};
-    entry->color = v3{0, 1, 1};
+    entry->color = v3{0, 0.5, 0.5};
     
     basis->at.x += 16;
     
-    if (block == blocksCtx->ghostBlockParent && blocksCtx->ghostBlockInsert == GhostBlockInsert_After) {
+    if (block == blocksCtx->ghostBlockParent && blocksCtx->ghostBlockInsert == GhostBlockInsert_Next) {
         // Draw ghost block after this block (and before the next blocks)
         switch(blocksCtx->ghostBlockType) {
             case BlockType_Command: {
@@ -315,10 +372,42 @@ void DrawCommandBlock(Block *block, Script *script, RenderBasis *basis) {
 
 void DrawLoopBlock(Block *block, Script *script, RenderBasis *basis) {
     
+    if (block == blocksCtx->ghostBlockParent && blocksCtx->ghostBlockInsert == GhostBlockInsert_Prev) {
+        // Draw ghost block before this block (which should only happen with the top block in a stack)
+        switch(blocksCtx->ghostBlockType) {
+            case BlockType_Command: {
+                basis->at.x -= 16;
+                DrawGhostCommandBlock(basis);
+                break;
+            }
+            case BlockType_Loop: {
+                basis->at.x -= 38;
+                DrawGhostLoopBlock(basis);
+                break;
+            }
+        }
+    }
+    
     u32 horizStretch = 0;
     u32 vertStretch = 0;
+    RenderBasis innerBasis = { basis->at.x + 6, basis->at.y, 0, 0 };
+    
+    if (block == blocksCtx->ghostBlockParent && blocksCtx->ghostBlockInsert == GhostBlockInsert_Inner) {
+        // Draw ghost block after this block (and before the next blocks)
+        switch(blocksCtx->ghostBlockType) {
+            case BlockType_Command: {
+                DrawGhostCommandBlock(&innerBasis);
+                break;
+            }
+            case BlockType_Loop: {
+                DrawGhostLoopBlock(&innerBasis);
+                break;
+            }
+        }
+    }
+    
+    
     if (block->inner) {
-        RenderBasis innerBasis = { basis->at.x + 6, basis->at.y, 0, 0 };
         DrawBlock(block->inner, script, &innerBasis);
         horizStretch = (u32)(innerBasis.bounds.w - 16);
         vertStretch = (u32)(innerBasis.bounds.h - 16);
@@ -331,37 +420,25 @@ void DrawLoopBlock(Block *block, Script *script, RenderBasis *basis) {
     entry->type = RenderEntryType_Loop;
     entry->block = block;
     entry->P = v2{basis->at.x, basis->at.y};
-    entry->color = v3{1, 0, 1};
+    entry->color = v3{0.5, 0, 0.5};
     entry->hStretch = horizStretch;
     entry->vStretch = vertStretch;
     
     basis->at.x += 38 + horizStretch;
     
-    if (blocksCtx->ghostBlockParent && block == blocksCtx->ghostBlockParent) {
-        switch(blocksCtx->ghostBlockInsert) {
-            case GhostBlockInsert_Before: {
+    if (block == blocksCtx->ghostBlockParent && blocksCtx->ghostBlockInsert == GhostBlockInsert_Next) {
+        // Draw ghost block after this block (and before the next blocks)
+        switch(blocksCtx->ghostBlockType) {
+            case BlockType_Command: {
+                DrawGhostCommandBlock(basis);
                 break;
             }
-            case GhostBlockInsert_After: {
-                // Render the block immediately, then continue rendering as normal
-                switch(blocksCtx->ghostBlockType) {
-                    case BlockType_Command: {
-                        DrawGhostCommandBlock(basis);
-                        break;
-                    }
-                    case BlockType_Loop: {
-                        DrawGhostLoopBlock(basis);
-                        break;
-                    }
-                }
-                break;
-            }
-            case GhostBlockInsert_Inner: {
+            case BlockType_Loop: {
+                DrawGhostLoopBlock(basis);
                 break;
             }
         }
     }
-    
     
     if (block->next) {
         DrawBlock(block->next, script, basis);

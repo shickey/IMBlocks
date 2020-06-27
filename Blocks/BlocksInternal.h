@@ -82,15 +82,25 @@ struct Script {
 };
 
 struct BlocksRect {
-    f32 x;
-    f32 y;
-    f32 w;
-    f32 h;
+    union {
+        struct {
+            f32 x;
+            f32 y;
+        };
+        v2 origin;
+    };
+    union {
+        struct {
+            f32 w;
+            f32 h;
+        };
+        v2 size;
+    };
 };
 
 enum GhostBlockInsert {
-    GhostBlockInsert_Before,
-    GhostBlockInsert_After,
+    GhostBlockInsert_Next,
+    GhostBlockInsert_Prev,
     GhostBlockInsert_Inner
 };
 
