@@ -103,16 +103,26 @@ struct Script {
     Block *topBlock;
 };
 
+enum InsertionType {
+    InsertionType_Before,
+    InsertionType_After,
+    InsertionType_Inside,
+    InsertionType_Around,
+};
+
 struct DragInfo {
     Script *script;
     Layout scriptLayout;
-    BlockType firstBlockType;
-    BlockType lastBlockType;
+    Block *firstBlock;
+    Block *lastBlock;
     Rect inlet;
     Rect outlet;
     Rect innerOutlet;
     
-    b32 isDrawingGhostBlock;
+    b32 readyToInsert;
+    InsertionType insertionType;
+    Block *insertionBaseBlock;
+    Script *insertionBaseScript;
 };
 
 struct BlocksContext {

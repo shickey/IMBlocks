@@ -31,6 +31,23 @@ Script *CreateScript(v2 position) {
     return script;
 }
 
+void DeleteScript(Script *script) {
+    // Find this script in the array
+    s32 scriptIdx = -1;
+    for (u32 i = 0; i < blocksCtx->scriptCount; ++i) {
+        if (&blocksCtx->scripts[i] == script) {
+            scriptIdx = i;
+        }
+    }
+    Assert(scriptIdx != -1);
+    
+    // Swap the last script into this script's position to keep the array tightly packed
+    if (scriptIdx < blocksCtx->scriptCount - 1) {
+        blocksCtx->scripts[scriptIdx] = blocksCtx->scripts[blocksCtx->scriptCount - 1];
+    }
+    blocksCtx->scriptCount--;
+}
+
 Block *CreateBlock(BlockType type) {
     Block *block = PushStruct(&blocksCtx->blocks, Block);
     *block = { 0 };
@@ -38,15 +55,33 @@ Block *CreateBlock(BlockType type) {
     return block;
 }
 
+inline
 void Connect(Block *from, Block *to) {
     from->next = to;
     to->prev = from;
 }
 
+inline
 void ConnectInner(Block *from, Block *to) {
     Assert(from->type == BlockType_Loop);
     from->inner = to;
     to->parent = from;
+}
+
+// Call this on the block to disconnect from its previous
+inline
+void Disconnect(Block *block) {
+    Assert(block->prev);
+    block->prev->next = NULL;
+    block->prev = NULL;
+}
+
+// Call this on the block to disconnect from its parent
+inline
+void DisconnectInner(Block *block) {
+    Assert(block->parent);
+    block->parent->inner = NULL;
+    block->parent = NULL;
 }
 
 Script *TearOff(Block *block, v2 position) {
@@ -64,6 +99,7 @@ Script *TearOff(Block *block, v2 position) {
     return script;
 }
 
+inline
 b32 IsTopBlock(Block *block) {
     // Simple linear search
     for (u32 i = 0; i < blocksCtx->scriptCount; ++i) {
@@ -114,14 +150,82 @@ void BeginBlocks(BlocksInput input) {
 
 BlocksRenderInfo EndBlocks() {
     if (Interacting()) {
+        Interaction *interact = &blocksCtx->interacting;
+        
         if (!blocksCtx->input.mouseDown) {
-            // Stop interaction
+            // End interaction
+            switch(interact->type) {
+                case InteractionType_Select: {
+                    // @TODO: Eventually, toggle script thread execution
+                    break;
+                }
+                case InteractionType_Drag: {
+                    DragInfo dragInfo = blocksCtx->dragInfo;
+                    // Drop and combine stacks as necessary
+                    if (dragInfo.readyToInsert) {
+                        // @NOTE: We *always* keep the script we're adding the dragging blocks to and throw out the dragging script
+                        switch(dragInfo.insertionType) {
+                            case InsertionType_Before: {
+                                Connect(dragInfo.lastBlock, dragInfo.insertionBaseBlock);
+                                dragInfo.insertionBaseScript->topBlock = dragInfo.firstBlock;
+                                dragInfo.insertionBaseScript->P.x -= dragInfo.scriptLayout.bounds.w;
+                                DeleteScript(dragInfo.script);
+                                break;
+                            }
+                            case InsertionType_After: {
+                                Block *next = dragInfo.insertionBaseBlock->next;
+                                if (next) {
+                                    Disconnect(next);
+                                }
+                                Connect(dragInfo.insertionBaseBlock, dragInfo.firstBlock);
+                                if (next) {
+                                    if (dragInfo.firstBlock->type == BlockType_Loop && !dragInfo.firstBlock->inner) {
+                                        ConnectInner(dragInfo.firstBlock, next);
+                                    }
+                                    else {
+                                        Connect(dragInfo.lastBlock, next);
+                                    }
+                                }
+                                DeleteScript(dragInfo.script);
+                                break;
+                            }
+                            case InsertionType_Inside: {
+                                Block *inner = dragInfo.insertionBaseBlock->inner;
+                                if (inner) {
+                                    DisconnectInner(inner);
+                                }
+                                ConnectInner(dragInfo.insertionBaseBlock, dragInfo.firstBlock);
+                                if (inner) {
+                                    if (dragInfo.firstBlock->type == BlockType_Loop && !dragInfo.firstBlock->inner) {
+                                        ConnectInner(dragInfo.firstBlock, inner);
+                                    }
+                                    else {
+                                        Connect(dragInfo.lastBlock, inner);
+                                    }
+                                }
+                                DeleteScript(dragInfo.script);
+                                break;
+                            }
+                            case InsertionType_Around: {
+                                Assert(dragInfo.firstBlock->type == BlockType_Loop && !dragInfo.firstBlock->inner);
+                                ConnectInner(dragInfo.firstBlock, dragInfo.insertionBaseBlock);
+                                dragInfo.insertionBaseScript->topBlock = dragInfo.firstBlock;
+                                dragInfo.insertionBaseScript->P.x -= 6;
+                                DeleteScript(dragInfo.script);
+                                break;
+                            }
+                        }
+                    }
+                    
+                    break;
+                }
+                default: { break; }
+            }
+            
             blocksCtx->interacting = {};
         }
         else {
             // Update interaction
-            Interaction *interact = &blocksCtx->interacting;
-            Assert(interact->type != InteractionType_None)
             switch(interact->type) {
                 case InteractionType_Select: {
                     // If the mouse has moved far enough, start dragging
@@ -139,12 +243,12 @@ BlocksRenderInfo EndBlocks() {
                         // Set constant dragInfo
                         Script *script = blocksCtx->interacting.script;
                         blocksCtx->dragInfo.script = script;
-                        blocksCtx->dragInfo.firstBlockType = script->topBlock->type;
+                        blocksCtx->dragInfo.firstBlock = script->topBlock;
                         Block *lastBlock = script->topBlock;
                         while (lastBlock->next) {
                             lastBlock = lastBlock->next;
                         }
-                        blocksCtx->dragInfo.lastBlockType = lastBlock->type;
+                        blocksCtx->dragInfo.lastBlock = lastBlock;
                     }
                     break;
                 }
@@ -226,13 +330,16 @@ void DrawSubScript(Block *block, Script *script, Layout *layout) {
         }
     }
     
-    if (Dragging() && !blocksCtx->dragInfo.isDrawingGhostBlock) {
+    if (Dragging() && !blocksCtx->dragInfo.readyToInsert) {
         DragInfo dragInfo = blocksCtx->dragInfo;
-        if (dragInfo.script != script && dragInfo.firstBlockType == BlockType_Loop && !dragInfo.script->topBlock->inner) {
+        if (dragInfo.script != script && dragInfo.firstBlock->type == BlockType_Loop && !dragInfo.script->topBlock->inner) {
             if (RectsIntersect(inletBounds, dragInfo.innerOutlet)) {
                 Layout loopLayout = CreateEmptyLayoutAt(layout->bounds.origin.x - 6, layout->bounds.origin.y);
                 DrawGhostLoopBlock(&loopLayout, layout);
-                blocksCtx->dragInfo.isDrawingGhostBlock = true;
+                blocksCtx->dragInfo.readyToInsert = true;
+                blocksCtx->dragInfo.insertionType = InsertionType_Around;
+                blocksCtx->dragInfo.insertionBaseBlock = block;
+                blocksCtx->dragInfo.insertionBaseScript = script;
                 PushSimpleRect(blocksCtx, loopLayout.bounds, {0, 1, 0});
             }
         }
@@ -244,12 +351,12 @@ void DrawSubScript(Block *block, Script *script, Layout *layout) {
 b32 DrawBlock(Block *block, Script *script, Layout *layout) {
     DragInfo dragInfo = blocksCtx->dragInfo;
     
-    // Draw ghost block before this block (or around this stack, in the case of a loop), if necessary
-    if (Dragging() && dragInfo.script != script && IsTopBlockOfScript(block, script) && !blocksCtx->dragInfo.isDrawingGhostBlock) {
+    // Draw ghost block before this block, if necessary
+    if (Dragging() && dragInfo.script != script && IsTopBlockOfScript(block, script) && !blocksCtx->dragInfo.readyToInsert) {
         Rect inletBounds = {script->P.x - 4, script->P.y, 8, 16};
         PushSimpleRect(blocksCtx, inletBounds, v3{1, 0, 0});
         if (RectsIntersect(inletBounds, dragInfo.outlet)) {
-            switch (dragInfo.lastBlockType) {
+            switch (dragInfo.lastBlock->type) {
                 case BlockType_Command: {
                     layout->at.x -= 16;
                     layout->bounds.x -= 16;
@@ -263,7 +370,10 @@ b32 DrawBlock(Block *block, Script *script, Layout *layout) {
                     break;
                 }
             }
-            blocksCtx->dragInfo.isDrawingGhostBlock = true;
+            blocksCtx->dragInfo.readyToInsert = true;
+            blocksCtx->dragInfo.insertionType = InsertionType_Before;
+            blocksCtx->dragInfo.insertionBaseBlock = block;
+            blocksCtx->dragInfo.insertionBaseScript = script;
         }
     }
     
@@ -277,11 +387,11 @@ b32 DrawBlock(Block *block, Script *script, Layout *layout) {
             b32 renderedInner = false;
             
             // Draw ghost block inside the loop, if necessary
-            if (Dragging() && dragInfo.script != script && !blocksCtx->dragInfo.isDrawingGhostBlock) {
+            if (Dragging() && dragInfo.script != script && !blocksCtx->dragInfo.readyToInsert) {
                 Rect innerOutletBounds = {layout->at.x + 3, layout->at.y, 6, 16};
                 PushSimpleRect(blocksCtx, innerOutletBounds, v3{1, 0, 0});
                 if (RectsIntersect(innerOutletBounds, dragInfo.inlet)) {
-                    switch (dragInfo.firstBlockType) {
+                    switch (dragInfo.firstBlock->type) {
                         case BlockType_Command: {
                             DrawGhostCommandBlock(&innerLayout);
                             break;
@@ -296,7 +406,10 @@ b32 DrawBlock(Block *block, Script *script, Layout *layout) {
                             renderedInner = true;
                         }
                     }
-                    blocksCtx->dragInfo.isDrawingGhostBlock = true;
+                    blocksCtx->dragInfo.readyToInsert = true;
+                    blocksCtx->dragInfo.insertionType = InsertionType_Inside;
+                    blocksCtx->dragInfo.insertionBaseBlock = block;
+                    blocksCtx->dragInfo.insertionBaseScript = script;
                 }
             }
             
@@ -313,21 +426,27 @@ b32 DrawBlock(Block *block, Script *script, Layout *layout) {
     }
     
     // Draw ghost block after this block, if necessary
-    if (Dragging() && dragInfo.script != script && !blocksCtx->dragInfo.isDrawingGhostBlock) {
+    if (Dragging() && dragInfo.script != script && !blocksCtx->dragInfo.readyToInsert) {
         Rect outletBounds = {layout->at.x - 4, layout->at.y, 8, 16};
         PushSimpleRect(blocksCtx, outletBounds, v3{1, 0, 0});
         if (RectsIntersect(outletBounds, dragInfo.inlet)) {
-            switch (dragInfo.firstBlockType) {
+            switch (dragInfo.firstBlock->type) {
                 case BlockType_Command: {
                     DrawGhostCommandBlock(layout);
-                    blocksCtx->dragInfo.isDrawingGhostBlock = true;
+                    blocksCtx->dragInfo.readyToInsert = true;
+                    blocksCtx->dragInfo.insertionType = InsertionType_After;
+                    blocksCtx->dragInfo.insertionBaseBlock = block;
+                    blocksCtx->dragInfo.insertionBaseScript = script;
                     break;
                 }
                 case BlockType_Loop: {
                     if (dragInfo.script->topBlock->inner) {
                         // If the loop already contains an inner stack, just put it in line
                         DrawGhostLoopBlock(layout);
-                        blocksCtx->dragInfo.isDrawingGhostBlock = true;
+                        blocksCtx->dragInfo.readyToInsert = true;
+                        blocksCtx->dragInfo.insertionType = InsertionType_After;
+                        blocksCtx->dragInfo.insertionBaseBlock = block;
+                        blocksCtx->dragInfo.insertionBaseScript = script;
                     }
                     else {
                         // Otherwise, override block drawing so that loop contains the rest of the substack
@@ -336,7 +455,10 @@ b32 DrawBlock(Block *block, Script *script, Layout *layout) {
                             DrawSubScript(block->next, script, &innerLayout);
                         }
                         DrawGhostLoopBlock(layout, &innerLayout);
-                        blocksCtx->dragInfo.isDrawingGhostBlock = true;
+                        blocksCtx->dragInfo.readyToInsert = true;
+                        blocksCtx->dragInfo.insertionType = InsertionType_After;
+                        blocksCtx->dragInfo.insertionBaseBlock = block;
+                        blocksCtx->dragInfo.insertionBaseScript = script;
                         
                         // @TODO: I don't love this weird return boolean thing. Is there a way to avoid this?
                         return false; // Don't continue drawing this substack
@@ -522,7 +644,7 @@ extern "C" BlocksRenderInfo RunBlocks(void *mem, BlocksInput *input) {
         }
         
         // Reset this to false each frame so we can update the ghost block insertion point, if necessary
-        blocksCtx->dragInfo.isDrawingGhostBlock = false;
+        blocksCtx->dragInfo.readyToInsert = false;
     }
      for (u32 i = 0; i < blocksCtx->scriptCount; ++i) {
         Script *script = &blocksCtx->scripts[i];
