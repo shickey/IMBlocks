@@ -90,6 +90,16 @@ b32 Dragging() {
     return blocksCtx->interacting.type == InteractionType_Drag;
 }
 
+inline
+Layout CreateEmptyLayoutAt(v2 at) {
+    return {at, Rect{at.x, at.y, 0, 0}};
+}
+
+inline
+Layout CreateEmptyLayoutAt(f32 x, f32 y) {
+    return {v2{x, y}, Rect{x, y, 0, 0}};
+}
+
 void BeginBlocks(BlocksInput input) {
     blocksCtx->input = input;
     
@@ -170,7 +180,7 @@ BlocksRenderInfo EndBlocks() {
         }
     }
     
-    if (Interacting() && blocksCtx->interacting.type == InteractionType_Drag) {
+    if (Dragging()) {
         PushSimpleRect(blocksCtx, blocksCtx->dragInfo.inlet, v3{0, 1, 0});
         PushSimpleRect(blocksCtx, blocksCtx->dragInfo.outlet, v3{0, 1, 0});
         if (blocksCtx->interacting.block->type == BlockType_Loop) {
@@ -185,22 +195,21 @@ BlocksRenderInfo EndBlocks() {
     return Result;
 }
 
-RenderBasis RenderScript(Script *script) {
+Layout RenderScript(Script *script) {
     Assert(script->topBlock);
     
-    RenderBasis basis = { script->P, 0, 0 };
-    DrawSubScript(script->topBlock, script, &basis);
-    return basis;
+    Layout layout = CreateEmptyLayoutAt(script->P);
+    DrawSubScript(script->topBlock, script, &layout);
+    return layout;
 }
 
-void DrawSubScript(Block *block, Script *script, RenderBasis *basis) {
+void DrawSubScript(Block *block, Script *script, Layout *layout) {
     Assert(block);
     // Draw a single linear group of blocks, only recursing on branching blocks
-    v2 start = basis->at;
-    BlocksRect inletBounds = {basis->at.x - 4, basis->at.y, 8, 16};
+    Rect inletBounds = {layout->at.x - 4, layout->at.y, 8, 16};
     Block *nextBlock = block;
     while (nextBlock) {
-        if(DrawBlock(nextBlock, script, basis)) {
+        if(DrawBlock(nextBlock, script, layout)) {
             nextBlock = nextBlock->next;
         }
         else {
@@ -212,66 +221,70 @@ void DrawSubScript(Block *block, Script *script, RenderBasis *basis) {
         DragScriptInfo dragInfo = blocksCtx->dragInfo;
         if (dragInfo.script != script && dragInfo.firstBlockType == BlockType_Loop) {
             if (RectsIntersect(inletBounds, dragInfo.innerOutlet)) {
-                RenderBasis loopBasis = {start.x - 6, start.y, 0, 0};
-                RenderBasis loopInnerBasis = {start.x, start.y, basis->bounds.w, basis->bounds.h};
-                DrawGhostLoopBlock(&loopBasis, &loopInnerBasis);
+                Layout loopLayout = CreateEmptyLayoutAt(layout->bounds.origin.x - 6, layout->bounds.origin.y);
+                DrawGhostLoopBlock(&loopLayout, layout);
+                PushSimpleRect(blocksCtx, loopLayout.bounds, {0, 1, 0});
             }
         }
     }
+    
+    PushSimpleRect(blocksCtx, layout->bounds, {0, 1, 0});
 }
 
-void DrawGhostCommandBlock(RenderBasis *basis) {
+void DrawGhostCommandBlock(Layout *layout) {
     RenderEntry *entry = PushRenderEntry(blocksCtx);
     entry->type = RenderEntryType_Command;
     entry->block = NULL;
-    entry->P = v2{basis->at.x, basis->at.y};
+    entry->P = v2{layout->at.x, layout->at.y};
     entry->color = v3{0.5, 0.5, 0.5};
     
-    basis->at.x += 16;
+    layout->at.x += 16;
     
-    basis->bounds.x += 16;
-    basis->bounds.y = Max(basis->bounds.y, 16);
+    layout->bounds.w += 16;
+    layout->bounds.h = Max(layout->bounds.h, 16);
 }
 
-void DrawGhostLoopBlock(RenderBasis *basis, RenderBasis *innerBasis = 0) {
+void DrawGhostLoopBlock(Layout *layout, Layout *innerLayout = 0) {
     u32 horizStretch = 0;
     u32 vertStretch = 0;
-    if (innerBasis) {
-        horizStretch = Max(innerBasis->bounds.w - 16, 0);
-        vertStretch = Max(innerBasis->bounds.h - 16, 0);
+    if (innerLayout) {
+        horizStretch = Max(innerLayout->bounds.w - 16, 0);
+        vertStretch = Max(innerLayout->bounds.h - 16, 0);
     }
     
     RenderEntry *entry = PushRenderEntry(blocksCtx);
     entry->type = RenderEntryType_Loop;
     entry->block = NULL;
-    entry->P = v2{basis->at.x, basis->at.y};
+    entry->P = v2{layout->at.x, layout->at.y};
     entry->color = v3{0.5, 0.5, 0.5};
     entry->hStretch = horizStretch;
     entry->vStretch = vertStretch;
     
-    basis->at.x += 38 + horizStretch;
+    layout->at.x += 38 + horizStretch;
     
-    basis->bounds.x += 38 + horizStretch;
-    basis->bounds.y = Max(basis->bounds.y, 20 + vertStretch);
+    layout->bounds.w += 38 + horizStretch;
+    layout->bounds.h = Max(layout->bounds.h, 20 + vertStretch);
 }
 
-b32 DrawBlock(Block *block, Script *script, RenderBasis *basis) {
+b32 DrawBlock(Block *block, Script *script, Layout *layout) {
     DragScriptInfo dragInfo = blocksCtx->dragInfo;
     
     // Draw ghost block before this block (or around this stack, in the case of a loop), if necessary
     if (Dragging() && dragInfo.script != script && IsTopBlockOfScript(block, script)) {
-        BlocksRect inletBounds = {script->P.x - 4, script->P.y, 8, 16};
+        Rect inletBounds = {script->P.x - 4, script->P.y, 8, 16};
         PushSimpleRect(blocksCtx, inletBounds, v3{1, 0, 0});
         if (RectsIntersect(inletBounds, dragInfo.outlet)) {
             switch (dragInfo.lastBlockType) {
                 case BlockType_Command: {
-                    basis->at.x -= 16;
-                    DrawGhostCommandBlock(basis);
+                    layout->at.x -= 16;
+                    layout->bounds.x -= 16;
+                    DrawGhostCommandBlock(layout);
                     break;
                 }
                 case BlockType_Loop: {
-                    basis->at.x -= 38;
-                    DrawGhostLoopBlock(basis);
+                    layout->at.x -= 38;
+                    layout->bounds.x -= 38;
+                    DrawGhostLoopBlock(layout);
                     break;
                 }
             }
@@ -280,30 +293,30 @@ b32 DrawBlock(Block *block, Script *script, RenderBasis *basis) {
     
     switch(block->type) {
         case BlockType_Command: {
-            DrawCommandBlock(block, script, basis);
+            DrawCommandBlock(block, script, layout);
             break;
         }
         case BlockType_Loop: {
-            RenderBasis innerBasis = { basis->at.x + 6, basis->at.y, 0, 0 };
+            Layout innerLayout = CreateEmptyLayoutAt(layout->at.x + 6, layout->at.y);
             b32 renderedInner = false;
             
             // Draw ghost block inside the loop, if necessary
             if (Dragging() && dragInfo.script != script) {
-                BlocksRect innerOutletBounds = {basis->at.x + 3, basis->at.y, 6, 16};
+                Rect innerOutletBounds = {layout->at.x + 3, layout->at.y, 6, 16};
                 PushSimpleRect(blocksCtx, innerOutletBounds, v3{1, 0, 0});
                 if (RectsIntersect(innerOutletBounds, dragInfo.inlet)) {
                     switch (dragInfo.firstBlockType) {
                         case BlockType_Command: {
-                            DrawGhostCommandBlock(&innerBasis);
+                            DrawGhostCommandBlock(&innerLayout);
                             break;
                         }
                         case BlockType_Loop: {
                             // Override block drawing so that loop contains the rest of the substack
-                            RenderBasis innerInnerBasis = { innerBasis.at.x + 6, innerBasis.at.y, 0, 0 };
+                            Layout innerInnerLayout = CreateEmptyLayoutAt(innerLayout.at.x + 6, innerLayout.at.y);
                             if (block->inner) {
-                                DrawSubScript(block->inner, script, &innerInnerBasis);
+                                DrawSubScript(block->inner, script, &innerInnerLayout);
                             }
-                            DrawGhostLoopBlock(&innerBasis, &innerInnerBasis);
+                            DrawGhostLoopBlock(&innerLayout, &innerInnerLayout);
                             renderedInner = true;
                         }
                     }
@@ -313,9 +326,9 @@ b32 DrawBlock(Block *block, Script *script, RenderBasis *basis) {
             // If we didn't already draw the entire inner script (i.e., with a ghost block)
             // then do it now, the normal way
             if (block->inner && !renderedInner) {
-                DrawSubScript(block->inner, script, &innerBasis);
+                DrawSubScript(block->inner, script, &innerLayout);
             }
-            DrawLoopBlock(block, script, basis, &innerBasis);
+            DrawLoopBlock(block, script, layout, &innerLayout);
             
             break;
         }
@@ -324,21 +337,21 @@ b32 DrawBlock(Block *block, Script *script, RenderBasis *basis) {
     
     // Draw ghost block after this block, if necessary
     if (Dragging() && dragInfo.script != script) {
-        BlocksRect outletBounds = {basis->at.x - 4, basis->at.y, 8, 16};
+        Rect outletBounds = {layout->at.x - 4, layout->at.y, 8, 16};
         PushSimpleRect(blocksCtx, outletBounds, v3{1, 0, 0});
         if (RectsIntersect(outletBounds, dragInfo.inlet)) {
             switch (dragInfo.firstBlockType) {
                 case BlockType_Command: {
-                    DrawGhostCommandBlock(basis);
+                    DrawGhostCommandBlock(layout);
                     break;
                 }
                 case BlockType_Loop: {
                     // Override block drawing so that loop contains the rest of the substack
-                    RenderBasis innerBasis = { basis->at.x + 6, basis->at.y, 0, 0 };
+                    Layout innerLayout = CreateEmptyLayoutAt(layout->at.x + 6, layout->at.y);
                     if (block->next) {
-                        DrawSubScript(block->next, script, &innerBasis);
+                        DrawSubScript(block->next, script, &innerLayout);
                     }
-                    DrawGhostLoopBlock(basis, &innerBasis);
+                    DrawGhostLoopBlock(layout, &innerLayout);
                     
                     return false; // Don't continue drawing this substack
                     break;
@@ -350,20 +363,20 @@ b32 DrawBlock(Block *block, Script *script, RenderBasis *basis) {
     return true;
 }
 
-void DrawCommandBlock(Block *block, Script *script, RenderBasis *basis) {
+void DrawCommandBlock(Block *block, Script *script, Layout *layout) {
     
-    BlocksRect hitBox = { basis->at.x, basis->at.y, 16, 16};
+    Rect hitBox = { layout->at.x, layout->at.y, 16, 16};
     
     RenderEntry *entry = PushRenderEntry(blocksCtx);
     entry->type = RenderEntryType_Command;
     entry->block = block;
-    entry->P = v2{basis->at.x, basis->at.y};
+    entry->P = v2{layout->at.x, layout->at.y};
     entry->color = v3{0, 0.5, 0.5};
     
-    basis->at.x += 16;
+    layout->at.x += 16;
 
-    basis->bounds.x += 16;
-    basis->bounds.y = Max(basis->bounds.y, 16);
+    layout->bounds.w += 16;
+    layout->bounds.h = Max(layout->bounds.h, 16);
     
     if (PointInRect(blocksCtx->input.mouseP, hitBox)) {
         blocksCtx->nextHot.type = InteractionType_Select;
@@ -377,26 +390,26 @@ void DrawCommandBlock(Block *block, Script *script, RenderBasis *basis) {
     
 }
 
-void DrawLoopBlock(Block *block, Script *script, RenderBasis *basis, RenderBasis *innerBasis) {
+void DrawLoopBlock(Block *block, Script *script, Layout *layout, Layout *innerLayout) {
     
-    u32 horizStretch = Max(innerBasis->bounds.w - 16, 0);
-    u32 vertStretch = Max(innerBasis->bounds.h - 16, 0);
+    u32 horizStretch = Max(innerLayout->bounds.w - 16, 0);
+    u32 vertStretch = Max(innerLayout->bounds.h - 16, 0);
         
-    BlocksRect hitBox = { basis->at.x, basis->at.y, 38 + (f32)horizStretch, 20 + (f32)vertStretch };
-    BlocksRect innerHitBox = { basis->at.x + 6, basis->at.y, (f32)horizStretch + 16, (f32)vertStretch + 16 };
+    Rect hitBox = { layout->at.x, layout->at.y, 38 + (f32)horizStretch, 20 + (f32)vertStretch };
+    Rect innerHitBox = { layout->at.x + 6, layout->at.y, (f32)horizStretch + 16, (f32)vertStretch + 16 };
     
     RenderEntry *entry = PushRenderEntry(blocksCtx);
     entry->type = RenderEntryType_Loop;
     entry->block = block;
-    entry->P = v2{basis->at.x, basis->at.y};
+    entry->P = v2{layout->at.x, layout->at.y};
     entry->color = v3{0.5, 0, 0.5};
     entry->hStretch = horizStretch;
     entry->vStretch = vertStretch;
     
-    basis->at.x += 38 + horizStretch;
+    layout->at.x += 38 + horizStretch;
     
-    basis->bounds.x += 38 + horizStretch;
-    basis->bounds.y = Max(basis->bounds.y, 20 + vertStretch);
+    layout->bounds.w += 38 + horizStretch;
+    layout->bounds.h = Max(layout->bounds.h, 20 + vertStretch);
     
     if (PointInRect(blocksCtx->input.mouseP, hitBox) && !PointInRect(blocksCtx->input.mouseP, innerHitBox)) {
         blocksCtx->nextHot.type = InteractionType_Select;
@@ -484,9 +497,9 @@ extern "C" BlocksRenderInfo RunBlocks(void *mem, BlocksInput *input) {
     BeginBlocks(*input);
     if (Dragging()) {
         Script *script = blocksCtx->interacting.script;
-        RenderBasis dragBasis = RenderScript(script);
+        Layout dragLayout = RenderScript(script);
         blocksCtx->dragInfo.script = script;
-        blocksCtx->dragInfo.scriptSize = dragBasis.bounds;
+        blocksCtx->dragInfo.scriptLayout = dragLayout;
         blocksCtx->dragInfo.firstBlockType = script->topBlock->type;
         
         Block *lastBlock = script->topBlock;
@@ -496,12 +509,12 @@ extern "C" BlocksRenderInfo RunBlocks(void *mem, BlocksInput *input) {
         blocksCtx->dragInfo.lastBlockType = lastBlock->type;
         
         blocksCtx->dragInfo.inlet = {script->P.x - 4, script->P.y, 8, 16};
-        blocksCtx->dragInfo.outlet = {dragBasis.at.x - 4, dragBasis.at.y, 8, 16};
+        blocksCtx->dragInfo.outlet = {dragLayout.at.x - 4, dragLayout.at.y, 8, 16};
         if (blocksCtx->interacting.block->type == BlockType_Loop) {
             blocksCtx->dragInfo.innerOutlet = {script->P.x + 3, script->P.y, 6, 16};
         }
     }
-    for (u32 i = 0; i < blocksCtx->scriptCount; ++i) {
+     for (u32 i = 0; i < blocksCtx->scriptCount; ++i) {
         Script *script = &blocksCtx->scripts[i];
         if (Dragging() && blocksCtx->dragInfo.script == script) {
             continue;

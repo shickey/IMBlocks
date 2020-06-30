@@ -10,7 +10,7 @@
 
 struct Block;
 struct Script;
-struct RenderBasis;
+struct Layout;
 
 typedef u32 RenderingIndex;
 
@@ -25,9 +25,26 @@ struct Arena {
     u32 used;
 };
 
-struct RenderBasis {
+struct Rect {
+    union {
+        struct {
+            f32 x;
+            f32 y;
+        };
+        v2 origin;
+    };
+    union {
+        struct {
+            f32 w;
+            f32 h;
+        };
+        v2 size;
+    };
+};
+
+struct Layout {
     v2 at;
-    v2 bounds;
+    Rect bounds;
 };
 
 enum RenderEntryType {
@@ -81,31 +98,14 @@ struct Script {
     Block *topBlock;
 };
 
-struct BlocksRect {
-    union {
-        struct {
-            f32 x;
-            f32 y;
-        };
-        v2 origin;
-    };
-    union {
-        struct {
-            f32 w;
-            f32 h;
-        };
-        v2 size;
-    };
-};
-
 struct DragScriptInfo {
     Script *script;
-    v2 scriptSize;
+    Layout scriptLayout;
     BlockType firstBlockType;
     BlockType lastBlockType;
-    BlocksRect inlet;
-    BlocksRect outlet;
-    BlocksRect innerOutlet;
+    Rect inlet;
+    Rect outlet;
+    Rect innerOutlet;
 };
 
 struct BlocksContext {
@@ -129,12 +129,12 @@ struct BlocksContext {
 
 void BeginBlocks(BlocksInput input);
 BlocksRenderInfo EndBlocks(void);
-void DrawSubScript(Block *block, Script *script, RenderBasis *basis);
-b32 DrawBlock(Block *, Script *, RenderBasis *);
-void DrawCommandBlock(Block *, Script *, RenderBasis *);
-void DrawLoopBlock(Block *, Script *, RenderBasis *, RenderBasis *);
-void DrawGhostCommandBlock(RenderBasis *basis);
-void DrawGhostLoopBlock(RenderBasis *basis, RenderBasis *innerBasis);
+void DrawSubScript(Block *block, Script *script, Layout *basis);
+b32 DrawBlock(Block *, Script *, Layout *);
+void DrawCommandBlock(Block *, Script *, Layout *);
+void DrawLoopBlock(Block *, Script *, Layout *, Layout *);
+void DrawGhostCommandBlock(Layout *basis);
+void DrawGhostLoopBlock(Layout *basis, Layout *innerBasis);
 
 void *PushSize(Arena *arena, u32 size) {
   // Make sure we have enough space left in the arena

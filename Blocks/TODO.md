@@ -1,7 +1,10 @@
 #IMBlocks Todo List
 
 ## Basics to match existing blocks behaviors
-  - Finish drag and drop -- supporting entire scripts
+  - Finish drag and drop
+    - Supporting entire scripts
+    - Prioritizing connection types
+    - Connecting and combining scripts on drop
   - Better input processing
     - Mouse wheel to pan and zoom
     - Touch events
@@ -23,15 +26,21 @@
     - Discarding scripts
     - Scrolling palette
     - Rotating between scripts?
-    
-    
+  - Debug System
+    - Simple string rendering
     
   
 ## VM integration
   - Likely bring the VM code into IMBlocks
   - Pluggable runtime? What does this mean/look like? (Sketch out some usage examples)
   - Multithreading?
-  
+
+
+## Example Projects
+  - Mac
+  - iOS
+  - Android
+  - wasm
 
 ## Stuff to explore
   - Horizontal grammar
@@ -41,7 +50,7 @@
   - Shrinkable scripts
   - One script at a time, rotate between them
 
+
 ## Eventually
   - Design iterations on API
   - Remote API? Using blocks on phone to program on computer, projector, another device, etc.?
-  

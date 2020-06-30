@@ -17,13 +17,13 @@ f32 DistSq(v2 a, v2 b) {
 }
 
 inline
-b32 PointInRect(v2 point, BlocksRect rect) {
+b32 PointInRect(v2 point, Rect rect) {
     return (point.x >= rect.x && point.x <= rect.x + rect.w) 
         && (point.y >= rect.y && point.y <= rect.y + rect.h);
 }
 
 inline
-b32 RectsIntersect(BlocksRect a, BlocksRect b) {
+b32 RectsIntersect(Rect a, Rect b) {
   return (a.x < (b.x + b.w))
       && (b.x < (a.x + a.w))
       && (a.y < (b.y + b.h))

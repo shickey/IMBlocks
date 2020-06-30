@@ -64,54 +64,8 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "360"
             endingLineNumber = "360"
-            landmarkName = "DrawCommandBlock(block, script, basis)"
+            landmarkName = "DrawBlock(block, script, layout)"
             landmarkType = "9">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "F1473351-E7FE-4F4A-973D-68BA5E3DCA76"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "Blocks/Blocks.cpp"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "529"
-            endingLineNumber = "529">
-            <Locations>
-               <Location
-                  uuid = "F1473351-E7FE-4F4A-973D-68BA5E3DCA76 - d5837366b3142de7"
-                  shouldBeEnabled = "No"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "DrawLoopBlock(Block*, Script*, RenderBasis*, RenderBasis*)"
-                  moduleName = "libBlocks.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/seanhickey/Projects/IMBlocks/Blocks/Blocks.cpp"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "529"
-                  endingLineNumber = "529"
-                  offsetFromSymbolStart = "81">
-               </Location>
-               <Location
-                  uuid = "F1473351-E7FE-4F4A-973D-68BA5E3DCA76 - d5837366b3142de7"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "DrawLoopBlock(Block*, Script*, RenderBasis*, RenderBasis*)"
-                  moduleName = "libBlocks.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/seanhickey/Projects/IMBlocks/Blocks/Blocks.cpp"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "529"
-                  endingLineNumber = "529"
-                  offsetFromSymbolStart = "57">
-               </Location>
-            </Locations>
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>
