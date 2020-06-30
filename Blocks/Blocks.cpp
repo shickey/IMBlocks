@@ -136,6 +136,15 @@ BlocksRenderInfo EndBlocks() {
                             interact->mouseOffset = { interact->mouseStartP.x - interact->blockP.x, interact->mouseStartP.y - interact->blockP.y };
                         }
                         
+                        // Set constant dragInfo
+                        Script *script = blocksCtx->interacting.script;
+                        blocksCtx->dragInfo.script = script;
+                        blocksCtx->dragInfo.firstBlockType = script->topBlock->type;
+                        Block *lastBlock = script->topBlock;
+                        while (lastBlock->next) {
+                            lastBlock = lastBlock->next;
+                        }
+                        blocksCtx->dragInfo.lastBlockType = lastBlock->type;
                     }
                     break;
                 }
@@ -230,41 +239,6 @@ void DrawSubScript(Block *block, Script *script, Layout *layout) {
     }
     
     PushSimpleRect(blocksCtx, layout->bounds, {0, 1, 0});
-}
-
-void DrawGhostCommandBlock(Layout *layout) {
-    RenderEntry *entry = PushRenderEntry(blocksCtx);
-    entry->type = RenderEntryType_Command;
-    entry->block = NULL;
-    entry->P = v2{layout->at.x, layout->at.y};
-    entry->color = v3{0.5, 0.5, 0.5};
-    
-    layout->at.x += 16;
-    
-    layout->bounds.w += 16;
-    layout->bounds.h = Max(layout->bounds.h, 16);
-}
-
-void DrawGhostLoopBlock(Layout *layout, Layout *innerLayout = 0) {
-    u32 horizStretch = 0;
-    u32 vertStretch = 0;
-    if (innerLayout) {
-        horizStretch = Max(innerLayout->bounds.w - 16, 0);
-        vertStretch = Max(innerLayout->bounds.h - 16, 0);
-    }
-    
-    RenderEntry *entry = PushRenderEntry(blocksCtx);
-    entry->type = RenderEntryType_Loop;
-    entry->block = NULL;
-    entry->P = v2{layout->at.x, layout->at.y};
-    entry->color = v3{0.5, 0.5, 0.5};
-    entry->hStretch = horizStretch;
-    entry->vStretch = vertStretch;
-    
-    layout->at.x += 38 + horizStretch;
-    
-    layout->bounds.w += 38 + horizStretch;
-    layout->bounds.h = Max(layout->bounds.h, 20 + vertStretch);
 }
 
 b32 DrawBlock(Block *block, Script *script, Layout *layout) {
@@ -376,7 +350,8 @@ b32 DrawBlock(Block *block, Script *script, Layout *layout) {
     return true;
 }
 
-void DrawCommandBlock(Block *block, Script *script, Layout *layout) {
+void DrawCommandBlock(Block *block, Script *script, Layout *layout, u32 flags) {
+    b32 isGhost = flags & DrawBlockFlags_Ghost;
     
     Rect hitBox = { layout->at.x, layout->at.y, 16, 16};
     
@@ -384,14 +359,20 @@ void DrawCommandBlock(Block *block, Script *script, Layout *layout) {
     entry->type = RenderEntryType_Command;
     entry->block = block;
     entry->P = v2{layout->at.x, layout->at.y};
-    entry->color = v3{0, 0.5, 0.5};
+    if (isGhost) {
+        entry->color = v3{0.5, 0.5, 0.5};
+    }
+    else {
+        entry->color = v3{0, 0.5, 0.5};
+    }
+    
     
     layout->at.x += 16;
 
     layout->bounds.w += 16;
     layout->bounds.h = Max(layout->bounds.h, 16);
     
-    if (PointInRect(blocksCtx->input.mouseP, hitBox)) {
+    if (!isGhost && PointInRect(blocksCtx->input.mouseP, hitBox)) {
         blocksCtx->nextHot.type = InteractionType_Select;
         blocksCtx->nextHot.block = block;
         blocksCtx->nextHot.blockP = entry->P;
@@ -403,10 +384,16 @@ void DrawCommandBlock(Block *block, Script *script, Layout *layout) {
     
 }
 
-void DrawLoopBlock(Block *block, Script *script, Layout *layout, Layout *innerLayout) {
+void DrawLoopBlock(Block *block, Script *script, Layout *layout, Layout *innerLayout, u32 flags) {
+    b32 isGhost = flags & DrawBlockFlags_Ghost;
     
-    u32 horizStretch = Max(innerLayout->bounds.w - 16, 0);
-    u32 vertStretch = Max(innerLayout->bounds.h - 16, 0);
+    u32 horizStretch = 0;
+    u32 vertStretch = 0;
+    if (innerLayout) {
+        horizStretch = Max(innerLayout->bounds.w - 16, 0);
+        vertStretch = Max(innerLayout->bounds.h - 16, 0);
+    }
+    
         
     Rect hitBox = { layout->at.x, layout->at.y, 38 + (f32)horizStretch, 20 + (f32)vertStretch };
     Rect innerHitBox = { layout->at.x + 6, layout->at.y, (f32)horizStretch + 16, (f32)vertStretch + 16 };
@@ -415,7 +402,12 @@ void DrawLoopBlock(Block *block, Script *script, Layout *layout, Layout *innerLa
     entry->type = RenderEntryType_Loop;
     entry->block = block;
     entry->P = v2{layout->at.x, layout->at.y};
-    entry->color = v3{0.5, 0, 0.5};
+    if (isGhost) {
+        entry->color = v3{0.5, 0.5, 0.5};
+    }
+    else {
+        entry->color = v3{0.5, 0, 0.5};
+    }
     entry->hStretch = horizStretch;
     entry->vStretch = vertStretch;
     
@@ -424,7 +416,7 @@ void DrawLoopBlock(Block *block, Script *script, Layout *layout, Layout *innerLa
     layout->bounds.w += 38 + horizStretch;
     layout->bounds.h = Max(layout->bounds.h, 20 + vertStretch);
     
-    if (PointInRect(blocksCtx->input.mouseP, hitBox) && !PointInRect(blocksCtx->input.mouseP, innerHitBox)) {
+    if (!isGhost && PointInRect(blocksCtx->input.mouseP, hitBox) && !PointInRect(blocksCtx->input.mouseP, innerHitBox)) {
         blocksCtx->nextHot.type = InteractionType_Select;
         blocksCtx->nextHot.block = block;
         blocksCtx->nextHot.blockP = entry->P;
@@ -433,6 +425,16 @@ void DrawLoopBlock(Block *block, Script *script, Layout *layout, Layout *innerLa
         blocksCtx->nextHot.mouseStartP = blocksCtx->input.mouseP;
         blocksCtx->nextHot.mouseOffset = { blocksCtx->input.mouseP.x - script->P.x, blocksCtx->input.mouseP.y - script->P.y };
     }
+}
+
+inline
+void DrawGhostCommandBlock(Layout *layout) {
+    DrawCommandBlock(NULL, NULL, layout, DrawBlockFlags_Ghost);
+}
+
+inline
+void DrawGhostLoopBlock(Layout *layout, Layout *innerLayout) {
+    DrawLoopBlock(NULL, NULL, layout, innerLayout, DrawBlockFlags_Ghost);
 }
 
 
@@ -509,18 +511,10 @@ extern "C" BlocksRenderInfo RunBlocks(void *mem, BlocksInput *input) {
     blocksCtx = (BlocksContext *)mem;
     BeginBlocks(*input);
     if (Dragging()) {
-        Script *script = blocksCtx->interacting.script;
+        // Update dragging info
+        Script *script = blocksCtx->dragInfo.script;
         Layout dragLayout = RenderScript(script);
-        blocksCtx->dragInfo.script = script;
         blocksCtx->dragInfo.scriptLayout = dragLayout;
-        blocksCtx->dragInfo.firstBlockType = script->topBlock->type;
-        
-        Block *lastBlock = script->topBlock;
-        while (lastBlock->next) {
-            lastBlock = lastBlock->next;
-        }
-        blocksCtx->dragInfo.lastBlockType = lastBlock->type;
-        
         blocksCtx->dragInfo.inlet = {script->P.x - 4, script->P.y, 8, 16};
         blocksCtx->dragInfo.outlet = {dragLayout.at.x - 4, dragLayout.at.y, 8, 16};
         if (blocksCtx->interacting.block->type == BlockType_Loop) {

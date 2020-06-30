@@ -64,7 +64,7 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "360"
             endingLineNumber = "360"
-            landmarkName = "DrawBlock(block, script, layout)"
+            landmarkName = "DrawCommandBlock(block, script, layout, flags)"
             landmarkType = "9">
          </BreakpointContent>
       </BreakpointProxy>

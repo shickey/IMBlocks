@@ -66,6 +66,11 @@ struct RenderEntry {
     };
 };
 
+enum DrawBlockFlags {
+    DrawBlockFlags_None = 0,
+    DrawBlockFlags_Ghost = 1 << 0,
+};
+
 enum InteractionType {
     InteractionType_None,
     InteractionType_Select,
@@ -131,12 +136,12 @@ struct BlocksContext {
 
 void BeginBlocks(BlocksInput input);
 BlocksRenderInfo EndBlocks(void);
-void DrawSubScript(Block *block, Script *script, Layout *basis);
+void DrawSubScript(Block *block, Script *script, Layout *layout);
 b32 DrawBlock(Block *, Script *, Layout *);
-void DrawCommandBlock(Block *, Script *, Layout *);
-void DrawLoopBlock(Block *, Script *, Layout *, Layout *);
-void DrawGhostCommandBlock(Layout *basis);
-void DrawGhostLoopBlock(Layout *basis, Layout *innerBasis);
+void DrawCommandBlock(Block *, Script *, Layout *, u32 flags = 0);
+void DrawLoopBlock(Block *, Script *, Layout *, Layout *, u32 flags = 0);
+void DrawGhostCommandBlock(Layout *layout);
+void DrawGhostLoopBlock(Layout *layout, Layout *innerLayout = 0);
 
 void *PushSize(Arena *arena, u32 size) {
   // Make sure we have enough space left in the arena
