@@ -13,6 +13,12 @@
 #import "Blocks.h"
 #import "MetalView.h"
 
+#include "imgui.h"
+#include "imgui_impl_metal.h"
+#include "imgui_impl_osx.h"
+
+#import "BlocksInternal.h"
+
 // Include header shared between C code here, which executes Metal API commands, and .metal files
 #import "ShaderTypes.h"
 
@@ -26,15 +32,6 @@ typedef BlocksRenderInfo (*RunBlocksSignature)(void *, BlocksInput *);
 struct WorldUniforms {
     matrix_float4x4 transform;
 };
-
-struct DebugRect {
-    f32 x;
-    f32 y;
-    f32 w;
-    f32 h;
-};
-
-static u32 debugRectCount = 0;
 
 static NSDate *lastLibWriteTime = 0;
 static DylibHandle libBlocks = 0;
@@ -87,16 +84,13 @@ void unloadLibBlocks() {
     id <MTLCommandQueue> _commandQueue;
 
     id <MTLBuffer> _vertBuffers[MAX_BUFFERS_IN_FLIGHT];
-    id <MTLBuffer> _blockUniformsBuffers[MAX_BUFFERS_IN_FLIGHT];
     id <MTLBuffer> _worldUniformsBuffers[MAX_BUFFERS_IN_FLIGHT];
-    id <MTLBuffer> _debugVertBuffers[MAX_BUFFERS_IN_FLIGHT];
     
     id <MTLTexture> blockTexture;
     
     id<MTLSamplerState> _sampler;
     
     id <MTLRenderPipelineState> _pipelineState;
-    id <MTLRenderPipelineState> _debugPipelineState;
     MTLVertexDescriptor *_mtlVertexDescriptor;
 
     uint8_t _bufferIndex;
@@ -112,6 +106,12 @@ void unloadLibBlocks() {
     {
         _device = view.device;
         _inFlightSemaphore = dispatch_semaphore_create(MAX_BUFFERS_IN_FLIGHT);
+        
+        IMGUI_CHECKVERSION();
+        ImGui::CreateContext();
+        ImGui::StyleColorsDark();
+        ImGui_ImplMetal_Init(_device);
+        
         [self _loadMetalWithView:view];
     }
 
@@ -158,7 +158,6 @@ void unloadLibBlocks() {
     id<MTLLibrary> defaultLibrary = [_device newDefaultLibrary];
     id <MTLFunction> vertexFunction = [defaultLibrary newFunctionWithName:@"simple_vertex"];
     id <MTLFunction> fragmentFunction = [defaultLibrary newFunctionWithName:@"simple_fragment"];
-    id <MTLFunction> debugVertexFunction = [defaultLibrary newFunctionWithName:@"debug_vertex"];
 
     // Create rendering pipeline
     MTLRenderPipelineDescriptor *pipelineStateDescriptor = [[MTLRenderPipelineDescriptor alloc] init];
@@ -180,20 +179,6 @@ void unloadLibBlocks() {
     {
         NSLog(@"Failed to created pipeline state, error %@", error);
     }
-    
-    // Create debug pipeline
-    MTLRenderPipelineDescriptor *debugPipelineStateDescriptor = [[MTLRenderPipelineDescriptor alloc] init];
-    debugPipelineStateDescriptor.vertexFunction = debugVertexFunction;
-    debugPipelineStateDescriptor.fragmentFunction = fragmentFunction;
-    debugPipelineStateDescriptor.vertexDescriptor = _mtlVertexDescriptor;
-    debugPipelineStateDescriptor.colorAttachments[0].pixelFormat = view.colorPixelFormat;
-    
-    error = NULL;
-    _debugPipelineState = [_device newRenderPipelineStateWithDescriptor:debugPipelineStateDescriptor error:&error];
-    if (!_debugPipelineState)
-    {
-        NSLog(@"Failed to created debug pipeline state, error %@", error);
-    }
 
     // Allocate buffers for GPU data
     for(u32 i = 0; i < MAX_BUFFERS_IN_FLIGHT; ++i)
@@ -202,14 +187,8 @@ void unloadLibBlocks() {
         _vertBuffers[i] = [_device newBufferWithLength:(BLOCK_BYTE_SIZE * MAX_BLOCKS) options:MTLResourceStorageModeShared];
         _vertBuffers[i].label = @"Vertex Buffer";
         
-//        _blockUniformsBuffers[i] = [_device newBufferWithLength:(sizeof(BlockUniforms) * MAX_BLOCKS) options:MTLResourceStorageModeShared];
-//        _blockUniformsBuffers[i].label = @"Block Uniforms Buffer";
-        
         _worldUniformsBuffers[i] = [_device newBufferWithLength:(sizeof(WorldUniforms)) options:MTLResourceStorageModeShared];
         _worldUniformsBuffers[i].label = @"World Uniforms Buffer";
-        
-        _debugVertBuffers[i] = [_device newBufferWithLength:(16 * 256) options:MTLResourceStorageModeShared];
-        _debugVertBuffers[i].label = @"Debug Vertex Buffer";
     }
     
     // Load block texture
@@ -220,11 +199,6 @@ void unloadLibBlocks() {
     blockTexture = [_device newTextureWithDescriptor:texDescriptor];
     
     NSData *texData = [NSData dataWithContentsOfURL:[NSBundle.mainBundle URLForResource:@"block-textures" withExtension:@"dat"]];
-//    u8 *texBytes = (u8 *)texData.bytes;
-//    f32 *texFloats = (f32 *)malloc(512 * 512 * sizeof(f32));
-//    for(u32 i = 0; i < 512 * 512; ++i) {
-//        texFloats[i] = texBytes[i] / 255.0f;
-//    }
     [blockTexture replaceRegion:MTLRegionMake2D(0, 0, 512, 512) mipmapLevel:0 withBytes:texData.bytes bytesPerRow:512];
     
     // Init Blocks Memory
@@ -248,34 +222,38 @@ void unloadLibBlocks() {
     return CGPointMake(P.x, P.y);
 }
 
-//- (void)renderDebugRectsInBuffer:(id<MTLBuffer>)buffer {
-//    for (u32 i = 0; i < 4; ++i) {
-//        BlockData data = blockData[i];
-//        DebugRect rect = {data.x + 16, data.y, 12, 16};
-//        [self pushDebugRectVerts:rect inBuffer:buffer];
-//    }
-//}
+- (void)drawImGuiIn:(MetalView *)view
+               with:(MTLRenderPassDescriptor *)renderPassDescriptor 
+      commandBuffer:(id<MTLCommandBuffer>)commandBuffer
+      renderEncoder:(id<MTLRenderCommandEncoder>)renderEncoder
+{
+    
+    ImGui_ImplMetal_NewFrame(renderPassDescriptor);
+    ImGui_ImplOSX_NewFrame(view);
+    ImGui::NewFrame();
+    
+    {
+        ImGui::Begin("Scripts");                          // Create a window called "Hello, world!" and append into it.
+        
+        BlocksContext *ctx = (BlocksContext *)blocksMem;
+        for (u32 i = 0; i < ctx->scriptCount; ++i) {
+            Script *script = &ctx->scripts[i];
+            ImGui::Text("Script at (%0.2f, %0.2f)", script->P.x, script->P.y);
+        }
 
-- (void)pushDebugRectVerts:(DebugRect)rect inBuffer:(id<MTLBuffer>)buffer {
-    f32 *vertStorage = ((f32 *)buffer.contents) + ((debugRectCount++) * 16);
-    f32 verts[] = {
-        // Bottom
-        rect.x, rect.y,
-        rect.x + rect.w, rect.y,
-        
-        // Right
-        rect.x + rect.w, rect.y,
-        rect.x + rect.w, rect.y + rect.h,
-        
-        // Top
-        rect.x + rect.w, rect.y + rect.h,
-        rect.x, rect.y + rect.h,
-        
-        // Left
-        rect.x, rect.y + rect.h,
-        rect.x, rect.y,
-    };
-    memcpy(vertStorage, verts, sizeof(verts));
+//        ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
+//
+//        if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
+//            counter++;
+//        ImGui::SameLine();
+//        ImGui::Text("counter = %d", counter);
+
+        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+        ImGui::End();
+    }
+    ImGui::Render();
+    ImDrawData *drawData = ImGui::GetDrawData();
+    ImGui_ImplMetal_RenderDrawData(drawData, commandBuffer, renderEncoder);
 }
 
 - (void)drawInMTKView:(nonnull MetalView *)view
@@ -292,9 +270,6 @@ void unloadLibBlocks() {
             return;
         }
     }
-    
-    // Clear debug rects
-    debugRectCount = 0;
 
     dispatch_semaphore_wait(_inFlightSemaphore, DISPATCH_TIME_FOREVER);
 
@@ -317,19 +292,15 @@ void unloadLibBlocks() {
     blocksInput.mouseDown = input.mouseDown;
     
     id <MTLBuffer> vertBuffer = _vertBuffers[_bufferIndex];
-    id <MTLBuffer> blockUniformsBuffer = _blockUniformsBuffers[_bufferIndex];
     
     BlocksRenderInfo renderInfo = runBlocks(blocksMem, &blocksInput);
     memcpy(vertBuffer.contents, renderInfo.verts, renderInfo.vertsSize);
-    
-//    id <MTLBuffer> debugVertBuffer = _debugVertBuffers[_bufferIndex];
-//    [self renderDebugRectsInBuffer:debugVertBuffer];
     
     // World transform
     id <MTLBuffer> worldUniformsBuffer = _worldUniformsBuffers[_bufferIndex];
     WorldUniforms *worldUniforms = (WorldUniforms *)[worldUniformsBuffer contents];
     worldUniforms->transform = _projectionMatrix;
-
+    
     MTLRenderPassDescriptor* renderPassDescriptor = view.currentRenderPassDescriptor;
     if(renderPassDescriptor != nil)
     {
@@ -340,19 +311,17 @@ void unloadLibBlocks() {
         [renderEncoder setRenderPipelineState:_pipelineState];
 
         [renderEncoder setVertexBuffer:vertBuffer offset:0 atIndex:0];
-        [renderEncoder setVertexBuffer:blockUniformsBuffer offset:0 atIndex:1];
-        [renderEncoder setVertexBuffer:worldUniformsBuffer offset:0 atIndex:2];
+        [renderEncoder setVertexBuffer:worldUniformsBuffer offset:0 atIndex:1];
         
         [renderEncoder setFragmentTexture:blockTexture atIndex:0];
         [renderEncoder setFragmentSamplerState:_sampler atIndex:0];
         
         [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:renderInfo.vertsCount];
         
-        // Debug Drawing
-//        [renderEncoder setRenderPipelineState:_debugPipelineState];
-//
-//        [renderEncoder setVertexBuffer:debugVertBuffer offset:0 atIndex:0];
-//        [renderEncoder drawPrimitives:MTLPrimitiveTypeLine vertexStart:0 vertexCount:8 * debugRectCount];
+        [self drawImGuiIn:view 
+                     with:renderPassDescriptor
+            commandBuffer:commandBuffer
+            renderEncoder:renderEncoder];
 
         [renderEncoder endEncoding];
 

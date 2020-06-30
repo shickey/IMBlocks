@@ -9,6 +9,18 @@
 /* Begin PBXBuildFile section */
 		A308405E249BF10100AC2EEB /* libBlocksARM.h in Headers */ = {isa = PBXBuildFile; fileRef = A308405C249BF10100AC2EEB /* libBlocksARM.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		A3084062249BF10100AC2EEB /* libBlocksARM.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = A308405A249BF10100AC2EEB /* libBlocksARM.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		A3600D9224ABDECE00D5075F /* imgui_impl_metal.mm in Sources */ = {isa = PBXBuildFile; fileRef = A3600D8524ABDECD00D5075F /* imgui_impl_metal.mm */; };
+		A3600D9324ABDECE00D5075F /* imgui_impl_metal.mm in Sources */ = {isa = PBXBuildFile; fileRef = A3600D8524ABDECD00D5075F /* imgui_impl_metal.mm */; };
+		A3600D9424ABDECE00D5075F /* imgui_demo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3600D8624ABDECD00D5075F /* imgui_demo.cpp */; };
+		A3600D9524ABDECE00D5075F /* imgui_demo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3600D8624ABDECD00D5075F /* imgui_demo.cpp */; };
+		A3600D9624ABDECE00D5075F /* imgui.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3600D8724ABDECD00D5075F /* imgui.cpp */; };
+		A3600D9724ABDECE00D5075F /* imgui.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3600D8724ABDECD00D5075F /* imgui.cpp */; };
+		A3600D9824ABDECE00D5075F /* imgui_draw.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3600D8924ABDECD00D5075F /* imgui_draw.cpp */; };
+		A3600D9924ABDECE00D5075F /* imgui_draw.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3600D8924ABDECD00D5075F /* imgui_draw.cpp */; };
+		A3600D9A24ABDECE00D5075F /* imgui_impl_osx.mm in Sources */ = {isa = PBXBuildFile; fileRef = A3600D8A24ABDECD00D5075F /* imgui_impl_osx.mm */; };
+		A3600D9B24ABDECE00D5075F /* imgui_impl_osx.mm in Sources */ = {isa = PBXBuildFile; fileRef = A3600D8A24ABDECD00D5075F /* imgui_impl_osx.mm */; };
+		A3600D9C24ABDECE00D5075F /* imgui_widgets.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3600D9024ABDECE00D5075F /* imgui_widgets.cpp */; };
+		A3600D9D24ABDECE00D5075F /* imgui_widgets.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3600D9024ABDECE00D5075F /* imgui_widgets.cpp */; };
 		A37CB53E24A1565B008FF9E0 /* block-textures.dat in Resources */ = {isa = PBXBuildFile; fileRef = A37CB53D24A1565B008FF9E0 /* block-textures.dat */; };
 		A37CB53F24A1565B008FF9E0 /* block-textures.dat in Resources */ = {isa = PBXBuildFile; fileRef = A37CB53D24A1565B008FF9E0 /* block-textures.dat */; };
 		A3A904F02497D37F004835B7 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = A3A904EF2497D37F004835B7 /* AppDelegate.m */; };
@@ -17,7 +29,7 @@
 		A3A904F92497D37F004835B7 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A3A904F72497D37F004835B7 /* LaunchScreen.storyboard */; };
 		A3A904FC2497D37F004835B7 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = A3A904FB2497D37F004835B7 /* main.m */; };
 		A3A905052497D37F004835B7 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = A3A905042497D37F004835B7 /* AppDelegate.m */; };
-		A3A905082497D37F004835B7 /* GameViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A3A905072497D37F004835B7 /* GameViewController.m */; };
+		A3A905082497D37F004835B7 /* GameViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = A3A905072497D37F004835B7 /* GameViewController.mm */; };
 		A3A9050B2497D37F004835B7 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A3A905092497D37F004835B7 /* Main.storyboard */; };
 		A3A9050E2497D37F004835B7 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = A3A9050D2497D37F004835B7 /* main.m */; };
 		A3A9050F2497D37F004835B7 /* Renderer.mm in Sources */ = {isa = PBXBuildFile; fileRef = A3A904E32497D37E004835B7 /* Renderer.mm */; };
@@ -77,6 +89,20 @@
 		A308405C249BF10100AC2EEB /* libBlocksARM.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = libBlocksARM.h; sourceTree = "<group>"; };
 		A308405D249BF10100AC2EEB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A32B6DD82499C2B60084106E /* libBlocks.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libBlocks.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
+		A3600D8424ABDECD00D5075F /* imgui_internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = imgui_internal.h; sourceTree = "<group>"; };
+		A3600D8524ABDECD00D5075F /* imgui_impl_metal.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = imgui_impl_metal.mm; sourceTree = "<group>"; };
+		A3600D8624ABDECD00D5075F /* imgui_demo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = imgui_demo.cpp; sourceTree = "<group>"; };
+		A3600D8724ABDECD00D5075F /* imgui.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = imgui.cpp; sourceTree = "<group>"; };
+		A3600D8824ABDECD00D5075F /* imgui_impl_metal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = imgui_impl_metal.h; sourceTree = "<group>"; };
+		A3600D8924ABDECD00D5075F /* imgui_draw.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = imgui_draw.cpp; sourceTree = "<group>"; };
+		A3600D8A24ABDECD00D5075F /* imgui_impl_osx.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = imgui_impl_osx.mm; sourceTree = "<group>"; };
+		A3600D8B24ABDECE00D5075F /* imstb_textedit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = imstb_textedit.h; sourceTree = "<group>"; };
+		A3600D8C24ABDECE00D5075F /* imconfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = imconfig.h; sourceTree = "<group>"; };
+		A3600D8D24ABDECE00D5075F /* imstb_rectpack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = imstb_rectpack.h; sourceTree = "<group>"; };
+		A3600D8E24ABDECE00D5075F /* imstb_truetype.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = imstb_truetype.h; sourceTree = "<group>"; };
+		A3600D8F24ABDECE00D5075F /* imgui_impl_osx.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = imgui_impl_osx.h; sourceTree = "<group>"; };
+		A3600D9024ABDECE00D5075F /* imgui_widgets.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = imgui_widgets.cpp; sourceTree = "<group>"; };
+		A3600D9124ABDECE00D5075F /* imgui.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = imgui.h; sourceTree = "<group>"; };
 		A37CB53D24A1565B008FF9E0 /* block-textures.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "block-textures.dat"; sourceTree = "<group>"; };
 		A3A904E22497D37E004835B7 /* Renderer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Renderer.h; sourceTree = "<group>"; };
 		A3A904E32497D37E004835B7 /* Renderer.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = Renderer.mm; sourceTree = "<group>"; };
@@ -96,7 +122,7 @@
 		A3A905032497D37F004835B7 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		A3A905042497D37F004835B7 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		A3A905062497D37F004835B7 /* GameViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GameViewController.h; sourceTree = "<group>"; };
-		A3A905072497D37F004835B7 /* GameViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = GameViewController.m; sourceTree = "<group>"; };
+		A3A905072497D37F004835B7 /* GameViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = GameViewController.mm; sourceTree = "<group>"; };
 		A3A9050A2497D37F004835B7 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		A3A9050C2497D37F004835B7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A3A9050D2497D37F004835B7 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
@@ -160,11 +186,41 @@
 			path = libBlocksARM;
 			sourceTree = "<group>";
 		};
+		A3600D8224ABDE4900D5075F /* Debug */ = {
+			isa = PBXGroup;
+			children = (
+				A3600D8324ABDE6900D5075F /* DearIMGUI */,
+			);
+			path = Debug;
+			sourceTree = "<group>";
+		};
+		A3600D8324ABDE6900D5075F /* DearIMGUI */ = {
+			isa = PBXGroup;
+			children = (
+				A3600D8C24ABDECE00D5075F /* imconfig.h */,
+				A3600D8624ABDECD00D5075F /* imgui_demo.cpp */,
+				A3600D8924ABDECD00D5075F /* imgui_draw.cpp */,
+				A3600D8824ABDECD00D5075F /* imgui_impl_metal.h */,
+				A3600D8524ABDECD00D5075F /* imgui_impl_metal.mm */,
+				A3600D8F24ABDECE00D5075F /* imgui_impl_osx.h */,
+				A3600D8A24ABDECD00D5075F /* imgui_impl_osx.mm */,
+				A3600D8424ABDECD00D5075F /* imgui_internal.h */,
+				A3600D9024ABDECE00D5075F /* imgui_widgets.cpp */,
+				A3600D8724ABDECD00D5075F /* imgui.cpp */,
+				A3600D9124ABDECE00D5075F /* imgui.h */,
+				A3600D8D24ABDECE00D5075F /* imstb_rectpack.h */,
+				A3600D8B24ABDECE00D5075F /* imstb_textedit.h */,
+				A3600D8E24ABDECE00D5075F /* imstb_truetype.h */,
+			);
+			path = DearIMGUI;
+			sourceTree = "<group>";
+		};
 		A3A904DC2497D37E004835B7 = {
 			isa = PBXGroup;
 			children = (
 				A3C07AFF24A6F3180031BF23 /* Blocks */,
 				A3A904E12497D37E004835B7 /* Shared */,
+				A3600D8224ABDE4900D5075F /* Debug */,
 				A3A904ED2497D37F004835B7 /* iOS */,
 				A3A905022497D37F004835B7 /* macOS */,
 				A3AA9850249B04AB00928544 /* GenTextures */,
@@ -221,7 +277,7 @@
 				A3A905032497D37F004835B7 /* AppDelegate.h */,
 				A3A905042497D37F004835B7 /* AppDelegate.m */,
 				A3A905062497D37F004835B7 /* GameViewController.h */,
-				A3A905072497D37F004835B7 /* GameViewController.m */,
+				A3A905072497D37F004835B7 /* GameViewController.mm */,
 				A3A905092497D37F004835B7 /* Main.storyboard */,
 				A3A9050C2497D37F004835B7 /* Info.plist */,
 				A3A9050D2497D37F004835B7 /* main.m */,
@@ -468,11 +524,17 @@
 			buildActionMask = 2147483647;
 			files = (
 				A3A9050F2497D37F004835B7 /* Renderer.mm in Sources */,
+				A3600D9A24ABDECE00D5075F /* imgui_impl_osx.mm in Sources */,
 				A3A904F32497D37F004835B7 /* GameViewController.m in Sources */,
 				A3A904FC2497D37F004835B7 /* main.m in Sources */,
+				A3600D9824ABDECE00D5075F /* imgui_draw.cpp in Sources */,
+				A3600D9224ABDECE00D5075F /* imgui_impl_metal.mm in Sources */,
 				A3A904F02497D37F004835B7 /* AppDelegate.m in Sources */,
+				A3600D9C24ABDECE00D5075F /* imgui_widgets.cpp in Sources */,
 				A3A905112497D37F004835B7 /* Shaders.metal in Sources */,
+				A3600D9424ABDECE00D5075F /* imgui_demo.cpp in Sources */,
 				A3A90524249810B4004835B7 /* MetalView.m in Sources */,
+				A3600D9624ABDECE00D5075F /* imgui.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -481,11 +543,17 @@
 			buildActionMask = 2147483647;
 			files = (
 				A3A905102497D37F004835B7 /* Renderer.mm in Sources */,
-				A3A905082497D37F004835B7 /* GameViewController.m in Sources */,
+				A3600D9B24ABDECE00D5075F /* imgui_impl_osx.mm in Sources */,
+				A3A905082497D37F004835B7 /* GameViewController.mm in Sources */,
 				A3A9050E2497D37F004835B7 /* main.m in Sources */,
+				A3600D9924ABDECE00D5075F /* imgui_draw.cpp in Sources */,
+				A3600D9324ABDECE00D5075F /* imgui_impl_metal.mm in Sources */,
 				A3A905052497D37F004835B7 /* AppDelegate.m in Sources */,
+				A3600D9D24ABDECE00D5075F /* imgui_widgets.cpp in Sources */,
 				A3A905122497D37F004835B7 /* Shaders.metal in Sources */,
+				A3600D9524ABDECE00D5075F /* imgui_demo.cpp in Sources */,
 				A3A90525249810B4004835B7 /* MetalView.m in Sources */,
+				A3600D9724ABDECE00D5075F /* imgui.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

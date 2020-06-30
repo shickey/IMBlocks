@@ -26,10 +26,12 @@
 
 - (void)mouseDown:(NSEvent *)event {
     _input.mouseDown = true;
+    [super mouseDown:event];
 }
 
 - (void)mouseUp:(NSEvent *)event {
     _input.mouseDown = false;
+    [super mouseUp:event];
 }
 
 - (void)mouseMoved:(NSEvent *)event {
@@ -37,6 +39,7 @@
     NSPoint pt = [self convertPoint:rawPt toView:nil];
     _input.mouseX = pt.x;
     _input.mouseY = pt.y;
+    [super mouseMoved:event];
 }
 
 - (void)mouseDragged:(NSEvent *)event {
@@ -44,6 +47,7 @@
     NSPoint pt = [self convertPoint:rawPt toView:nil];
     _input.mouseX = pt.x;
     _input.mouseY = pt.y;
+    [super mouseDragged:event];
 }
 
 #endif

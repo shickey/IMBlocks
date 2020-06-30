@@ -128,12 +128,12 @@ b32 Dragging() {
 
 inline
 Layout CreateEmptyLayoutAt(v2 at) {
-    return {at, Rect{at.x, at.y, 0, 0}};
+    return {at, Rectangle{at.x, at.y, 0, 0}};
 }
 
 inline
 Layout CreateEmptyLayoutAt(f32 x, f32 y) {
-    return {v2{x, y}, Rect{x, y, 0, 0}};
+    return {v2{x, y}, Rectangle{x, y, 0, 0}};
 }
 
 void BeginBlocks(BlocksInput input) {
@@ -319,7 +319,7 @@ Layout RenderScript(Script *script) {
 void DrawSubScript(Block *block, Script *script, Layout *layout) {
     Assert(block);
     // Draw a single linear group of blocks, only recursing on branching blocks
-    Rect inletBounds = {layout->at.x - 4, layout->at.y, 8, 16};
+    Rectangle inletBounds = {layout->at.x - 4, layout->at.y, 8, 16};
     Block *nextBlock = block;
     while (nextBlock) {
         if(DrawBlock(nextBlock, script, layout)) {
@@ -353,7 +353,7 @@ b32 DrawBlock(Block *block, Script *script, Layout *layout) {
     
     // Draw ghost block before this block, if necessary
     if (Dragging() && dragInfo.script != script && IsTopBlockOfScript(block, script) && !blocksCtx->dragInfo.readyToInsert) {
-        Rect inletBounds = {script->P.x - 4, script->P.y, 8, 16};
+        Rectangle inletBounds = {script->P.x - 4, script->P.y, 8, 16};
         PushSimpleRect(blocksCtx, inletBounds, v3{1, 0, 0});
         if (RectsIntersect(inletBounds, dragInfo.outlet)) {
             switch (dragInfo.lastBlock->type) {
@@ -388,7 +388,7 @@ b32 DrawBlock(Block *block, Script *script, Layout *layout) {
             
             // Draw ghost block inside the loop, if necessary
             if (Dragging() && dragInfo.script != script && !blocksCtx->dragInfo.readyToInsert) {
-                Rect innerOutletBounds = {layout->at.x + 3, layout->at.y, 6, 16};
+                Rectangle innerOutletBounds = {layout->at.x + 3, layout->at.y, 6, 16};
                 PushSimpleRect(blocksCtx, innerOutletBounds, v3{1, 0, 0});
                 if (RectsIntersect(innerOutletBounds, dragInfo.inlet)) {
                     switch (dragInfo.firstBlock->type) {
@@ -427,7 +427,7 @@ b32 DrawBlock(Block *block, Script *script, Layout *layout) {
     
     // Draw ghost block after this block, if necessary
     if (Dragging() && dragInfo.script != script && !blocksCtx->dragInfo.readyToInsert) {
-        Rect outletBounds = {layout->at.x - 4, layout->at.y, 8, 16};
+        Rectangle outletBounds = {layout->at.x - 4, layout->at.y, 8, 16};
         PushSimpleRect(blocksCtx, outletBounds, v3{1, 0, 0});
         if (RectsIntersect(outletBounds, dragInfo.inlet)) {
             switch (dragInfo.firstBlock->type) {
@@ -475,7 +475,7 @@ b32 DrawBlock(Block *block, Script *script, Layout *layout) {
 void DrawCommandBlock(Block *block, Script *script, Layout *layout, u32 flags) {
     b32 isGhost = flags & DrawBlockFlags_Ghost;
     
-    Rect hitBox = { layout->at.x, layout->at.y, 16, 16};
+    Rectangle hitBox = { layout->at.x, layout->at.y, 16, 16};
     
     RenderEntry *entry = PushRenderEntry(blocksCtx);
     entry->type = RenderEntryType_Command;
@@ -517,8 +517,8 @@ void DrawLoopBlock(Block *block, Script *script, Layout *layout, Layout *innerLa
     }
     
         
-    Rect hitBox = { layout->at.x, layout->at.y, 38 + (f32)horizStretch, 20 + (f32)vertStretch };
-    Rect innerHitBox = { layout->at.x + 6, layout->at.y, (f32)horizStretch + 16, (f32)vertStretch + 16 };
+    Rectangle hitBox = { layout->at.x, layout->at.y, 38 + (f32)horizStretch, 20 + (f32)vertStretch };
+    Rectangle innerHitBox = { layout->at.x + 6, layout->at.y, (f32)horizStretch + 16, (f32)vertStretch + 16 };
     
     RenderEntry *entry = PushRenderEntry(blocksCtx);
     entry->type = RenderEntryType_Loop;

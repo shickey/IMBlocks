@@ -25,7 +25,7 @@ struct Arena {
     u32 used;
 };
 
-struct Rect {
+struct Rectangle {
     union {
         struct {
             f32 x;
@@ -44,7 +44,7 @@ struct Rect {
 
 struct Layout {
     v2 at;
-    Rect bounds;
+    Rectangle bounds;
 };
 
 enum RenderEntryType {
@@ -115,9 +115,9 @@ struct DragInfo {
     Layout scriptLayout;
     Block *firstBlock;
     Block *lastBlock;
-    Rect inlet;
-    Rect outlet;
-    Rect innerOutlet;
+    Rectangle inlet;
+    Rectangle outlet;
+    Rectangle innerOutlet;
     
     b32 readyToInsert;
     InsertionType insertionType;

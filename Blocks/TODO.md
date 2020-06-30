@@ -1,15 +1,10 @@
 #IMBlocks Todo List
 
 ## Basics to match existing blocks behaviors
-  - Finish drag and drop
-    - Supporting entire scripts
-    - Prioritizing connection types
-    - Connecting and combining scripts on drop
   - Better input processing
     - Mouse wheel to pan and zoom
     - Touch events
   - Block creation and deletion
-  - Script deletion
   - Script copying (likely can use existing TearOff code)
   - Background color
   - Blocks palette
@@ -29,6 +24,12 @@
   - Debug System
     - Simple string rendering
     
+### Done?
+  - Finish drag and drop
+    - Supporting entire scripts
+    - Prioritizing connection types
+    - Connecting and combining scripts on drop
+  - Script deletion
   
 ## VM integration
   - Likely bring the VM code into IMBlocks

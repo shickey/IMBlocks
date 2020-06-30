@@ -11,7 +11,7 @@
 #define PushVerts(ctx, v) PushData_(&ctx->verts, (v), sizeof((v)))
 #define VERTEX_SIZE (7 * sizeof(f32))
 
-void PushSimpleRect(BlocksContext *ctx, Rect rect, v3 color) {
+void PushSimpleRect(BlocksContext *ctx, Rectangle rect, v3 color) {
     #define rectWidth 0.5f
     #define rectHalfWidth (rectWidth / 2.0f)
     
