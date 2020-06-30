@@ -98,10 +98,14 @@ struct BlocksRect {
     };
 };
 
-enum GhostBlockInsert {
-    GhostBlockInsert_Next,
-    GhostBlockInsert_Prev,
-    GhostBlockInsert_Inner
+struct DragScriptInfo {
+    Script *script;
+    v2 scriptSize;
+    BlockType firstBlockType;
+    BlockType lastBlockType;
+    BlocksRect inlet;
+    BlocksRect outlet;
+    BlocksRect innerOutlet;
 };
 
 struct BlocksContext {
@@ -120,17 +124,17 @@ struct BlocksContext {
     Interaction interacting;
     Interaction nextHot;
     
-    Block *ghostBlockParent;
-    GhostBlockInsert ghostBlockInsert;
-    BlockType ghostBlockType;
+    DragScriptInfo dragInfo;
 };
 
 void BeginBlocks(BlocksInput input);
 BlocksRenderInfo EndBlocks(void);
-void DrawBlock(Block *, Script *, RenderBasis *);
+void DrawSubScript(Block *block, Script *script, RenderBasis *basis);
+b32 DrawBlock(Block *, Script *, RenderBasis *);
 void DrawCommandBlock(Block *, Script *, RenderBasis *);
-void DrawLoopBlock(Block *, Script *, RenderBasis *);
-
+void DrawLoopBlock(Block *, Script *, RenderBasis *, RenderBasis *);
+void DrawGhostCommandBlock(RenderBasis *basis);
+void DrawGhostLoopBlock(RenderBasis *basis, RenderBasis *innerBasis);
 
 void *PushSize(Arena *arena, u32 size) {
   // Make sure we have enough space left in the arena
