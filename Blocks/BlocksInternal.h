@@ -98,7 +98,7 @@ struct Script {
     Block *topBlock;
 };
 
-struct DragScriptInfo {
+struct DragInfo {
     Script *script;
     Layout scriptLayout;
     BlockType firstBlockType;
@@ -106,6 +106,8 @@ struct DragScriptInfo {
     Rect inlet;
     Rect outlet;
     Rect innerOutlet;
+    
+    b32 isDrawingGhostBlock;
 };
 
 struct BlocksContext {
@@ -124,7 +126,7 @@ struct BlocksContext {
     Interaction interacting;
     Interaction nextHot;
     
-    DragScriptInfo dragInfo;
+    DragInfo dragInfo;
 };
 
 void BeginBlocks(BlocksInput input);

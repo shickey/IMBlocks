@@ -217,12 +217,13 @@ void DrawSubScript(Block *block, Script *script, Layout *layout) {
         }
     }
     
-    if (Dragging()) {
-        DragScriptInfo dragInfo = blocksCtx->dragInfo;
-        if (dragInfo.script != script && dragInfo.firstBlockType == BlockType_Loop) {
+    if (Dragging() && !blocksCtx->dragInfo.isDrawingGhostBlock) {
+        DragInfo dragInfo = blocksCtx->dragInfo;
+        if (dragInfo.script != script && dragInfo.firstBlockType == BlockType_Loop && !dragInfo.script->topBlock->inner) {
             if (RectsIntersect(inletBounds, dragInfo.innerOutlet)) {
                 Layout loopLayout = CreateEmptyLayoutAt(layout->bounds.origin.x - 6, layout->bounds.origin.y);
                 DrawGhostLoopBlock(&loopLayout, layout);
+                blocksCtx->dragInfo.isDrawingGhostBlock = true;
                 PushSimpleRect(blocksCtx, loopLayout.bounds, {0, 1, 0});
             }
         }
@@ -267,10 +268,10 @@ void DrawGhostLoopBlock(Layout *layout, Layout *innerLayout = 0) {
 }
 
 b32 DrawBlock(Block *block, Script *script, Layout *layout) {
-    DragScriptInfo dragInfo = blocksCtx->dragInfo;
+    DragInfo dragInfo = blocksCtx->dragInfo;
     
     // Draw ghost block before this block (or around this stack, in the case of a loop), if necessary
-    if (Dragging() && dragInfo.script != script && IsTopBlockOfScript(block, script)) {
+    if (Dragging() && dragInfo.script != script && IsTopBlockOfScript(block, script) && !blocksCtx->dragInfo.isDrawingGhostBlock) {
         Rect inletBounds = {script->P.x - 4, script->P.y, 8, 16};
         PushSimpleRect(blocksCtx, inletBounds, v3{1, 0, 0});
         if (RectsIntersect(inletBounds, dragInfo.outlet)) {
@@ -288,6 +289,7 @@ b32 DrawBlock(Block *block, Script *script, Layout *layout) {
                     break;
                 }
             }
+            blocksCtx->dragInfo.isDrawingGhostBlock = true;
         }
     }
     
@@ -301,7 +303,7 @@ b32 DrawBlock(Block *block, Script *script, Layout *layout) {
             b32 renderedInner = false;
             
             // Draw ghost block inside the loop, if necessary
-            if (Dragging() && dragInfo.script != script) {
+            if (Dragging() && dragInfo.script != script && !blocksCtx->dragInfo.isDrawingGhostBlock) {
                 Rect innerOutletBounds = {layout->at.x + 3, layout->at.y, 6, 16};
                 PushSimpleRect(blocksCtx, innerOutletBounds, v3{1, 0, 0});
                 if (RectsIntersect(innerOutletBounds, dragInfo.inlet)) {
@@ -320,6 +322,7 @@ b32 DrawBlock(Block *block, Script *script, Layout *layout) {
                             renderedInner = true;
                         }
                     }
+                    blocksCtx->dragInfo.isDrawingGhostBlock = true;
                 }
             }
             
@@ -336,24 +339,34 @@ b32 DrawBlock(Block *block, Script *script, Layout *layout) {
     }
     
     // Draw ghost block after this block, if necessary
-    if (Dragging() && dragInfo.script != script) {
+    if (Dragging() && dragInfo.script != script && !blocksCtx->dragInfo.isDrawingGhostBlock) {
         Rect outletBounds = {layout->at.x - 4, layout->at.y, 8, 16};
         PushSimpleRect(blocksCtx, outletBounds, v3{1, 0, 0});
         if (RectsIntersect(outletBounds, dragInfo.inlet)) {
             switch (dragInfo.firstBlockType) {
                 case BlockType_Command: {
                     DrawGhostCommandBlock(layout);
+                    blocksCtx->dragInfo.isDrawingGhostBlock = true;
                     break;
                 }
                 case BlockType_Loop: {
-                    // Override block drawing so that loop contains the rest of the substack
-                    Layout innerLayout = CreateEmptyLayoutAt(layout->at.x + 6, layout->at.y);
-                    if (block->next) {
-                        DrawSubScript(block->next, script, &innerLayout);
+                    if (dragInfo.script->topBlock->inner) {
+                        // If the loop already contains an inner stack, just put it in line
+                        DrawGhostLoopBlock(layout);
+                        blocksCtx->dragInfo.isDrawingGhostBlock = true;
                     }
-                    DrawGhostLoopBlock(layout, &innerLayout);
-                    
-                    return false; // Don't continue drawing this substack
+                    else {
+                        // Otherwise, override block drawing so that loop contains the rest of the substack
+                        Layout innerLayout = CreateEmptyLayoutAt(layout->at.x + 6, layout->at.y);
+                        if (block->next) {
+                            DrawSubScript(block->next, script, &innerLayout);
+                        }
+                        DrawGhostLoopBlock(layout, &innerLayout);
+                        blocksCtx->dragInfo.isDrawingGhostBlock = true;
+                        
+                        // @TODO: I don't love this weird return boolean thing. Is there a way to avoid this?
+                        return false; // Don't continue drawing this substack
+                    }
                     break;
                 }
             }
@@ -513,6 +526,9 @@ extern "C" BlocksRenderInfo RunBlocks(void *mem, BlocksInput *input) {
         if (blocksCtx->interacting.block->type == BlockType_Loop) {
             blocksCtx->dragInfo.innerOutlet = {script->P.x + 3, script->P.y, 6, 16};
         }
+        
+        // Reset this to false each frame so we can update the ghost block insertion point, if necessary
+        blocksCtx->dragInfo.isDrawingGhostBlock = false;
     }
      for (u32 i = 0; i < blocksCtx->scriptCount; ++i) {
         Script *script = &blocksCtx->scripts[i];
