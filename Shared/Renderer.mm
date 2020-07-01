@@ -76,6 +76,8 @@ void unloadLibBlocks() {
     libBlocks = NULL;
 }
 
+static f32 zoomLevel = 3.0;
+
 @implementation Renderer
 {
     dispatch_semaphore_t _inFlightSemaphore;
@@ -232,21 +234,25 @@ void unloadLibBlocks() {
     ImGui_ImplOSX_NewFrame(view);
     ImGui::NewFrame();
     
+    static bool show_demo_window = true;
+    ImGui::ShowDemoWindow(&show_demo_window);
+    
     {
         ImGui::Begin("Scripts");                          // Create a window called "Hello, world!" and append into it.
+        
+        ImGui::SliderFloat("zoom", &zoomLevel, 0.5, 16.0);
         
         BlocksContext *ctx = (BlocksContext *)blocksMem;
         for (u32 i = 0; i < ctx->scriptCount; ++i) {
             Script *script = &ctx->scripts[i];
-            ImGui::Text("Script at (%0.2f, %0.2f)", script->P.x, script->P.y);
+            char label[50];
+            sprintf(label, "script %i", i);
+            ImGui::InputFloat2(label, (float *)&(script->P));
         }
 
-//        ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-//
-//        if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-//            counter++;
-//        ImGui::SameLine();
-//        ImGui::Text("counter = %d", counter);
+        ImGui::ProgressBar((f32)ctx->blocks.used / (f32)ctx->blocks.size, ImVec2(0.0f, 0.0f), "Blocks Arena Usage");
+        ImGui::ProgressBar((f32)ctx->verts.used / (f32)ctx->verts.size, ImVec2(0.0f, 0.0f), "Vertex Arena Usage");
+        ImGui::ProgressBar((f32)ctx->scriptCount / 1024.f, ImVec2(0.0f, 0.0f), "Script usage");
 
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
         ImGui::End();
@@ -293,6 +299,9 @@ void unloadLibBlocks() {
     
     id <MTLBuffer> vertBuffer = _vertBuffers[_bufferIndex];
     
+    CAMetalLayer *layer = (CAMetalLayer *)view.layer;
+    [self updateProjectionMatrices:layer.drawableSize];
+    
     BlocksRenderInfo renderInfo = runBlocks(blocksMem, &blocksInput);
     memcpy(vertBuffer.contents, renderInfo.verts, renderInfo.vertsSize);
     
@@ -331,17 +340,19 @@ void unloadLibBlocks() {
     [commandBuffer commit];
 }
 
-- (void)mtkView:(nonnull MTKView *)view drawableSizeWillChange:(CGSize)size
-{   
-    static f32 zoomLevel = 3.0;
+- (void)updateProjectionMatrices:(CGSize)drawableSize {
+    //    f32 aspect = size.width / (float)size.height;
     
-//    f32 aspect = size.width / (float)size.height;
-    
-    CGFloat halfWidth = (size.width / 2.0) / zoomLevel;
-    CGFloat halfHeight = (size.height / 2.0) / zoomLevel;
+    CGFloat halfWidth = (drawableSize.width / 2.0) / zoomLevel;
+    CGFloat halfHeight = (drawableSize.height / 2.0) / zoomLevel;
     
     _projectionMatrix = orthographicProjection(-halfWidth, halfWidth, halfHeight, -halfHeight, 1.0, -1.0);
     _unprojectionMatrix = orthographicUnprojection(-halfWidth, halfWidth, halfHeight, -halfHeight, 1.0, -1.0);
+}
+
+- (void)mtkView:(nonnull MTKView *)view drawableSizeWillChange:(CGSize)size
+{   
+    [self updateProjectionMatrices:size];
 }
 
 #pragma mark Matrix Math Utilities
