@@ -287,15 +287,20 @@ static f32 zoomLevel = 3.0;
      {
          dispatch_semaphore_signal(block_sema);
      }];
-
+    
     Input input = view->_input;
-//    CGPoint P = [self _unprojectPoint:CGPointMake(input.mouseX, input.mouseY) inView:view];
     
     BlocksInput blocksInput;
     blocksInput.mouseP = {(f32)input.mouseX, (f32)input.mouseY};
     blocksInput.mouseDown = input.mouseDown;
+    blocksInput.wheelDelta = {input.wheelDx, input.wheelDy};
+    blocksInput.commandDown = input.commandDown;
     f32 dpi = (f32)view.window.backingScaleFactor;
     blocksInput.screenSize = {(f32)view.bounds.size.width / dpi, (f32)view.bounds.size.height / dpi};
+    
+    // Reset scroll deltas for next frame
+    view->_input.wheelDx = 0;
+    view->_input.wheelDy = 0;
     
     id <MTLBuffer> vertBuffer = _vertBuffers[_bufferIndex];
     

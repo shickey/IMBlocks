@@ -153,7 +153,15 @@ void BeginBlocks(BlocksInput input) {
     
     // Update view metrics
     blocksCtx->screenSize = input.screenSize;
-    blocksCtx->zoomLevel = 3.0f;
+    
+    if (input.commandDown) {
+        blocksCtx->zoomLevel += input.wheelDelta.y * 0.01;
+        blocksCtx->zoomLevel = Clamp(blocksCtx->zoomLevel, 0.25, 16.0);
+    }
+    else {
+        blocksCtx->cameraOrigin.x += input.wheelDelta.x * 0.1;
+        blocksCtx->cameraOrigin.y += input.wheelDelta.y * 0.1;
+    } 
 }
 
 BlocksRenderInfo EndBlocks(RenderGroup *renderGroup) {
@@ -659,6 +667,9 @@ extern "C" void InitBlocks(void *mem, u32 memSize) {
     context->frame = SubArena(&dummyArena, VERTS_MEM_SIZE);
     
     context->scriptCount = 0;
+    
+    context->zoomLevel = 3.0f;
+    context->cameraOrigin = v2{0, 0};
     
     blocksCtx = context;
     

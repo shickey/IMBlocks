@@ -26,6 +26,8 @@ struct BlocksInput {
         };
     };
     v2 screenSize;
+    v2 wheelDelta;
+    b32 commandDown;
 };
 
 struct BlocksDrawCall {

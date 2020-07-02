@@ -23,6 +23,9 @@ typedef struct Input {
         bool mouseDown;
         bool touching;
     };
+    float wheelDx;
+    float wheelDy;
+    bool commandDown;
 } Input;
 
 @interface MetalView: MTKView

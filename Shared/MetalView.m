@@ -22,6 +22,15 @@
                                                           owner:self
                                                        userInfo:nil];
     [self addTrackingArea:area];
+    
+    NSEventMask eventMask = NSEventMaskFlagsChanged;
+    [NSEvent addLocalMonitorForEventsMatchingMask:eventMask handler:^NSEvent * _Nullable(NSEvent *event) {
+        if (event.type == NSEventTypeFlagsChanged) {
+            NSLog(@"Command down: %d", event.modifierFlags & NSEventModifierFlagCommand ? 1 : 0);
+            self->_input.commandDown = event.modifierFlags & NSEventModifierFlagCommand ? 1 : 0;
+        }
+        return event;
+    }];
 }
 
 - (void)mouseDown:(NSEvent *)event {
@@ -49,6 +58,13 @@
     _input.mouseY = pt.y;
     [super mouseDragged:event];
 }
+
+- (void)scrollWheel:(NSEvent *)event {
+    _input.wheelDx = event.scrollingDeltaX;
+    _input.wheelDy = event.scrollingDeltaY;
+    [super scrollWheel:event];
+}
+
 
 #endif
 #if TARGET_OS_IPHONE
