@@ -289,10 +289,10 @@ static f32 zoomLevel = 3.0;
      }];
 
     Input input = view->_input;
-    CGPoint P = [self _unprojectPoint:CGPointMake(input.mouseX, input.mouseY) inView:view];
+//    CGPoint P = [self _unprojectPoint:CGPointMake(input.mouseX, input.mouseY) inView:view];
     
     BlocksInput blocksInput;
-    blocksInput.mouseP = {(f32)P.x, (f32)P.y};
+    blocksInput.mouseP = {(f32)input.mouseX, (f32)input.mouseY};
     blocksInput.mouseDown = input.mouseDown;
     f32 dpi = (f32)view.window.backingScaleFactor;
     blocksInput.screenSize = {(f32)view.bounds.size.width / dpi, (f32)view.bounds.size.height / dpi};

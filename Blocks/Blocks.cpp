@@ -153,10 +153,10 @@ void BeginBlocks(BlocksInput input) {
     
     // Update view metrics
     blocksCtx->screenSize = input.screenSize;
-    blocksCtx->zoomLevel = 2.0f;
+    blocksCtx->zoomLevel = 3.0f;
 }
 
-BlocksRenderInfo EndBlocks() {
+BlocksRenderInfo EndBlocks(RenderGroup *renderGroup) {
     if (Interacting()) {
         Interaction *interact = &blocksCtx->interacting;
         
@@ -237,7 +237,7 @@ BlocksRenderInfo EndBlocks() {
             switch(interact->type) {
                 case InteractionType_Select: {
                     // If the mouse has moved far enough, start dragging
-                    if (DistSq(blocksCtx->input.mouseP, interact->mouseStartP) > MIN_DRAG_DIST * MIN_DRAG_DIST) {
+                    if (DistSq(renderGroup->mouseP, interact->mouseStartP) > MIN_DRAG_DIST * MIN_DRAG_DIST) {
                         interact->type = InteractionType_Drag;
                         
                         // If we're in the middle of a stack, tear off into a new stack
@@ -262,8 +262,8 @@ BlocksRenderInfo EndBlocks() {
                 }
                 case InteractionType_Drag: {
                     Script *script = interact->script;
-                    script->P.x = blocksCtx->input.mouseP.x - interact->mouseOffset.x;
-                    script->P.y = blocksCtx->input.mouseP.y - interact->mouseOffset.y;
+                    script->P.x = renderGroup->mouseP.x - interact->mouseOffset.x;
+                    script->P.y = renderGroup->mouseP.y - interact->mouseOffset.y;
                     
                     break;
                 }
@@ -288,10 +288,10 @@ BlocksRenderInfo EndBlocks() {
     
     
     if (Dragging()) {
-        PushRectOutline(&blocksCtx->frame, blocksCtx->dragInfo.inlet, v4{0, 1, 0, 1});
-        PushRectOutline(&blocksCtx->frame, blocksCtx->dragInfo.outlet, v4{0, 1, 0, 1});
+        DEBUGPushRectOutline(blocksCtx->dragInfo.inlet, v4{0, 1, 0, 1});
+        DEBUGPushRectOutline(blocksCtx->dragInfo.outlet, v4{0, 1, 0, 1});
         if (blocksCtx->interacting.block->type == BlockType_Loop) {
-            PushRectOutline(&blocksCtx->frame, blocksCtx->dragInfo.innerOutlet, v4{0, 1, 0, 1});
+            DEBUGPushRectOutline(blocksCtx->dragInfo.innerOutlet, v4{0, 1, 0, 1});
         }
     }
     
@@ -369,16 +369,6 @@ BlocksRenderInfo EndBlocks() {
     return Result;
 }
 
-// v2 UnprojectPoint(v2 point) {
-//     v2 viewBounds = blocksCtx->viewBounds;
-//     f32 projectedX = (((2.0 * point.x) / (viewBounds.w * blocksCtx->zoomLevel)) - 1.0);
-//     f32 projectedY = (((2.0 * point.y) / (viewBounds.h * blocksCtx->zoomLevel)) - 1.0);
-    
-//     mat4x4 unprojection = blocksCtx->unprojection;
-//     v4 newOrigin = unprojection * v4{projectedX, projectedY, 0, 1};
-//     return newOrigin.xy;
-// }
-
 void RenderNewBlockButton(RenderGroup *renderGroup) {
     f32 buttonSizeInPixels = 50.0f;
     f32 edgeOffsetInPixels = 20.0f;
@@ -391,7 +381,13 @@ void RenderNewBlockButton(RenderGroup *renderGroup) {
     RenderEntry *entry = PushRenderEntry(renderGroup);
     entry->type = RenderEntryType_Rect;
     entry->rect = blockButtonRect;
-    entry->color = v4{0, 1, 1, 0.5};
+    if (PointInRect(renderGroup->mouseP, blockButtonRect)) {
+        entry->color = v4{1, 1, 0, 1};
+    }
+    else {
+        entry->color = v4{0, 1, 1, 0.5};
+    }
+    
 }
 
 Layout RenderScript(RenderGroup *renderGroup, Script *script) {
@@ -580,14 +576,14 @@ void DrawCommandBlock(RenderGroup *renderGroup, Block *block, Script *script, La
     layout->bounds.w += 16;
     layout->bounds.h = Max(layout->bounds.h, 16);
     
-    if (!isGhost && PointInRect(blocksCtx->input.mouseP, hitBox)) {
+    if (!isGhost && PointInRect(renderGroup->mouseP, hitBox)) {
         blocksCtx->nextHot.type = InteractionType_Select;
         blocksCtx->nextHot.block = block;
         blocksCtx->nextHot.blockP = entry->P;
         blocksCtx->nextHot.script = script;
         blocksCtx->nextHot.entry = entry;
-        blocksCtx->nextHot.mouseStartP = blocksCtx->input.mouseP;
-        blocksCtx->nextHot.mouseOffset = { blocksCtx->input.mouseP.x - script->P.x, blocksCtx->input.mouseP.y - script->P.y };
+        blocksCtx->nextHot.mouseStartP = renderGroup->mouseP;
+        blocksCtx->nextHot.mouseOffset = { renderGroup->mouseP.x - script->P.x, renderGroup->mouseP.y - script->P.y };
     }
     
 }
@@ -624,14 +620,14 @@ void DrawLoopBlock(RenderGroup *renderGroup, Block *block, Script *script, Layou
     layout->bounds.w += 38 + horizStretch;
     layout->bounds.h = Max(layout->bounds.h, 20 + vertStretch);
     
-    if (!isGhost && PointInRect(blocksCtx->input.mouseP, hitBox) && !PointInRect(blocksCtx->input.mouseP, innerHitBox)) {
+    if (!isGhost && PointInRect(renderGroup->mouseP, hitBox) && !PointInRect(renderGroup->mouseP, innerHitBox)) {
         blocksCtx->nextHot.type = InteractionType_Select;
         blocksCtx->nextHot.block = block;
         blocksCtx->nextHot.blockP = entry->P;
         blocksCtx->nextHot.script = script;
         blocksCtx->nextHot.entry = entry;
-        blocksCtx->nextHot.mouseStartP = blocksCtx->input.mouseP;
-        blocksCtx->nextHot.mouseOffset = { blocksCtx->input.mouseP.x - script->P.x, blocksCtx->input.mouseP.y - script->P.y };
+        blocksCtx->nextHot.mouseStartP = renderGroup->mouseP;
+        blocksCtx->nextHot.mouseOffset = { renderGroup->mouseP.x - script->P.x, renderGroup->mouseP.y - script->P.y };
     }
 }
 
@@ -713,21 +709,20 @@ extern "C" void InitBlocks(void *mem, u32 memSize) {
     
 }
 
-void BeginRenderGroup(RenderGroup *group, mat4x4 transform) {
+v2 UnprojectMouse(v2 mouseP, RenderGroup *group) {
+    f32 projectedX = (((2.0 * mouseP.x) / blocksCtx->screenSize.w) - 1.0);
+    f32 projectedY = (((2.0 * mouseP.y) / blocksCtx->screenSize.h) - 1.0);
+    
+    mat4x4 unprojection = group->invTransform;
+    v4 unprojectedP = unprojection * v4{projectedX, projectedY, 0, 1};
+    return unprojectedP.xy;
+}
+
+void InitRenderGroup(RenderGroup *group, mat4x4 transform, mat4x4 invTransform) {
     group->entryCount = 0;
     group->transform = transform;
-}
-
-inline
-mat4x4 BlocksCameraTransform(v2 screenSize, f32 zoomLevel) {
-    f32 halfWidth = (screenSize.w / 2.0) / blocksCtx->zoomLevel;
-    f32 halfHeight = (screenSize.h / 2.0) / blocksCtx->zoomLevel;
-    return OrthographicProjection(-halfWidth, halfWidth, -halfHeight, halfHeight, 1.0, -1.0);
-}
-
-inline
-mat4x4 OverlayCameraTransform(v2 screenSize) {
-    return OrthographicProjection(0, screenSize.w, 0, screenSize.h, 1.0, -1.0);
+    group->invTransform = invTransform;
+    group->mouseP = UnprojectMouse(blocksCtx->input.mouseP, group);
 }
 
 extern "C" BlocksRenderInfo RunBlocks(void *mem, BlocksInput *input) {
@@ -735,13 +730,12 @@ extern "C" BlocksRenderInfo RunBlocks(void *mem, BlocksInput *input) {
     blocksCtx = (BlocksContext *)mem;
     BeginBlocks(*input);
     
-    mat4x4 oneToOneTransform = OverlayCameraTransform(blocksCtx->screenSize);
-    mat4x4 blocksTransform = BlocksCameraTransform(blocksCtx->screenSize, blocksCtx->zoomLevel);
+    TransformPair blocksTransformPair = BlocksCameraTransformPair(blocksCtx->screenSize, blocksCtx->zoomLevel, blocksCtx->cameraOrigin);
     
-    BeginRenderGroup(&blocksCtx->debugRenderGroup, blocksTransform);
+    InitRenderGroup(&blocksCtx->debugRenderGroup, blocksTransformPair.transform, blocksTransformPair.invTransform);
     
     RenderGroup *blocksRenderGroup = &blocksCtx->renderGroups[0];
-    BeginRenderGroup(blocksRenderGroup, blocksTransform);
+    InitRenderGroup(blocksRenderGroup, blocksTransformPair.transform, blocksTransformPair.invTransform);
     
     if (Dragging()) {
         // Update dragging info
@@ -764,10 +758,12 @@ extern "C" BlocksRenderInfo RunBlocks(void *mem, BlocksInput *input) {
         }
         RenderScript(blocksRenderGroup, script);
     }
+    
     // Floating UI
     RenderGroup *overlayRenderGroup = &blocksCtx->renderGroups[1];
-    BeginRenderGroup(overlayRenderGroup, oneToOneTransform);
+    TransformPair oneToOneTransformPair = OneToOneCameraTransformPair(blocksCtx->screenSize);
+    InitRenderGroup(overlayRenderGroup, oneToOneTransformPair.transform, oneToOneTransformPair.invTransform);
     RenderNewBlockButton(overlayRenderGroup);
     
-    return EndBlocks();
+    return EndBlocks(blocksRenderGroup);
 }

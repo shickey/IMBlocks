@@ -7,313 +7,47 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "916449D2-B680-42CF-8876-128DB54B9D30"
-            shouldBeEnabled = "No"
+            uuid = "C96D4217-84D7-4501-8CFE-CCACE99A69F6"
+            shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Blocks/Blocks.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "154"
-            endingLineNumber = "154"
-            landmarkName = "unknown"
-            landmarkType = "0">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "0849C7CE-C10B-41A9-8286-AD6FA64ABF6C"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "Blocks/Blocks.cpp"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "125"
-            endingLineNumber = "125"
-            landmarkName = "unknown"
-            landmarkType = "0">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "5ECF2651-D6CB-403E-BAD5-0196D35C112E"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "Blocks/Blocks.cpp"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "138"
-            endingLineNumber = "138"
-            landmarkName = "CreateEmptyLayoutAt(at)"
-            landmarkType = "9">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "6BB26BE7-9F5B-4797-9F78-A66C5ABBC35E"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "Blocks/Blocks.cpp"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "360"
-            endingLineNumber = "360"
-            landmarkName = "RenderNewBlockButton(renderGroup)"
-            landmarkType = "9">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "C60F79DC-44D2-45B9-8B7C-36AECA2864B6"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "Blocks/Blocks.cpp"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "312"
-            endingLineNumber = "312"
-            landmarkName = "EndBlocks()"
-            landmarkType = "9">
+            startingLineNumber = "771"
+            endingLineNumber = "771">
             <Locations>
                <Location
-                  uuid = "C60F79DC-44D2-45B9-8B7C-36AECA2864B6 - 8c1b0246a284ef0"
-                  shouldBeEnabled = "No"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "UpdateViewMetrics()"
-                  moduleName = "libBlocks.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/seanhickey/Projects/IMBlocks/Blocks/Blocks.cpp"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "312"
-                  endingLineNumber = "312"
-                  offsetFromSymbolStart = "51">
-               </Location>
-               <Location
-                  uuid = "C60F79DC-44D2-45B9-8B7C-36AECA2864B6 - 8c1b0246a284ef0"
+                  uuid = "C96D4217-84D7-4501-8CFE-CCACE99A69F6 - 53c3b460d6b4f355"
                   shouldBeEnabled = "Yes"
                   ignoreCount = "0"
                   continueAfterRunningActions = "No"
-                  symbolName = "UpdateViewMetrics()"
+                  symbolName = "RunBlocks"
                   moduleName = "libBlocks.dylib"
                   usesParentBreakpointCondition = "Yes"
                   urlString = "file:///Users/seanhickey/Projects/IMBlocks/Blocks/Blocks.cpp"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "312"
-                  endingLineNumber = "312"
-                  offsetFromSymbolStart = "43">
+                  startingLineNumber = "771"
+                  endingLineNumber = "771"
+                  offsetFromSymbolStart = "1496">
+               </Location>
+               <Location
+                  uuid = "C96D4217-84D7-4501-8CFE-CCACE99A69F6 - 53c3b460d6b4f355"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "RunBlocks"
+                  moduleName = "libBlocks.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/seanhickey/Projects/IMBlocks/Blocks/Blocks.cpp"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "771"
+                  endingLineNumber = "771"
+                  offsetFromSymbolStart = "1773">
                </Location>
             </Locations>
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "5EEE29C0-E21B-431F-98B5-1B9389634642"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "Blocks/Blocks.cpp"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "353"
-            endingLineNumber = "353"
-            landmarkName = "unknown"
-            landmarkType = "0">
-            <Locations>
-               <Location
-                  uuid = "5EEE29C0-E21B-431F-98B5-1B9389634642 - 830787b1055b2291"
-                  shouldBeEnabled = "No"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "RenderNewBlockButton()"
-                  moduleName = "libBlocks.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/seanhickey/Projects/IMBlocks/Blocks/Blocks.cpp"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "353"
-                  endingLineNumber = "353"
-                  offsetFromSymbolStart = "106">
-               </Location>
-               <Location
-                  uuid = "5EEE29C0-E21B-431F-98B5-1B9389634642 - 830787b1055b2291"
-                  shouldBeEnabled = "No"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "RenderNewBlockButton()"
-                  moduleName = "libBlocks.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/seanhickey/Projects/IMBlocks/Blocks/Blocks.cpp"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "353"
-                  endingLineNumber = "353"
-                  offsetFromSymbolStart = "134">
-               </Location>
-               <Location
-                  uuid = "5EEE29C0-E21B-431F-98B5-1B9389634642 - 830787b1055b2291"
-                  shouldBeEnabled = "No"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "RenderNewBlockButton()"
-                  moduleName = "libBlocks.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/seanhickey/Projects/IMBlocks/Blocks/Blocks.cpp"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "353"
-                  endingLineNumber = "353"
-                  offsetFromSymbolStart = "109">
-               </Location>
-               <Location
-                  uuid = "5EEE29C0-E21B-431F-98B5-1B9389634642 - 830787b1055b2291"
-                  shouldBeEnabled = "No"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "RenderNewBlockButton()"
-                  moduleName = "libBlocks.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/seanhickey/Projects/IMBlocks/Blocks/Blocks.cpp"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "353"
-                  endingLineNumber = "353"
-                  offsetFromSymbolStart = "139">
-               </Location>
-               <Location
-                  uuid = "5EEE29C0-E21B-431F-98B5-1B9389634642 - 830787b1055b2291"
-                  shouldBeEnabled = "No"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "RenderNewBlockButton()"
-                  moduleName = "libBlocks.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/seanhickey/Projects/IMBlocks/Blocks/Blocks.cpp"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "353"
-                  endingLineNumber = "353"
-                  offsetFromSymbolStart = "142">
-               </Location>
-               <Location
-                  uuid = "5EEE29C0-E21B-431F-98B5-1B9389634642 - 830787b1055b2291"
-                  shouldBeEnabled = "No"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "RenderNewBlockButton()"
-                  moduleName = "libBlocks.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/seanhickey/Projects/IMBlocks/Blocks/Blocks.cpp"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "353"
-                  endingLineNumber = "353"
-                  offsetFromSymbolStart = "167">
-               </Location>
-               <Location
-                  uuid = "5EEE29C0-E21B-431F-98B5-1B9389634642 - 830787b1055b2291"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "RenderNewBlockButton()"
-                  moduleName = "libBlocks.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/seanhickey/Projects/IMBlocks/Blocks/Blocks.cpp"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "353"
-                  endingLineNumber = "353"
-                  offsetFromSymbolStart = "179">
-               </Location>
-               <Location
-                  uuid = "5EEE29C0-E21B-431F-98B5-1B9389634642 - 830787b1055b2291"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "RenderNewBlockButton()"
-                  moduleName = "libBlocks.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/seanhickey/Projects/IMBlocks/Blocks/Blocks.cpp"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "353"
-                  endingLineNumber = "353"
-                  offsetFromSymbolStart = "160">
-               </Location>
-               <Location
-                  uuid = "5EEE29C0-E21B-431F-98B5-1B9389634642 - 830787b1055b2291"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "RenderNewBlockButton()"
-                  moduleName = "libBlocks.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/seanhickey/Projects/IMBlocks/Blocks/Blocks.cpp"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "353"
-                  endingLineNumber = "353"
-                  offsetFromSymbolStart = "171">
-               </Location>
-               <Location
-                  uuid = "5EEE29C0-E21B-431F-98B5-1B9389634642 - 830787b1055b2291"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "RenderNewBlockButton()"
-                  moduleName = "libBlocks.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/seanhickey/Projects/IMBlocks/Blocks/Blocks.cpp"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "353"
-                  endingLineNumber = "353"
-                  offsetFromSymbolStart = "149">
-               </Location>
-            </Locations>
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "59A6B396-CDA8-449A-A842-3474FFA8BB51"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "Blocks/Blocks.cpp"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "306"
-            endingLineNumber = "306"
-            landmarkName = "EndBlocks()"
-            landmarkType = "9">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "BB79094C-A4A7-41E3-8110-6D80150FE3AE"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "Blocks/Blocks.cpp"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "725"
-            endingLineNumber = "725"
-            landmarkName = "RunBlocks(mem, input)"
-            landmarkType = "9">
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>

@@ -37,12 +37,12 @@ f32 Clamp(f32 val, f32 min, f32 max) {
 
 inline
 v4 HexToColor(u32 hex) {
-  return v4{
-    (f32)((hex >> 16) & 0xFF) / 255.0f,
-    (f32)((hex >> 8 ) & 0xFF) / 255.0f,
-    (f32)((hex >> 0 ) & 0xFF) / 255.0f,
-    1.0
-  };
+    return v4{
+        (f32)((hex >> 16) & 0xFF) / 255.0f,
+        (f32)((hex >> 8 ) & 0xFF) / 255.0f,
+        (f32)((hex >> 0 ) & 0xFF) / 255.0f,
+        1.0
+    };
 }
 
 inline
@@ -61,8 +61,43 @@ mat4x4 OrthographicUnprojection(f32 left, f32 right, f32 bottom, f32 top, f32 ne
         v4{ (right - left) / 2.0f,                     0,                    0,    0 },
         v4{                     0, (top - bottom) / 2.0f,                    0,    0 },
         v4{                     0,                     0, (far - near) / -2.0f,    0 },
-        v4{ (right + left) / 2.0f, (top + bottom) / 2.0f,  (far + near) / 2.0f, 1.0f }
+        v4{ (right + left) / 2.0f, (top + bottom) / 2.0f, -(far + near) / 2.0f, 1.0f }
     };
+}
+
+// @NOTE: This is more useful since we usually want to do [M] * [row vector] to unproject
+inline
+mat4x4 OrthographicUnprojectionTranspose(f32 left, f32 right, f32 bottom, f32 top, f32 near, f32 far) {
+    return mat4x4{
+        v4{ (right - left) / 2.0f,                     0,                    0,    (right + left) / 2.0f },
+        v4{                     0, (top - bottom) / 2.0f,                    0,    (top + bottom) / 2.0f },
+        v4{                     0,                     0, (far - near) / -2.0f,     -(far + near) / 2.0f },
+        v4{                     0,                     0,                    0,                     1.0f }
+    };
+}
+
+inline
+TransformPair BlocksCameraTransformPair(v2 screenSize, f32 zoomLevel, v2 cameraOrigin) {
+    f32 halfWidth = (screenSize.w / 2.0) / zoomLevel;
+    f32 halfHeight = (screenSize.h / 2.0) / zoomLevel;
+    TransformPair result;
+    result.transform = OrthographicProjection(-halfWidth + cameraOrigin.x,
+                                               halfWidth + cameraOrigin.x,
+                                              -halfHeight + cameraOrigin.y,
+                                               halfHeight + cameraOrigin.y, 1.0, -1.0);
+    result.invTransform = OrthographicUnprojectionTranspose(-halfWidth + cameraOrigin.x,
+                                                             halfWidth + cameraOrigin.x,
+                                                            -halfHeight + cameraOrigin.y,
+                                                             halfHeight + cameraOrigin.y, 1.0, -1.0);
+    return result;
+}
+
+inline
+TransformPair OneToOneCameraTransformPair(v2 screenSize) {
+    TransformPair result;
+    result.transform = OrthographicProjection(0, screenSize.w, 0, screenSize.h, 1.0, -1.0);
+    result.invTransform = OrthographicUnprojectionTranspose(0, screenSize.w, 0, screenSize.h, 1.0, -1.0);
+    return result;
 }
 
 inline

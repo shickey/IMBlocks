@@ -126,11 +126,17 @@ struct DragInfo {
     Script *insertionBaseScript;
 };
 
+struct TransformPair {
+    mat4x4 transform;
+    mat4x4 invTransform;
+};
+
 struct RenderGroup {
     RenderEntry entries[4096];
     u32 entryCount;
     mat4x4 transform;
-    v2 viewBounds;
+    mat4x4 invTransform;
+    v2 mouseP; // Unprojected into the coordinate system of the render group
 };
 
 struct BlocksContext {
@@ -153,10 +159,11 @@ struct BlocksContext {
     
     v2 screenSize;
     f32 zoomLevel;
+    v2 cameraOrigin;
 };
 
 void BeginBlocks(BlocksInput input);
-BlocksRenderInfo EndBlocks(void);
+BlocksRenderInfo EndBlocks(RenderGroup *renderGroup);
 void DrawSubScript(RenderGroup *renderGroup, Block *block, Script *script, Layout *layout);
 b32 DrawBlock(RenderGroup *renderGroup, Block *, Script *, Layout *);
 void DrawCommandBlock(RenderGroup *renderGroup, Block *, Script *, Layout *, u32 flags = 0);
