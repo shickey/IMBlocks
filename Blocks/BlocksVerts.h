@@ -8,10 +8,10 @@
 *
 **********************************************************/
 
-#define PushVerts(ctx, v) PushData_(&ctx->verts, (v), sizeof((v)))
+#define PushVerts(arena, v) PushData_(arena, (v), sizeof((v)))
 #define VERTEX_SIZE (8 * sizeof(f32))
 
-void PushRect(BlocksContext *ctx, Rectangle rect, v4 color) {
+void PushRect(Arena *arena, Rectangle rect, v4 color) {
     
     // @TODO: @NOTE: The UV coords here are just a silly hack. They point at a texel firmly inside one of the block shapes (to force shader to definitely draw the fragments)
     f32 verts[] = {
@@ -26,10 +26,10 @@ void PushRect(BlocksContext *ctx, Rectangle rect, v4 color) {
         rect.x + rect.w, rect.y + rect.h, 100.0f / 512.0f, 100.0f / 512.0f, color.r, color.g, color.b, color.a,
     };
     
-    PushVerts(ctx, verts);
+    PushVerts(arena, verts);
 }
 
-void PushRectOutline(BlocksContext *ctx, Rectangle rect, v4 color) {
+void PushRectOutline(Arena *arena, Rectangle rect, v4 color) {
     #define rectWidth 0.5f
     #define rectHalfWidth (rectWidth / 2.0f)
     
@@ -72,13 +72,13 @@ void PushRectOutline(BlocksContext *ctx, Rectangle rect, v4 color) {
         rect.x + rect.w + rectHalfWidth, rect.y + rect.h - rectHalfWidth, 100.0f / 512.0f, 100.0f / 512.0f, color.r, color.g, color.b, color.a,
     };
     
-    PushVerts(ctx, verts);
+    PushVerts(arena, verts);
     
     #undef rectHalfWidth
     #undef rectWidth
 }
 
-void PushCommandBlockVerts(BlocksContext *ctx, v2 position, v4 color) {
+void PushCommandBlockVerts(Arena *arena, v2 position, v4 color) {
     #define unitSize 8.0f
     #define texSize  512.0f
     #define originX  32.0f
@@ -94,7 +94,7 @@ void PushCommandBlockVerts(BlocksContext *ctx, v2 position, v4 color) {
         19 + position.x, 17 + position.y, (((19 * unitSize) + originX) / (texSize)), ((originY - (17 * unitSize)) / (texSize)), color.r, color.g, color.b, color.a,
     };
     
-    PushVerts(ctx, verts);
+    PushVerts(arena, verts);
     
     #undef unitSize
     #undef texSize
@@ -102,7 +102,7 @@ void PushCommandBlockVerts(BlocksContext *ctx, v2 position, v4 color) {
     #undef originY
 }
 
-void PushLoopBlockVerts(BlocksContext *ctx, v2 position, v4 color, u32 horizontalStretch = 0, u32 verticalStretch = 0) {
+void PushLoopBlockVerts(Arena *arena, v2 position, v4 color, u32 horizontalStretch = 0, u32 verticalStretch = 0) {
     #define unitSize 12.0f
     #define texSize  512.0f
     #define originX  16.0f
@@ -173,7 +173,7 @@ void PushLoopBlockVerts(BlocksContext *ctx, v2 position, v4 color, u32 horizonta
         41 + position.x + horizontalStretch, 13 + position.y,                   (((41 * unitSize) + originX) / (texSize)), ((originY - (13 * unitSize)) / (texSize)), color.r, color.g, color.b, color.a,
     };
     
-    PushVerts(ctx, verts);
+    PushVerts(arena, verts);
     
     #undef unitSize
     #undef texSize

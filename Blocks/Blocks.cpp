@@ -17,18 +17,17 @@
 
 global_var BlocksContext *blocksCtx = 0;
 
-RenderEntry *PushRenderEntry(BlocksContext *ctx) {
-    Assert(ctx->nextRenderingIdx < ArrayCount(ctx->renderEntries));
-    RenderEntry *entry = &ctx->renderEntries[ctx->nextRenderingIdx];
-    entry->idx = ctx->nextRenderingIdx++;
+RenderEntry *PushRenderEntry(RenderGroup *group) {
+    Assert(group->entryCount < ArrayCount(group->entries));
+    RenderEntry *entry = &group->entries[group->entryCount++];
     return entry;
 }
 
-RenderEntry *PushOverlayRenderEntry(BlocksContext *ctx) {
-    Assert(ctx->nextOverlayRenderingIdx < ArrayCount(ctx->overlayRenderEntries));
-    RenderEntry *entry = &ctx->overlayRenderEntries[ctx->nextOverlayRenderingIdx];
-    entry->idx = ctx->nextOverlayRenderingIdx++;
-    return entry;
+void DEBUGPushRectOutline(Rectangle rect, v4 color) {
+    RenderEntry *entry = PushRenderEntry(&blocksCtx->debugRenderGroup);
+    entry->type = RenderEntryType_RectOutline;
+    entry->rect = rect;
+    entry->color = color;
 }
 
 Script *CreateScript(v2 position) {
@@ -56,7 +55,7 @@ void DeleteScript(Script *script) {
 }
 
 Block *CreateBlock(BlockType type) {
-    Block *block = PushStruct(&blocksCtx->blocks, Block);
+    Block *block = PushStruct(&blocksCtx->permanent, Block);
     *block = { 0 };
     block->type = type;
     return block;
@@ -146,14 +145,15 @@ Layout CreateEmptyLayoutAt(f32 x, f32 y) {
 void BeginBlocks(BlocksInput input) {
     blocksCtx->input = input;
     
-    // Clear memory
-    blocksCtx->verts.used = 0;
+    // Clear per-frame memory
+    blocksCtx->frame.used = 0;
     
     blocksCtx->hot.block = 0;
     blocksCtx->nextHot.block = 0;
     
-    blocksCtx->nextRenderingIdx = 0;
-    blocksCtx->nextOverlayRenderingIdx = 0;
+    // Update view metrics
+    blocksCtx->screenSize = input.screenSize;
+    blocksCtx->zoomLevel = 2.0f;
 }
 
 BlocksRenderInfo EndBlocks() {
@@ -283,81 +283,103 @@ BlocksRenderInfo EndBlocks() {
     
     // Change the color of the hot block
     if (blocksCtx->hot.block) {
-        blocksCtx->renderEntries[blocksCtx->hot.renderingIdx].color = v4{1, 1, 0, 1};
+        blocksCtx->hot.entry->color = v4{1, 1, 0, 1};
     }
     
-    // Assemble blocks vertices
-    for (u32 i = 0; i < blocksCtx->nextRenderingIdx; ++i) {
-        RenderEntry *entry = &blocksCtx->renderEntries[i];
-        switch(entry->type) {
-            case RenderEntryType_Command: {
-                PushCommandBlockVerts(blocksCtx, entry->P, entry->color);
-                break;
-            }
-            case RenderEntryType_Loop: {
-                PushLoopBlockVerts(blocksCtx, entry->P, entry->color, entry->hStretch, entry->vStretch);
-                break;
-            }
-        }
-    }
-    u32 blockVertsCount = blocksCtx->verts.used / VERTEX_SIZE;
-    
-    // Assemble overlay vertices
-    for (u32 i = 0; i < blocksCtx->nextOverlayRenderingIdx; ++i) {
-        RenderEntry *entry = &blocksCtx->overlayRenderEntries[i];
-        switch(entry->type) {
-            case RenderEntryType_Rect: {
-                PushRect(blocksCtx, entry->rect, entry->color);
-                break;
-            }
-        }
-    }
-    u32 overlayVertsCount = (blocksCtx->verts.used / VERTEX_SIZE) - blockVertsCount;
     
     if (Dragging()) {
-        PushRectOutline(blocksCtx, blocksCtx->dragInfo.inlet, v4{0, 1, 0, 1});
-        PushRectOutline(blocksCtx, blocksCtx->dragInfo.outlet, v4{0, 1, 0, 1});
+        PushRectOutline(&blocksCtx->frame, blocksCtx->dragInfo.inlet, v4{0, 1, 0, 1});
+        PushRectOutline(&blocksCtx->frame, blocksCtx->dragInfo.outlet, v4{0, 1, 0, 1});
         if (blocksCtx->interacting.block->type == BlockType_Loop) {
-            PushRectOutline(blocksCtx, blocksCtx->dragInfo.innerOutlet, v4{0, 1, 0, 1});
+            PushRectOutline(&blocksCtx->frame, blocksCtx->dragInfo.innerOutlet, v4{0, 1, 0, 1});
         }
     }
     
-    BlocksRenderInfo Result;
-    Result.verts = blocksCtx->verts.data;
-    Result.vertsSize = blocksCtx->verts.used;
-    Result.blockVertsCount = blockVertsCount;
-    Result.overlayVertsCount = overlayVertsCount;
-    Result.projection = blocksCtx->projection;
-    Result.unprojection = blocksCtx->unprojection;
-    Result.overlayProjection = OrthographicProjection2(0, blocksCtx->screenSize.w, 0, blocksCtx->screenSize.h, 1.0, -1.0);
+    // Assmble vertex buffer
+    BlocksRenderInfo Result = {};
+    Result.vertexData = ArenaAt(blocksCtx->frame);
+    
+    for (u32 i = 0; i < 2; ++i) {
+        RenderGroup *group = &blocksCtx->renderGroups[i];
+        u8 *start = ArenaAt(blocksCtx->frame);
+        
+        Assert(Result.drawCallCount < ArrayCount(Result.drawCalls));
+        BlocksDrawCall *drawCall = &Result.drawCalls[Result.drawCallCount++];
+        drawCall->transform = group->transform;
+        drawCall->vertexOffset = (u32)(start - Result.vertexData) / VERTEX_SIZE;
+        for (u32 entryIdx = 0; entryIdx < group->entryCount; ++entryIdx) {
+            RenderEntry *entry = &group->entries[entryIdx];
+            switch(entry->type) {
+                case RenderEntryType_Command: {
+                    PushCommandBlockVerts(&blocksCtx->frame, entry->P, entry->color);
+                    break;
+                }
+                case RenderEntryType_Loop: {
+                    PushLoopBlockVerts(&blocksCtx->frame, entry->P, entry->color, entry->hStretch, entry->vStretch);
+                    break;
+                }
+                case RenderEntryType_Rect: {
+                    PushRect(&blocksCtx->frame, entry->rect, entry->color);
+                    break;
+                }
+                case RenderEntryType_RectOutline: {
+                    PushRectOutline(&blocksCtx->frame, entry->rect, entry->color);
+                    break;
+                }
+            }
+        }
+        drawCall->vertexCount = (u32)(ArenaAt(blocksCtx->frame) - start) / VERTEX_SIZE;
+    }
+    
+    // Assemble debug data data
+    {
+        RenderGroup *group = &blocksCtx->debugRenderGroup;
+        
+        u8 *start = ArenaAt(blocksCtx->frame);
+        
+        Assert(Result.drawCallCount < ArrayCount(Result.drawCalls));
+        BlocksDrawCall *drawCall = &Result.drawCalls[Result.drawCallCount++];
+        drawCall->transform = group->transform;
+        drawCall->vertexOffset = (u32)(start - Result.vertexData) / VERTEX_SIZE;
+        for (u32 entryIdx = 0; entryIdx < group->entryCount; ++entryIdx) {
+            RenderEntry *entry = &group->entries[entryIdx];
+            switch(entry->type) {
+                case RenderEntryType_Command: {
+                    PushCommandBlockVerts(&blocksCtx->frame, entry->P, entry->color);
+                    break;
+                }
+                case RenderEntryType_Loop: {
+                    PushLoopBlockVerts(&blocksCtx->frame, entry->P, entry->color, entry->hStretch, entry->vStretch);
+                    break;
+                }
+                case RenderEntryType_Rect: {
+                    PushRect(&blocksCtx->frame, entry->rect, entry->color);
+                    break;
+                }
+                case RenderEntryType_RectOutline: {
+                    PushRectOutline(&blocksCtx->frame, entry->rect, entry->color);
+                    break;
+                }
+            }
+        }
+        drawCall->vertexCount = (u32)(ArenaAt(blocksCtx->frame) - start) / VERTEX_SIZE;
+    }
+    
+    Result.vertexDataSize = (u32)(ArenaAt(blocksCtx->frame) - Result.vertexData);
     return Result;
 }
 
-void UpdateViewMetrics() {
-    v2 screenSize = blocksCtx->input.screenSize;
-    blocksCtx->screenSize = screenSize;
-    blocksCtx->zoomLevel = 2.0f;
+// v2 UnprojectPoint(v2 point) {
+//     v2 viewBounds = blocksCtx->viewBounds;
+//     f32 projectedX = (((2.0 * point.x) / (viewBounds.w * blocksCtx->zoomLevel)) - 1.0);
+//     f32 projectedY = (((2.0 * point.y) / (viewBounds.h * blocksCtx->zoomLevel)) - 1.0);
     
-    f32 halfWidth = (screenSize.w / 2.0) / blocksCtx->zoomLevel;
-    f32 halfHeight = (screenSize.h / 2.0) / blocksCtx->zoomLevel;
-    
-    blocksCtx->viewBounds = {halfWidth * 2.0f, halfHeight * 2.0f};
-    
-    blocksCtx->projection = OrthographicProjection(-halfWidth, halfWidth, -halfHeight, halfHeight, 1.0, -1.0);
-    blocksCtx->unprojection = OrthographicUnprojection(-halfWidth, halfWidth, -halfHeight, halfHeight, 1.0, -1.0);
-}
+//     mat4x4 unprojection = blocksCtx->unprojection;
+//     v4 newOrigin = unprojection * v4{projectedX, projectedY, 0, 1};
+//     return newOrigin.xy;
+// }
 
-v2 UnprojectPoint(v2 point) {
-    v2 viewBounds = blocksCtx->viewBounds;
-    f32 projectedX = (((2.0 * point.x) / (viewBounds.w * blocksCtx->zoomLevel)) - 1.0);
-    f32 projectedY = (((2.0 * point.y) / (viewBounds.h * blocksCtx->zoomLevel)) - 1.0);
-    
-    mat4x4 unprojection = blocksCtx->unprojection;
-    v4 newOrigin = unprojection * v4{projectedX, projectedY, 0, 1};
-    return newOrigin.xy;
-}
-
-void RenderNewBlockButton() {
+void RenderNewBlockButton(RenderGroup *renderGroup) {
     f32 buttonSizeInPixels = 50.0f;
     f32 edgeOffsetInPixels = 20.0f;
     v2 screenSize = blocksCtx->screenSize;
@@ -366,34 +388,27 @@ void RenderNewBlockButton() {
                                  buttonSizeInPixels,
                                  buttonSizeInPixels};
     
-    RenderEntry *entry = PushOverlayRenderEntry(blocksCtx);
+    RenderEntry *entry = PushRenderEntry(renderGroup);
     entry->type = RenderEntryType_Rect;
     entry->rect = blockButtonRect;
     entry->color = v4{0, 1, 1, 0.5};
 }
 
-// void RenderPalette() {
-//     Rectangle paletteRect = Rectangle{0, 0, 100, 200};
-//     v4 color = HexToColor(0x1E2A3F);
-//     color.a = 0.5;
-//     PushRect(blocksCtx, paletteRect, color);
-// }
-
-Layout RenderScript(Script *script) {
+Layout RenderScript(RenderGroup *renderGroup, Script *script) {
     Assert(script->topBlock);
     
     Layout layout = CreateEmptyLayoutAt(script->P);
-    DrawSubScript(script->topBlock, script, &layout);
+    DrawSubScript(renderGroup, script->topBlock, script, &layout);
     return layout;
 }
 
-void DrawSubScript(Block *block, Script *script, Layout *layout) {
+void DrawSubScript(RenderGroup *renderGroup, Block *block, Script *script, Layout *layout) {
     Assert(block);
     // Draw a single linear group of blocks, only recursing on branching blocks
     Rectangle inletBounds = {layout->at.x - 4, layout->at.y, 8, 16};
     Block *nextBlock = block;
     while (nextBlock) {
-        if(DrawBlock(nextBlock, script, layout)) {
+        if(DrawBlock(renderGroup, nextBlock, script, layout)) {
             nextBlock = nextBlock->next;
         }
         else {
@@ -406,38 +421,38 @@ void DrawSubScript(Block *block, Script *script, Layout *layout) {
         if (dragInfo.script != script && dragInfo.firstBlock->type == BlockType_Loop && !dragInfo.script->topBlock->inner) {
             if (RectsIntersect(inletBounds, dragInfo.innerOutlet)) {
                 Layout loopLayout = CreateEmptyLayoutAt(layout->bounds.origin.x - 6, layout->bounds.origin.y);
-                DrawGhostLoopBlock(&loopLayout, layout);
+                DrawGhostLoopBlock(renderGroup, &loopLayout, layout);
                 blocksCtx->dragInfo.readyToInsert = true;
                 blocksCtx->dragInfo.insertionType = InsertionType_Around;
                 blocksCtx->dragInfo.insertionBaseBlock = block;
                 blocksCtx->dragInfo.insertionBaseScript = script;
-                PushRectOutline(blocksCtx, loopLayout.bounds, {0, 1, 0});
+                DEBUGPushRectOutline(loopLayout.bounds, {0, 1, 0, 1});
             }
         }
     }
     
-    PushRectOutline(blocksCtx, layout->bounds, {0, 1, 0});
+    DEBUGPushRectOutline(layout->bounds, {0, 1, 0, 1});
 }
 
-b32 DrawBlock(Block *block, Script *script, Layout *layout) {
+b32 DrawBlock(RenderGroup *renderGroup, Block *block, Script *script, Layout *layout) {
     DragInfo dragInfo = blocksCtx->dragInfo;
     
     // Draw ghost block before this block, if necessary
     if (Dragging() && dragInfo.script != script && IsTopBlockOfScript(block, script) && !blocksCtx->dragInfo.readyToInsert) {
         Rectangle inletBounds = {script->P.x - 4, script->P.y, 8, 16};
-        PushRectOutline(blocksCtx, inletBounds, v4{1, 0, 0, 1});
+        DEBUGPushRectOutline(inletBounds, v4{1, 0, 0, 1});
         if (RectsIntersect(inletBounds, dragInfo.outlet)) {
             switch (dragInfo.lastBlock->type) {
                 case BlockType_Command: {
                     layout->at.x -= 16;
                     layout->bounds.x -= 16;
-                    DrawGhostCommandBlock(layout);
+                    DrawGhostCommandBlock(renderGroup, layout);
                     break;
                 }
                 case BlockType_Loop: {
                     layout->at.x -= 38;
                     layout->bounds.x -= 38;
-                    DrawGhostLoopBlock(layout);
+                    DrawGhostLoopBlock(renderGroup, layout);
                     break;
                 }
             }
@@ -450,7 +465,7 @@ b32 DrawBlock(Block *block, Script *script, Layout *layout) {
     
     switch(block->type) {
         case BlockType_Command: {
-            DrawCommandBlock(block, script, layout);
+            DrawCommandBlock(renderGroup, block, script, layout);
             break;
         }
         case BlockType_Loop: {
@@ -460,20 +475,20 @@ b32 DrawBlock(Block *block, Script *script, Layout *layout) {
             // Draw ghost block inside the loop, if necessary
             if (Dragging() && dragInfo.script != script && !blocksCtx->dragInfo.readyToInsert) {
                 Rectangle innerOutletBounds = {layout->at.x + 3, layout->at.y, 6, 16};
-                PushRectOutline(blocksCtx, innerOutletBounds, v4{1, 0, 0, 1});
+                DEBUGPushRectOutline(innerOutletBounds, v4{1, 0, 0, 1});
                 if (RectsIntersect(innerOutletBounds, dragInfo.inlet)) {
                     switch (dragInfo.firstBlock->type) {
                         case BlockType_Command: {
-                            DrawGhostCommandBlock(&innerLayout);
+                            DrawGhostCommandBlock(renderGroup, &innerLayout);
                             break;
                         }
                         case BlockType_Loop: {
                             // Override block drawing so that loop contains the rest of the substack
                             Layout innerInnerLayout = CreateEmptyLayoutAt(innerLayout.at.x + 6, innerLayout.at.y);
                             if (block->inner) {
-                                DrawSubScript(block->inner, script, &innerInnerLayout);
+                                DrawSubScript(renderGroup, block->inner, script, &innerInnerLayout);
                             }
-                            DrawGhostLoopBlock(&innerLayout, &innerInnerLayout);
+                            DrawGhostLoopBlock(renderGroup, &innerLayout, &innerInnerLayout);
                             renderedInner = true;
                         }
                     }
@@ -487,9 +502,9 @@ b32 DrawBlock(Block *block, Script *script, Layout *layout) {
             // If we didn't already draw the entire inner script (i.e., with a ghost block)
             // then do it now, the normal way
             if (block->inner && !renderedInner) {
-                DrawSubScript(block->inner, script, &innerLayout);
+                DrawSubScript(renderGroup, block->inner, script, &innerLayout);
             }
-            DrawLoopBlock(block, script, layout, &innerLayout);
+            DrawLoopBlock(renderGroup, block, script, layout, &innerLayout);
             
             break;
         }
@@ -499,11 +514,11 @@ b32 DrawBlock(Block *block, Script *script, Layout *layout) {
     // Draw ghost block after this block, if necessary
     if (Dragging() && dragInfo.script != script && !blocksCtx->dragInfo.readyToInsert) {
         Rectangle outletBounds = {layout->at.x - 4, layout->at.y, 8, 16};
-        PushRectOutline(blocksCtx, outletBounds, v4{1, 0, 0, 1});
+        DEBUGPushRectOutline(outletBounds, v4{1, 0, 0, 1});
         if (RectsIntersect(outletBounds, dragInfo.inlet)) {
             switch (dragInfo.firstBlock->type) {
                 case BlockType_Command: {
-                    DrawGhostCommandBlock(layout);
+                    DrawGhostCommandBlock(renderGroup, layout);
                     blocksCtx->dragInfo.readyToInsert = true;
                     blocksCtx->dragInfo.insertionType = InsertionType_After;
                     blocksCtx->dragInfo.insertionBaseBlock = block;
@@ -513,7 +528,7 @@ b32 DrawBlock(Block *block, Script *script, Layout *layout) {
                 case BlockType_Loop: {
                     if (dragInfo.script->topBlock->inner) {
                         // If the loop already contains an inner stack, just put it in line
-                        DrawGhostLoopBlock(layout);
+                        DrawGhostLoopBlock(renderGroup, layout);
                         blocksCtx->dragInfo.readyToInsert = true;
                         blocksCtx->dragInfo.insertionType = InsertionType_After;
                         blocksCtx->dragInfo.insertionBaseBlock = block;
@@ -523,9 +538,9 @@ b32 DrawBlock(Block *block, Script *script, Layout *layout) {
                         // Otherwise, override block drawing so that loop contains the rest of the substack
                         Layout innerLayout = CreateEmptyLayoutAt(layout->at.x + 6, layout->at.y);
                         if (block->next) {
-                            DrawSubScript(block->next, script, &innerLayout);
+                            DrawSubScript(renderGroup, block->next, script, &innerLayout);
                         }
-                        DrawGhostLoopBlock(layout, &innerLayout);
+                        DrawGhostLoopBlock(renderGroup, layout, &innerLayout);
                         blocksCtx->dragInfo.readyToInsert = true;
                         blocksCtx->dragInfo.insertionType = InsertionType_After;
                         blocksCtx->dragInfo.insertionBaseBlock = block;
@@ -543,12 +558,12 @@ b32 DrawBlock(Block *block, Script *script, Layout *layout) {
     return true;
 }
 
-void DrawCommandBlock(Block *block, Script *script, Layout *layout, u32 flags) {
+void DrawCommandBlock(RenderGroup *renderGroup, Block *block, Script *script, Layout *layout, u32 flags) {
     b32 isGhost = flags & DrawBlockFlags_Ghost;
     
     Rectangle hitBox = { layout->at.x, layout->at.y, 16, 16};
     
-    RenderEntry *entry = PushRenderEntry(blocksCtx);
+    RenderEntry *entry = PushRenderEntry(renderGroup);
     entry->type = RenderEntryType_Command;
     entry->block = block;
     entry->P = v2{layout->at.x, layout->at.y};
@@ -570,14 +585,14 @@ void DrawCommandBlock(Block *block, Script *script, Layout *layout, u32 flags) {
         blocksCtx->nextHot.block = block;
         blocksCtx->nextHot.blockP = entry->P;
         blocksCtx->nextHot.script = script;
-        blocksCtx->nextHot.renderingIdx = entry->idx;
+        blocksCtx->nextHot.entry = entry;
         blocksCtx->nextHot.mouseStartP = blocksCtx->input.mouseP;
         blocksCtx->nextHot.mouseOffset = { blocksCtx->input.mouseP.x - script->P.x, blocksCtx->input.mouseP.y - script->P.y };
     }
     
 }
 
-void DrawLoopBlock(Block *block, Script *script, Layout *layout, Layout *innerLayout, u32 flags) {
+void DrawLoopBlock(RenderGroup *renderGroup, Block *block, Script *script, Layout *layout, Layout *innerLayout, u32 flags) {
     b32 isGhost = flags & DrawBlockFlags_Ghost;
     
     u32 horizStretch = 0;
@@ -591,7 +606,7 @@ void DrawLoopBlock(Block *block, Script *script, Layout *layout, Layout *innerLa
     Rectangle hitBox = { layout->at.x, layout->at.y, 38 + (f32)horizStretch, 20 + (f32)vertStretch };
     Rectangle innerHitBox = { layout->at.x + 6, layout->at.y, (f32)horizStretch + 16, (f32)vertStretch + 16 };
     
-    RenderEntry *entry = PushRenderEntry(blocksCtx);
+    RenderEntry *entry = PushRenderEntry(renderGroup);
     entry->type = RenderEntryType_Loop;
     entry->block = block;
     entry->P = v2{layout->at.x, layout->at.y};
@@ -614,25 +629,25 @@ void DrawLoopBlock(Block *block, Script *script, Layout *layout, Layout *innerLa
         blocksCtx->nextHot.block = block;
         blocksCtx->nextHot.blockP = entry->P;
         blocksCtx->nextHot.script = script;
-        blocksCtx->nextHot.renderingIdx = entry->idx;
+        blocksCtx->nextHot.entry = entry;
         blocksCtx->nextHot.mouseStartP = blocksCtx->input.mouseP;
         blocksCtx->nextHot.mouseOffset = { blocksCtx->input.mouseP.x - script->P.x, blocksCtx->input.mouseP.y - script->P.y };
     }
 }
 
 inline
-void DrawGhostCommandBlock(Layout *layout) {
-    DrawCommandBlock(NULL, NULL, layout, DrawBlockFlags_Ghost);
+void DrawGhostCommandBlock(RenderGroup *renderGroup, Layout *layout) {
+    DrawCommandBlock(renderGroup, NULL, NULL, layout, DrawBlockFlags_Ghost);
 }
 
 inline
-void DrawGhostLoopBlock(Layout *layout, Layout *innerLayout) {
-    DrawLoopBlock(NULL, NULL, layout, innerLayout, DrawBlockFlags_Ghost);
+void DrawGhostLoopBlock(RenderGroup *renderGroup, Layout *layout, Layout *innerLayout) {
+    DrawLoopBlock(renderGroup, NULL, NULL, layout, innerLayout, DrawBlockFlags_Ghost);
 }
 
 
 extern "C" void InitBlocks(void *mem, u32 memSize) {
-    static const u32 VERTS_MEM_SIZE = 65535 * (7 * sizeof(f32));
+    static const u32 VERTS_MEM_SIZE = 65535 * (8 * sizeof(f32));
     
     Assert(memSize >= sizeof(BlocksContext) + VERTS_MEM_SIZE);
     
@@ -642,11 +657,10 @@ extern "C" void InitBlocks(void *mem, u32 memSize) {
     dummyArena.used = 0;
     
     BlocksContext *context = PushStruct(&dummyArena, BlocksContext);
-    context->verts = SubArena(&dummyArena, VERTS_MEM_SIZE);
+    u32 permanentArenaSize = dummyArena.size - dummyArena.used - VERTS_MEM_SIZE;
     
-    // All the rest of the data block
-    u32 blocksArenaSize = dummyArena.size - dummyArena.used;
-    context->blocks = SubArena(&dummyArena, blocksArenaSize);
+    context->permanent = SubArena(&dummyArena, permanentArenaSize);
+    context->frame = SubArena(&dummyArena, VERTS_MEM_SIZE);
     
     context->scriptCount = 0;
     
@@ -699,15 +713,40 @@ extern "C" void InitBlocks(void *mem, u32 memSize) {
     
 }
 
+void BeginRenderGroup(RenderGroup *group, mat4x4 transform) {
+    group->entryCount = 0;
+    group->transform = transform;
+}
+
+inline
+mat4x4 BlocksCameraTransform(v2 screenSize, f32 zoomLevel) {
+    f32 halfWidth = (screenSize.w / 2.0) / blocksCtx->zoomLevel;
+    f32 halfHeight = (screenSize.h / 2.0) / blocksCtx->zoomLevel;
+    return OrthographicProjection(-halfWidth, halfWidth, -halfHeight, halfHeight, 1.0, -1.0);
+}
+
+inline
+mat4x4 OverlayCameraTransform(v2 screenSize) {
+    return OrthographicProjection(0, screenSize.w, 0, screenSize.h, 1.0, -1.0);
+}
+
 extern "C" BlocksRenderInfo RunBlocks(void *mem, BlocksInput *input) {
     // Always reset the blocksCtx pointer in case we reloaded the dylib
     blocksCtx = (BlocksContext *)mem;
     BeginBlocks(*input);
-    UpdateViewMetrics();
+    
+    mat4x4 oneToOneTransform = OverlayCameraTransform(blocksCtx->screenSize);
+    mat4x4 blocksTransform = BlocksCameraTransform(blocksCtx->screenSize, blocksCtx->zoomLevel);
+    
+    BeginRenderGroup(&blocksCtx->debugRenderGroup, blocksTransform);
+    
+    RenderGroup *blocksRenderGroup = &blocksCtx->renderGroups[0];
+    BeginRenderGroup(blocksRenderGroup, blocksTransform);
+    
     if (Dragging()) {
         // Update dragging info
         Script *script = blocksCtx->dragInfo.script;
-        Layout dragLayout = RenderScript(script);
+        Layout dragLayout = RenderScript(blocksRenderGroup, script);
         blocksCtx->dragInfo.scriptLayout = dragLayout;
         blocksCtx->dragInfo.inlet = {script->P.x - 4, script->P.y, 8, 16};
         blocksCtx->dragInfo.outlet = {dragLayout.at.x - 4, dragLayout.at.y, 8, 16};
@@ -723,9 +762,12 @@ extern "C" BlocksRenderInfo RunBlocks(void *mem, BlocksInput *input) {
         if (Dragging() && blocksCtx->dragInfo.script == script) {
             continue;
         }
-        RenderScript(script);
+        RenderScript(blocksRenderGroup, script);
     }
     // Floating UI
-    RenderNewBlockButton();
+    RenderGroup *overlayRenderGroup = &blocksCtx->renderGroups[1];
+    BeginRenderGroup(overlayRenderGroup, oneToOneTransform);
+    RenderNewBlockButton(overlayRenderGroup);
+    
     return EndBlocks();
 }

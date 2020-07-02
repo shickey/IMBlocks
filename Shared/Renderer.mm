@@ -187,13 +187,8 @@ static f32 zoomLevel = 3.0;
         _vertBuffers[i] = [_device newBufferWithLength:(BLOCK_BYTE_SIZE * MAX_BLOCKS) options:MTLResourceStorageModeShared];
         _vertBuffers[i].label = @"Vertex Buffer";
         
-        _worldUniformsBuffers[i] = [_device newBufferWithLength:(sizeof(WorldUniforms) * 2) options:MTLResourceStorageModeShared];
+        _worldUniformsBuffers[i] = [_device newBufferWithLength:(sizeof(WorldUniforms) * 3) options:MTLResourceStorageModeShared];
         _worldUniformsBuffers[i].label = @"World Uniforms Buffer";
-        
-        matrix_float4x4 identity = matrix_identity_float4x4;
-        WorldUniforms *unis = (WorldUniforms *)_worldUniformsBuffers[i].contents;
-        memcpy(unis, &identity, sizeof(f32) * 16);
-        memcpy(unis + 1, &identity, sizeof(f32) * 16);
     }
     
     // Load block texture
@@ -253,8 +248,8 @@ static f32 zoomLevel = 3.0;
             ImGui::InputFloat2(label, (float *)&(script->P));
         }
 
-        ImGui::ProgressBar((f32)ctx->blocks.used / (f32)ctx->blocks.size, ImVec2(0.0f, 0.0f), "Blocks Arena Usage");
-        ImGui::ProgressBar((f32)ctx->verts.used / (f32)ctx->verts.size, ImVec2(0.0f, 0.0f), "Vertex Arena Usage");
+//        ImGui::ProgressBar((f32)ctx->blocks.used / (f32)ctx->blocks.size, ImVec2(0.0f, 0.0f), "Blocks Arena Usage");
+//        ImGui::ProgressBar((f32)ctx->verts.used / (f32)ctx->verts.size, ImVec2(0.0f, 0.0f), "Vertex Arena Usage");
         ImGui::ProgressBar((f32)ctx->scriptCount / 1024.f, ImVec2(0.0f, 0.0f), "Script usage");
 
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
@@ -305,14 +300,16 @@ static f32 zoomLevel = 3.0;
     id <MTLBuffer> vertBuffer = _vertBuffers[_bufferIndex];
     
     BlocksRenderInfo renderInfo = runBlocks(blocksMem, &blocksInput);
-    memcpy(vertBuffer.contents, renderInfo.verts, renderInfo.vertsSize);
+    memcpy(vertBuffer.contents, renderInfo.vertexData, renderInfo.vertexDataSize);
     
     // World transform
     id <MTLBuffer> worldUniformsBuffer = _worldUniformsBuffers[_bufferIndex];
     WorldUniforms *worldUniforms = (WorldUniforms *)[worldUniformsBuffer contents];
-    memcpy(worldUniforms, &renderInfo.projection, 16 * sizeof(f32));
-    memcpy(worldUniforms + 1, &renderInfo.overlayProjection, 16 * sizeof(f32));
     
+    for (u32 i = 0; i < renderInfo.drawCallCount; ++i) {
+        BlocksDrawCall *drawCall = &renderInfo.drawCalls[i];
+        memcpy(worldUniforms + i, &drawCall->transform, sizeof(WorldUniforms));
+    }
     
     MTLRenderPassDescriptor* renderPassDescriptor = view.currentRenderPassDescriptor;
     if(renderPassDescriptor != nil)
@@ -321,21 +318,24 @@ static f32 zoomLevel = 3.0;
         
         id <MTLRenderCommandEncoder> renderEncoder = [commandBuffer renderCommandEncoderWithDescriptor:renderPassDescriptor];
         renderEncoder.label = @"MyRenderEncoder";
-
-        // Blocks
+        
         [renderEncoder setRenderPipelineState:_pipelineState];
-
+        
+        // Render data from libBlocks
         [renderEncoder setVertexBuffer:vertBuffer offset:0 atIndex:0];
         [renderEncoder setVertexBuffer:worldUniformsBuffer offset:0 atIndex:1];
         
         [renderEncoder setFragmentTexture:blockTexture atIndex:0];
         [renderEncoder setFragmentSamplerState:_sampler atIndex:0];
         
-        [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:renderInfo.blockVertsCount];
-        
-        // Floating UI
-        [renderEncoder setVertexBuffer:worldUniformsBuffer offset:1 * sizeof(WorldUniforms) atIndex:1];
-        [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:renderInfo.blockVertsCount vertexCount:renderInfo.overlayVertsCount];
+        for (u32 i = 0; i < renderInfo.drawCallCount; ++i) {
+            BlocksDrawCall *drawCall = &renderInfo.drawCalls[i];
+            
+            [renderEncoder setVertexBufferOffset:(i * sizeof(WorldUniforms)) atIndex:1];
+            [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle 
+                              vertexStart:drawCall->vertexOffset 
+                              vertexCount:drawCall->vertexCount];
+        }
         
         [self drawImGuiIn:view 
                      with:renderPassDescriptor

@@ -12,8 +12,6 @@ struct Block;
 struct Script;
 struct Layout;
 
-typedef u32 RenderingIndex;
-
 enum BlockType {
     BlockType_Command,
     BlockType_Loop
@@ -52,10 +50,10 @@ enum RenderEntryType {
     RenderEntryType_Loop,
     
     RenderEntryType_Rect,
+    RenderEntryType_RectOutline,
 };
 
 struct RenderEntry {
-    RenderingIndex idx;
     RenderEntryType type;
     Block* block;
     v2 P;
@@ -85,7 +83,7 @@ struct Interaction {
     Block *block;
     v2 blockP;
     Script *script;
-    RenderingIndex renderingIdx;
+    RenderEntry *entry;
     
     v2 mouseStartP;
     v2 mouseOffset;
@@ -128,17 +126,21 @@ struct DragInfo {
     Script *insertionBaseScript;
 };
 
+struct RenderGroup {
+    RenderEntry entries[4096];
+    u32 entryCount;
+    mat4x4 transform;
+    v2 viewBounds;
+};
+
 struct BlocksContext {
     BlocksInput input;
     
-    Arena verts;
-    Arena blocks;
+    Arena permanent;
+    Arena frame;
     
-    RenderEntry renderEntries[4096];
-    RenderingIndex nextRenderingIdx;
-    
-    RenderEntry overlayRenderEntries[4096];
-    RenderingIndex nextOverlayRenderingIdx;
+    RenderGroup renderGroups[2];
+    RenderGroup debugRenderGroup;
     
     Script scripts[1024];
     u32 scriptCount;
@@ -151,19 +153,16 @@ struct BlocksContext {
     
     v2 screenSize;
     f32 zoomLevel;
-    v2 viewBounds;
-    mat4x4 projection;
-    mat4x4 unprojection;
 };
 
 void BeginBlocks(BlocksInput input);
 BlocksRenderInfo EndBlocks(void);
-void DrawSubScript(Block *block, Script *script, Layout *layout);
-b32 DrawBlock(Block *, Script *, Layout *);
-void DrawCommandBlock(Block *, Script *, Layout *, u32 flags = 0);
-void DrawLoopBlock(Block *, Script *, Layout *, Layout *, u32 flags = 0);
-void DrawGhostCommandBlock(Layout *layout);
-void DrawGhostLoopBlock(Layout *layout, Layout *innerLayout = 0);
+void DrawSubScript(RenderGroup *renderGroup, Block *block, Script *script, Layout *layout);
+b32 DrawBlock(RenderGroup *renderGroup, Block *, Script *, Layout *);
+void DrawCommandBlock(RenderGroup *renderGroup, Block *, Script *, Layout *, u32 flags = 0);
+void DrawLoopBlock(RenderGroup *renderGroup, Block *, Script *, Layout *, Layout *, u32 flags = 0);
+void DrawGhostCommandBlock(RenderGroup *renderGroup, Layout *layout);
+void DrawGhostLoopBlock(RenderGroup *renderGroup, Layout *layout, Layout *innerLayout = 0);
 
 void *PushSize(Arena *arena, u32 size) {
   // Make sure we have enough space left in the arena
@@ -186,6 +185,11 @@ Arena SubArena(Arena *arena, u32 size) {
     subArena.size = size;
     subArena.used = 0;
     return subArena;
+}
+
+inline
+u8 *ArenaAt(Arena arena) {
+    return arena.data + arena.used;
 }
 
 #define PushStruct(arena, type) (type *)PushSize(arena, sizeof(type))
