@@ -96,7 +96,6 @@ static f32 zoomLevel = 3.0;
 
     uint8_t _bufferIndex;
 
-    matrix_float4x4 _projectionMatrix;
     matrix_float4x4 _unprojectionMatrix;
 }
 
@@ -157,8 +156,8 @@ static f32 zoomLevel = 3.0;
     
     // Set up shaders
     id<MTLLibrary> defaultLibrary = [_device newDefaultLibrary];
-    id <MTLFunction> vertexFunction = [defaultLibrary newFunctionWithName:@"simple_vertex"];
-    id <MTLFunction> fragmentFunction = [defaultLibrary newFunctionWithName:@"simple_fragment"];
+    id <MTLFunction> vertexFunction = [defaultLibrary newFunctionWithName:@"TexturedVertex"];
+    id <MTLFunction> fragmentFunction = [defaultLibrary newFunctionWithName:@"SdfFragment"];
 
     // Create rendering pipeline
     MTLRenderPipelineDescriptor *pipelineStateDescriptor = [[MTLRenderPipelineDescriptor alloc] init];
@@ -188,8 +187,13 @@ static f32 zoomLevel = 3.0;
         _vertBuffers[i] = [_device newBufferWithLength:(BLOCK_BYTE_SIZE * MAX_BLOCKS) options:MTLResourceStorageModeShared];
         _vertBuffers[i].label = @"Vertex Buffer";
         
-        _worldUniformsBuffers[i] = [_device newBufferWithLength:(sizeof(WorldUniforms)) options:MTLResourceStorageModeShared];
+        _worldUniformsBuffers[i] = [_device newBufferWithLength:(sizeof(WorldUniforms) * 2) options:MTLResourceStorageModeShared];
         _worldUniformsBuffers[i].label = @"World Uniforms Buffer";
+        
+        matrix_float4x4 identity = matrix_identity_float4x4;
+        WorldUniforms *unis = (WorldUniforms *)_worldUniformsBuffers[i].contents;
+        memcpy(unis, &identity, sizeof(f32) * 16);
+        memcpy(unis + 1, &identity, sizeof(f32) * 16);
     }
     
     // Load block texture
@@ -292,13 +296,11 @@ static f32 zoomLevel = 3.0;
     Input input = view->_input;
     CGPoint P = [self _unprojectPoint:CGPointMake(input.mouseX, input.mouseY) inView:view];
     
-    
-    CAMetalLayer *layer = (CAMetalLayer *)view.layer;
-    
     BlocksInput blocksInput;
     blocksInput.mouseP = {(f32)P.x, (f32)P.y};
     blocksInput.mouseDown = input.mouseDown;
-    blocksInput.screenSize = {(f32)layer.drawableSize.width, (f32)layer.drawableSize.height};
+    f32 dpi = (f32)view.window.backingScaleFactor;
+    blocksInput.screenSize = {(f32)view.bounds.size.width / dpi, (f32)view.bounds.size.height / dpi};
     
     id <MTLBuffer> vertBuffer = _vertBuffers[_bufferIndex];
     
@@ -309,8 +311,7 @@ static f32 zoomLevel = 3.0;
     id <MTLBuffer> worldUniformsBuffer = _worldUniformsBuffers[_bufferIndex];
     WorldUniforms *worldUniforms = (WorldUniforms *)[worldUniformsBuffer contents];
     memcpy(worldUniforms, &renderInfo.projection, 16 * sizeof(f32));
-    memcpy(&_projectionMatrix, &renderInfo.projection, 16 * sizeof(f32));
-    memcpy(&_unprojectionMatrix, &renderInfo.unprojection, 16 * sizeof(f32));
+    memcpy(worldUniforms + 1, &renderInfo.overlayProjection, 16 * sizeof(f32));
     
     
     MTLRenderPassDescriptor* renderPassDescriptor = view.currentRenderPassDescriptor;
@@ -330,7 +331,11 @@ static f32 zoomLevel = 3.0;
         [renderEncoder setFragmentTexture:blockTexture atIndex:0];
         [renderEncoder setFragmentSamplerState:_sampler atIndex:0];
         
-        [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:renderInfo.vertsCount];
+        [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:renderInfo.blockVertsCount];
+        
+        // Floating UI
+        [renderEncoder setVertexBuffer:worldUniformsBuffer offset:1 * sizeof(WorldUniforms) atIndex:1];
+        [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:renderInfo.blockVertsCount vertexCount:renderInfo.overlayVertsCount];
         
         [self drawImGuiIn:view 
                      with:renderPassDescriptor
@@ -345,19 +350,9 @@ static f32 zoomLevel = 3.0;
     [commandBuffer commit];
 }
 
-- (void)updateProjectionMatrices:(CGSize)drawableSize {
-    //    f32 aspect = size.width / (float)size.height;
-    
-//    CGFloat halfWidth = (drawableSize.width / 2.0) / zoomLevel;
-//    CGFloat halfHeight = (drawableSize.height / 2.0) / zoomLevel;
-//    
-//    _projectionMatrix = orthographicProjection(-halfWidth, halfWidth, halfHeight, -halfHeight, 1.0, -1.0);
-//    _unprojectionMatrix = orthographicUnprojection(-halfWidth, halfWidth, halfHeight, -halfHeight, 1.0, -1.0);
-}
-
 - (void)mtkView:(nonnull MTKView *)view drawableSizeWillChange:(CGSize)size
 {   
-//    [self updateProjectionMatrices:size];
+
 }
 
 #pragma mark Matrix Math Utilities

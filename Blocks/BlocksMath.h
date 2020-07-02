@@ -66,6 +66,26 @@ mat4x4 OrthographicUnprojection(f32 left, f32 right, f32 bottom, f32 top, f32 ne
 }
 
 inline
+mat4x4 OrthographicProjection2(f32 left, f32 right, f32 bottom, f32 top, f32 near, f32 far) {
+    return mat4x4{
+        v4{ 2.0f / (right - left),                     0,                    0, 0 },
+        v4{                     0, 2.0f / (top - bottom),                    0, 0 },
+        v4{                     0,                     0, -2.0f / (far - near), 0 },
+        v4{ -(right + left) / (right - left), -(top + bottom) / (top - bottom), -(far + near) / (far - near),  1.0f }
+    };
+}
+
+inline
+mat4x4 OrthographicUnprojection2(f32 left, f32 right, f32 bottom, f32 top, f32 near, f32 far) {
+    return mat4x4{
+        v4{ (right - left) / 2.0f,                     0,                    0,    0 },
+        v4{                     0, (top - bottom) / 2.0f,                    0,    0 },
+        v4{                     0,                     0, (far - near) / -2.0f,    0 },
+        v4{ (right + left) / 2.0f, (top + bottom) / 2.0f,  (far + near) / 2.0f, 1.0f }
+    };
+}
+
+inline
 f32 Dot(v4 a, v4 b) {
   return (a.x * b.x) + (a.y * b.y) + (a.z * b.z) + (a.w * b.w);
 }

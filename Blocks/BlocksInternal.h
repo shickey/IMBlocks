@@ -49,7 +49,9 @@ struct Layout {
 
 enum RenderEntryType {
     RenderEntryType_Command,
-    RenderEntryType_Loop
+    RenderEntryType_Loop,
+    
+    RenderEntryType_Rect,
 };
 
 struct RenderEntry {
@@ -64,6 +66,7 @@ struct RenderEntry {
             u32 vStretch;
         };
     };
+    Rectangle rect;
 };
 
 enum DrawBlockFlags {
@@ -133,6 +136,9 @@ struct BlocksContext {
     
     RenderEntry renderEntries[4096];
     RenderingIndex nextRenderingIdx;
+    
+    RenderEntry overlayRenderEntries[4096];
+    RenderingIndex nextOverlayRenderingIdx;
     
     Script scripts[1024];
     u32 scriptCount;

@@ -24,6 +24,13 @@ RenderEntry *PushRenderEntry(BlocksContext *ctx) {
     return entry;
 }
 
+RenderEntry *PushOverlayRenderEntry(BlocksContext *ctx) {
+    Assert(ctx->nextOverlayRenderingIdx < ArrayCount(ctx->overlayRenderEntries));
+    RenderEntry *entry = &ctx->overlayRenderEntries[ctx->nextOverlayRenderingIdx];
+    entry->idx = ctx->nextOverlayRenderingIdx++;
+    return entry;
+}
+
 Script *CreateScript(v2 position) {
     Script *script = &blocksCtx->scripts[blocksCtx->scriptCount++];
     *script = { 0 };
@@ -146,6 +153,7 @@ void BeginBlocks(BlocksInput input) {
     blocksCtx->nextHot.block = 0;
     
     blocksCtx->nextRenderingIdx = 0;
+    blocksCtx->nextOverlayRenderingIdx = 0;
 }
 
 BlocksRenderInfo EndBlocks() {
@@ -278,7 +286,7 @@ BlocksRenderInfo EndBlocks() {
         blocksCtx->renderEntries[blocksCtx->hot.renderingIdx].color = v4{1, 1, 0, 1};
     }
     
-    // Assemble vertex buffer
+    // Assemble blocks vertices
     for (u32 i = 0; i < blocksCtx->nextRenderingIdx; ++i) {
         RenderEntry *entry = &blocksCtx->renderEntries[i];
         switch(entry->type) {
@@ -292,6 +300,19 @@ BlocksRenderInfo EndBlocks() {
             }
         }
     }
+    u32 blockVertsCount = blocksCtx->verts.used / VERTEX_SIZE;
+    
+    // Assemble overlay vertices
+    for (u32 i = 0; i < blocksCtx->nextOverlayRenderingIdx; ++i) {
+        RenderEntry *entry = &blocksCtx->overlayRenderEntries[i];
+        switch(entry->type) {
+            case RenderEntryType_Rect: {
+                PushRect(blocksCtx, entry->rect, entry->color);
+                break;
+            }
+        }
+    }
+    u32 overlayVertsCount = (blocksCtx->verts.used / VERTEX_SIZE) - blockVertsCount;
     
     if (Dragging()) {
         PushRectOutline(blocksCtx, blocksCtx->dragInfo.inlet, v4{0, 1, 0, 1});
@@ -303,17 +324,19 @@ BlocksRenderInfo EndBlocks() {
     
     BlocksRenderInfo Result;
     Result.verts = blocksCtx->verts.data;
-    Result.vertsCount = blocksCtx->verts.used / VERTEX_SIZE;
     Result.vertsSize = blocksCtx->verts.used;
+    Result.blockVertsCount = blockVertsCount;
+    Result.overlayVertsCount = overlayVertsCount;
     Result.projection = blocksCtx->projection;
     Result.unprojection = blocksCtx->unprojection;
+    Result.overlayProjection = OrthographicProjection2(0, blocksCtx->screenSize.w, 0, blocksCtx->screenSize.h, 1.0, -1.0);
     return Result;
 }
 
 void UpdateViewMetrics() {
     v2 screenSize = blocksCtx->input.screenSize;
     blocksCtx->screenSize = screenSize;
-    blocksCtx->zoomLevel = 3.0f;
+    blocksCtx->zoomLevel = 2.0f;
     
     f32 halfWidth = (screenSize.w / 2.0) / blocksCtx->zoomLevel;
     f32 halfHeight = (screenSize.h / 2.0) / blocksCtx->zoomLevel;
@@ -338,15 +361,15 @@ void RenderNewBlockButton() {
     f32 buttonSizeInPixels = 50.0f;
     f32 edgeOffsetInPixels = 20.0f;
     v2 screenSize = blocksCtx->screenSize;
-    v2 screenSpaceOrigin = {screenSize.w - edgeOffsetInPixels - buttonSizeInPixels, screenSize.h - edgeOffsetInPixels - buttonSizeInPixels};
-    v2 screenSpaceOpposite = { screenSpaceOrigin.x + buttonSizeInPixels, screenSpaceOrigin.y + buttonSizeInPixels };
-
-    v2 unprojectedOrigin = UnprojectPoint(screenSpaceOrigin);
-    v2 unprojectedOpposite = UnprojectPoint(screenSpaceOpposite);
-    Rectangle buttonRect = { unprojectedOrigin.x, unprojectedOrigin.y, unprojectedOpposite.x - unprojectedOrigin.x, unprojectedOpposite.y  - unprojectedOrigin.y };
-    v4 color = HexToColor(0xFFFF00);
-    color.a = 0.5;
-    PushRect(blocksCtx, buttonRect, color);
+    Rectangle blockButtonRect = {screenSize.w - edgeOffsetInPixels - buttonSizeInPixels,
+                                 screenSize.h - edgeOffsetInPixels - buttonSizeInPixels,
+                                 buttonSizeInPixels,
+                                 buttonSizeInPixels};
+    
+    RenderEntry *entry = PushOverlayRenderEntry(blocksCtx);
+    entry->type = RenderEntryType_Rect;
+    entry->rect = blockButtonRect;
+    entry->color = v4{0, 1, 1, 0.5};
 }
 
 // void RenderPalette() {

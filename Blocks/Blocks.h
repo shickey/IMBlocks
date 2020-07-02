@@ -31,9 +31,13 @@ struct BlocksInput {
 struct BlocksRenderInfo {
     void *verts;
     u32 vertsSize;
-    u32 vertsCount;
+    u32 blockVertsCount;
+    u32 overlayVertsCount;
+    
     mat4x4 projection;
     mat4x4 unprojection;
+    
+    mat4x4 overlayProjection;
 };
 
 #ifdef __cplusplus
