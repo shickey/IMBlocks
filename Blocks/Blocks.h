@@ -10,25 +10,30 @@
 
 #include "BlocksTypes.h"
 
-union BlocksInput {
-    struct {
-        v2 mouseP;
-        b32 mouseDown;
+struct BlocksInput {
+    union {
+        struct {
+            v2 mouseP;
+            b32 mouseDown;
+        };
+        struct {
+            v2 touchP;
+            b32 touching;
+        };
+        struct {
+            v2 P;
+            b32 isDown;
+        };
     };
-    struct {
-        v2 touchP;
-        b32 touching;
-    };
-    struct {
-        v2 P;
-        b32 isDown;
-    };
+    v2 screenSize;
 };
 
 struct BlocksRenderInfo {
     void *verts;
     u32 vertsSize;
     u32 vertsCount;
+    mat4x4 projection;
+    mat4x4 unprojection;
 };
 
 #ifdef __cplusplus

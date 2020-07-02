@@ -57,7 +57,7 @@ struct RenderEntry {
     RenderEntryType type;
     Block* block;
     v2 P;
-    v3 color;
+    v4 color;
     union {
         struct {
             u32 hStretch;
@@ -142,6 +142,12 @@ struct BlocksContext {
     Interaction nextHot;
     
     DragInfo dragInfo;
+    
+    v2 screenSize;
+    f32 zoomLevel;
+    v2 viewBounds;
+    mat4x4 projection;
+    mat4x4 unprojection;
 };
 
 void BeginBlocks(BlocksInput input);

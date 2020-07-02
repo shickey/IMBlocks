@@ -10,7 +10,6 @@
 #import "Renderer.h"
 #import "MetalView.h"
 
-#include "imgui.h"
 #include "imgui_impl_osx.h"
 
 @implementation GameViewController

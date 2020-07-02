@@ -13,7 +13,6 @@
 #import "Blocks.h"
 #import "MetalView.h"
 
-#include "imgui.h"
 #include "imgui_impl_metal.h"
 #include "imgui_impl_osx.h"
 
@@ -30,7 +29,7 @@ typedef void(*InitBlocksSignature)(void *, u32);
 typedef BlocksRenderInfo (*RunBlocksSignature)(void *, BlocksInput *);
 
 struct WorldUniforms {
-    matrix_float4x4 transform;
+    float transform[16];
 };
 
 static NSDate *lastLibWriteTime = 0;
@@ -139,13 +138,13 @@ static f32 zoomLevel = 3.0;
     _mtlVertexDescriptor.attributes[1].bufferIndex = 0;
     _mtlVertexDescriptor.attributes[1].offset = 2 * sizeof(f32);
     
-        // Tex UV
-    _mtlVertexDescriptor.attributes[2].format = MTLVertexFormatFloat3;
+        // Color
+    _mtlVertexDescriptor.attributes[2].format = MTLVertexFormatFloat4;
     _mtlVertexDescriptor.attributes[2].bufferIndex = 0;
     _mtlVertexDescriptor.attributes[2].offset = 4 * sizeof(f32);
     
         // Stride
-    _mtlVertexDescriptor.layouts[0].stride = 7 * sizeof(f32);
+    _mtlVertexDescriptor.layouts[0].stride = 8 * sizeof(f32);
     _mtlVertexDescriptor.layouts[0].stepFunction = MTLVertexStepFunctionPerVertex;
 
     // Sampler
@@ -234,11 +233,11 @@ static f32 zoomLevel = 3.0;
     ImGui_ImplOSX_NewFrame(view);
     ImGui::NewFrame();
     
-    static bool show_demo_window = true;
-    ImGui::ShowDemoWindow(&show_demo_window);
+//    static bool show_demo_window = true;
+//    ImGui::ShowDemoWindow(&show_demo_window);
     
     {
-        ImGui::Begin("Scripts");                          // Create a window called "Hello, world!" and append into it.
+        ImGui::Begin("Blocks Debug");                          // Create a window called "Hello, world!" and append into it.
         
         ImGui::SliderFloat("zoom", &zoomLevel, 0.5, 16.0);
         
@@ -293,14 +292,15 @@ static f32 zoomLevel = 3.0;
     Input input = view->_input;
     CGPoint P = [self _unprojectPoint:CGPointMake(input.mouseX, input.mouseY) inView:view];
     
+    
+    CAMetalLayer *layer = (CAMetalLayer *)view.layer;
+    
     BlocksInput blocksInput;
     blocksInput.mouseP = {(f32)P.x, (f32)P.y};
     blocksInput.mouseDown = input.mouseDown;
+    blocksInput.screenSize = {(f32)layer.drawableSize.width, (f32)layer.drawableSize.height};
     
     id <MTLBuffer> vertBuffer = _vertBuffers[_bufferIndex];
-    
-    CAMetalLayer *layer = (CAMetalLayer *)view.layer;
-    [self updateProjectionMatrices:layer.drawableSize];
     
     BlocksRenderInfo renderInfo = runBlocks(blocksMem, &blocksInput);
     memcpy(vertBuffer.contents, renderInfo.verts, renderInfo.vertsSize);
@@ -308,11 +308,16 @@ static f32 zoomLevel = 3.0;
     // World transform
     id <MTLBuffer> worldUniformsBuffer = _worldUniformsBuffers[_bufferIndex];
     WorldUniforms *worldUniforms = (WorldUniforms *)[worldUniformsBuffer contents];
-    worldUniforms->transform = _projectionMatrix;
+    memcpy(worldUniforms, &renderInfo.projection, 16 * sizeof(f32));
+    memcpy(&_projectionMatrix, &renderInfo.projection, 16 * sizeof(f32));
+    memcpy(&_unprojectionMatrix, &renderInfo.unprojection, 16 * sizeof(f32));
+    
     
     MTLRenderPassDescriptor* renderPassDescriptor = view.currentRenderPassDescriptor;
     if(renderPassDescriptor != nil)
     {
+        renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColorMake((f64)0x33 / 255.0, (f64)0x47 / 255.0, (f64)0x71 / 255.0, 1.0);
+        
         id <MTLRenderCommandEncoder> renderEncoder = [commandBuffer renderCommandEncoderWithDescriptor:renderPassDescriptor];
         renderEncoder.label = @"MyRenderEncoder";
 
@@ -343,16 +348,16 @@ static f32 zoomLevel = 3.0;
 - (void)updateProjectionMatrices:(CGSize)drawableSize {
     //    f32 aspect = size.width / (float)size.height;
     
-    CGFloat halfWidth = (drawableSize.width / 2.0) / zoomLevel;
-    CGFloat halfHeight = (drawableSize.height / 2.0) / zoomLevel;
-    
-    _projectionMatrix = orthographicProjection(-halfWidth, halfWidth, halfHeight, -halfHeight, 1.0, -1.0);
-    _unprojectionMatrix = orthographicUnprojection(-halfWidth, halfWidth, halfHeight, -halfHeight, 1.0, -1.0);
+//    CGFloat halfWidth = (drawableSize.width / 2.0) / zoomLevel;
+//    CGFloat halfHeight = (drawableSize.height / 2.0) / zoomLevel;
+//    
+//    _projectionMatrix = orthographicProjection(-halfWidth, halfWidth, halfHeight, -halfHeight, 1.0, -1.0);
+//    _unprojectionMatrix = orthographicUnprojection(-halfWidth, halfWidth, halfHeight, -halfHeight, 1.0, -1.0);
 }
 
 - (void)mtkView:(nonnull MTKView *)view drawableSizeWillChange:(CGSize)size
 {   
-    [self updateProjectionMatrices:size];
+//    [self updateProjectionMatrices:size];
 }
 
 #pragma mark Matrix Math Utilities

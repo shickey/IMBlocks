@@ -275,7 +275,7 @@ BlocksRenderInfo EndBlocks() {
     
     // Change the color of the hot block
     if (blocksCtx->hot.block) {
-        blocksCtx->renderEntries[blocksCtx->hot.renderingIdx].color = v3{1, 1, 0};
+        blocksCtx->renderEntries[blocksCtx->hot.renderingIdx].color = v4{1, 1, 0, 1};
     }
     
     // Assemble vertex buffer
@@ -294,10 +294,10 @@ BlocksRenderInfo EndBlocks() {
     }
     
     if (Dragging()) {
-        PushSimpleRect(blocksCtx, blocksCtx->dragInfo.inlet, v3{0, 1, 0});
-        PushSimpleRect(blocksCtx, blocksCtx->dragInfo.outlet, v3{0, 1, 0});
+        PushRectOutline(blocksCtx, blocksCtx->dragInfo.inlet, v4{0, 1, 0, 1});
+        PushRectOutline(blocksCtx, blocksCtx->dragInfo.outlet, v4{0, 1, 0, 1});
         if (blocksCtx->interacting.block->type == BlockType_Loop) {
-            PushSimpleRect(blocksCtx, blocksCtx->dragInfo.innerOutlet, v3{0, 1, 0});
+            PushRectOutline(blocksCtx, blocksCtx->dragInfo.innerOutlet, v4{0, 1, 0, 1});
         }
     }
     
@@ -305,8 +305,56 @@ BlocksRenderInfo EndBlocks() {
     Result.verts = blocksCtx->verts.data;
     Result.vertsCount = blocksCtx->verts.used / VERTEX_SIZE;
     Result.vertsSize = blocksCtx->verts.used;
+    Result.projection = blocksCtx->projection;
+    Result.unprojection = blocksCtx->unprojection;
     return Result;
 }
+
+void UpdateViewMetrics() {
+    v2 screenSize = blocksCtx->input.screenSize;
+    blocksCtx->screenSize = screenSize;
+    blocksCtx->zoomLevel = 3.0f;
+    
+    f32 halfWidth = (screenSize.w / 2.0) / blocksCtx->zoomLevel;
+    f32 halfHeight = (screenSize.h / 2.0) / blocksCtx->zoomLevel;
+    
+    blocksCtx->viewBounds = {halfWidth * 2.0f, halfHeight * 2.0f};
+    
+    blocksCtx->projection = OrthographicProjection(-halfWidth, halfWidth, -halfHeight, halfHeight, 1.0, -1.0);
+    blocksCtx->unprojection = OrthographicUnprojection(-halfWidth, halfWidth, -halfHeight, halfHeight, 1.0, -1.0);
+}
+
+v2 UnprojectPoint(v2 point) {
+    v2 viewBounds = blocksCtx->viewBounds;
+    f32 projectedX = (((2.0 * point.x) / (viewBounds.w * blocksCtx->zoomLevel)) - 1.0);
+    f32 projectedY = (((2.0 * point.y) / (viewBounds.h * blocksCtx->zoomLevel)) - 1.0);
+    
+    mat4x4 unprojection = blocksCtx->unprojection;
+    v4 newOrigin = unprojection * v4{projectedX, projectedY, 0, 1};
+    return newOrigin.xy;
+}
+
+void RenderNewBlockButton() {
+    f32 buttonSizeInPixels = 50.0f;
+    f32 edgeOffsetInPixels = 20.0f;
+    v2 screenSize = blocksCtx->screenSize;
+    v2 screenSpaceOrigin = {screenSize.w - edgeOffsetInPixels - buttonSizeInPixels, screenSize.h - edgeOffsetInPixels - buttonSizeInPixels};
+    v2 screenSpaceOpposite = { screenSpaceOrigin.x + buttonSizeInPixels, screenSpaceOrigin.y + buttonSizeInPixels };
+
+    v2 unprojectedOrigin = UnprojectPoint(screenSpaceOrigin);
+    v2 unprojectedOpposite = UnprojectPoint(screenSpaceOpposite);
+    Rectangle buttonRect = { unprojectedOrigin.x, unprojectedOrigin.y, unprojectedOpposite.x - unprojectedOrigin.x, unprojectedOpposite.y  - unprojectedOrigin.y };
+    v4 color = HexToColor(0xFFFF00);
+    color.a = 0.5;
+    PushRect(blocksCtx, buttonRect, color);
+}
+
+// void RenderPalette() {
+//     Rectangle paletteRect = Rectangle{0, 0, 100, 200};
+//     v4 color = HexToColor(0x1E2A3F);
+//     color.a = 0.5;
+//     PushRect(blocksCtx, paletteRect, color);
+// }
 
 Layout RenderScript(Script *script) {
     Assert(script->topBlock);
@@ -340,12 +388,12 @@ void DrawSubScript(Block *block, Script *script, Layout *layout) {
                 blocksCtx->dragInfo.insertionType = InsertionType_Around;
                 blocksCtx->dragInfo.insertionBaseBlock = block;
                 blocksCtx->dragInfo.insertionBaseScript = script;
-                PushSimpleRect(blocksCtx, loopLayout.bounds, {0, 1, 0});
+                PushRectOutline(blocksCtx, loopLayout.bounds, {0, 1, 0});
             }
         }
     }
     
-    PushSimpleRect(blocksCtx, layout->bounds, {0, 1, 0});
+    PushRectOutline(blocksCtx, layout->bounds, {0, 1, 0});
 }
 
 b32 DrawBlock(Block *block, Script *script, Layout *layout) {
@@ -354,7 +402,7 @@ b32 DrawBlock(Block *block, Script *script, Layout *layout) {
     // Draw ghost block before this block, if necessary
     if (Dragging() && dragInfo.script != script && IsTopBlockOfScript(block, script) && !blocksCtx->dragInfo.readyToInsert) {
         Rectangle inletBounds = {script->P.x - 4, script->P.y, 8, 16};
-        PushSimpleRect(blocksCtx, inletBounds, v3{1, 0, 0});
+        PushRectOutline(blocksCtx, inletBounds, v4{1, 0, 0, 1});
         if (RectsIntersect(inletBounds, dragInfo.outlet)) {
             switch (dragInfo.lastBlock->type) {
                 case BlockType_Command: {
@@ -389,7 +437,7 @@ b32 DrawBlock(Block *block, Script *script, Layout *layout) {
             // Draw ghost block inside the loop, if necessary
             if (Dragging() && dragInfo.script != script && !blocksCtx->dragInfo.readyToInsert) {
                 Rectangle innerOutletBounds = {layout->at.x + 3, layout->at.y, 6, 16};
-                PushSimpleRect(blocksCtx, innerOutletBounds, v3{1, 0, 0});
+                PushRectOutline(blocksCtx, innerOutletBounds, v4{1, 0, 0, 1});
                 if (RectsIntersect(innerOutletBounds, dragInfo.inlet)) {
                     switch (dragInfo.firstBlock->type) {
                         case BlockType_Command: {
@@ -428,7 +476,7 @@ b32 DrawBlock(Block *block, Script *script, Layout *layout) {
     // Draw ghost block after this block, if necessary
     if (Dragging() && dragInfo.script != script && !blocksCtx->dragInfo.readyToInsert) {
         Rectangle outletBounds = {layout->at.x - 4, layout->at.y, 8, 16};
-        PushSimpleRect(blocksCtx, outletBounds, v3{1, 0, 0});
+        PushRectOutline(blocksCtx, outletBounds, v4{1, 0, 0, 1});
         if (RectsIntersect(outletBounds, dragInfo.inlet)) {
             switch (dragInfo.firstBlock->type) {
                 case BlockType_Command: {
@@ -482,10 +530,10 @@ void DrawCommandBlock(Block *block, Script *script, Layout *layout, u32 flags) {
     entry->block = block;
     entry->P = v2{layout->at.x, layout->at.y};
     if (isGhost) {
-        entry->color = v3{0.5, 0.5, 0.5};
+        entry->color = v4{1, 1, 1, 0.5};
     }
     else {
-        entry->color = v3{0, 0.5, 0.5};
+        entry->color = v4{0, 1, 1, 1};
     }
     
     
@@ -525,10 +573,10 @@ void DrawLoopBlock(Block *block, Script *script, Layout *layout, Layout *innerLa
     entry->block = block;
     entry->P = v2{layout->at.x, layout->at.y};
     if (isGhost) {
-        entry->color = v3{0.5, 0.5, 0.5};
+        entry->color = v4{1, 1, 1, 0.5};
     }
     else {
-        entry->color = v3{0.5, 0, 0.5};
+        entry->color = v4{1, 0, 1, 1};
     }
     entry->hStretch = horizStretch;
     entry->vStretch = vertStretch;
@@ -632,6 +680,7 @@ extern "C" BlocksRenderInfo RunBlocks(void *mem, BlocksInput *input) {
     // Always reset the blocksCtx pointer in case we reloaded the dylib
     blocksCtx = (BlocksContext *)mem;
     BeginBlocks(*input);
+    UpdateViewMetrics();
     if (Dragging()) {
         // Update dragging info
         Script *script = blocksCtx->dragInfo.script;
@@ -653,5 +702,7 @@ extern "C" BlocksRenderInfo RunBlocks(void *mem, BlocksInput *input) {
         }
         RenderScript(script);
     }
+    // Floating UI
+    RenderNewBlockButton();
     return EndBlocks();
 }

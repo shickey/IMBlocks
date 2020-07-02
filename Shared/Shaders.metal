@@ -19,14 +19,14 @@ using namespace metal;
 struct VertexIn {
     float2 position [[ attribute(0) ]];  
     float2 texCoord [[ attribute(1) ]];
-    float3 color    [[ attribute(2) ]];
+    float4 color    [[ attribute(2) ]];
 };
 
 struct VertexOut {
     uint idx;
     float4 position [[ position ]];
     float2 texCoord;
-    float3 color;
+    float4 color;
 };
 
 struct WorldUniforms {
@@ -56,6 +56,6 @@ fragment float4 simple_fragment(VertexOut v [[ stage_in ]],
     float edgeWidth = 1.0 * length(float2(dx, dy));
     float opacity = smoothstep(edgeDistance - edgeWidth, edgeDistance + edgeWidth, dist);
     
-    return float4(v.color.rgb, opacity);
+    return float4(v.color.rgb, opacity * v.color.a);
 }
 

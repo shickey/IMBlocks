@@ -93,6 +93,10 @@ union v4 {
         f32 a;
     };
     struct {
+        v2 xy;
+        v2 _unusedZW;
+    };
+    struct {
         v3 xyz;
         f32 _unusedW;
     };
@@ -100,4 +104,8 @@ union v4 {
         v3 rgb;
         f32 _unusedA;
     };
+};
+
+struct mat4x4 {
+    v4 columns[4];
 };
