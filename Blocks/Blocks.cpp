@@ -490,10 +490,12 @@ b32 DrawBlock(RenderGroup *renderGroup, Block *block, Script *script, Layout *la
                             // Override block drawing so that loop contains the rest of the substack
                             Layout innerInnerLayout = CreateEmptyLayoutAt(innerLayout.at.x + 6, innerLayout.at.y);
                             if (block->inner) {
+                                blocksCtx->dragInfo.readyToInsert = true; // Set this here so that the inner substack doesn't also try to draw a ghost block
                                 DrawSubScript(renderGroup, block->inner, script, &innerInnerLayout);
                             }
                             DrawGhostLoopBlock(renderGroup, &innerLayout, &innerInnerLayout);
                             renderedInner = true;
+                            break;
                         }
                     }
                     blocksCtx->dragInfo.readyToInsert = true;
@@ -541,6 +543,7 @@ b32 DrawBlock(RenderGroup *renderGroup, Block *block, Script *script, Layout *la
                     else {
                         // Otherwise, override block drawing so that loop contains the rest of the substack
                         Layout innerLayout = CreateEmptyLayoutAt(layout->at.x + 6, layout->at.y);
+                        blocksCtx->dragInfo.readyToInsert = true; // Set this here so that the inner substack doesn't also try to draw a ghost block
                         if (block->next) {
                             DrawSubScript(renderGroup, block->next, script, &innerLayout);
                         }

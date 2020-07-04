@@ -290,12 +290,13 @@ static f32 zoomLevel = 3.0;
     
     Input input = view->_input;
     
+    f32 dpi = (f32)view.window.backingScaleFactor;
+    
     BlocksInput blocksInput;
-    blocksInput.mouseP = {(f32)input.mouseX, (f32)input.mouseY};
+    blocksInput.mouseP = {(f32)input.mouseX / dpi, (f32)input.mouseY / dpi};
     blocksInput.mouseDown = input.mouseDown;
     blocksInput.wheelDelta = {input.wheelDx, input.wheelDy};
     blocksInput.commandDown = input.commandDown;
-    f32 dpi = (f32)view.window.backingScaleFactor;
     blocksInput.screenSize = {(f32)view.bounds.size.width / dpi, (f32)view.bounds.size.height / dpi};
     
     // Reset scroll deltas for next frame

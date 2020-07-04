@@ -3,4 +3,198 @@
    uuid = "B35BC7E6-CFAE-4B9C-920D-B6643B647AD5"
    type = "1"
    version = "2.0">
+   <Breakpoints>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "A7329A73-9BB6-4FA4-B0E8-DA5133540EA2"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Blocks/Blocks.cpp"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "651"
+            endingLineNumber = "651"
+            landmarkName = "DrawGhostLoopBlock(renderGroup, layout, innerLayout)"
+            landmarkType = "9">
+            <Locations>
+               <Location
+                  uuid = "A7329A73-9BB6-4FA4-B0E8-DA5133540EA2 - 9503c8a93ec1d08c"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "DrawGhostCommandBlock(RenderGroup*, Layout*)"
+                  moduleName = "libBlocks.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/seanhickey/Projects/IMBlocks/Blocks/Blocks.cpp"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "651"
+                  endingLineNumber = "651"
+                  offsetFromSymbolStart = "20">
+               </Location>
+               <Location
+                  uuid = "A7329A73-9BB6-4FA4-B0E8-DA5133540EA2 - 5d77aeae0b6cddd3"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "DrawGhostLoopBlock(RenderGroup*, Layout*, Layout*)"
+                  moduleName = "libBlocks.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/seanhickey/Projects/IMBlocks/Blocks/Blocks.cpp"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "652"
+                  endingLineNumber = "652"
+                  offsetFromSymbolStart = "24">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "0F0A2841-117B-4D53-87F3-7C3CAAD44AD7"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Blocks/Blocks.cpp"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "659"
+            endingLineNumber = "659"
+            landmarkName = "InitBlocks(mem, memSize)"
+            landmarkType = "9">
+            <Locations>
+               <Location
+                  uuid = "0F0A2841-117B-4D53-87F3-7C3CAAD44AD7 - 5d77aeae0b6cddd3"
+                  shouldBeEnabled = "No"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "DrawGhostLoopBlock(RenderGroup*, Layout*, Layout*)"
+                  moduleName = "libBlocks.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/seanhickey/Projects/IMBlocks/Blocks/Blocks.cpp"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "659"
+                  endingLineNumber = "659"
+                  offsetFromSymbolStart = "85">
+               </Location>
+               <Location
+                  uuid = "0F0A2841-117B-4D53-87F3-7C3CAAD44AD7 - b2857c9515e8cf35"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "InitBlocks"
+                  moduleName = "libBlocks.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/seanhickey/Projects/IMBlocks/Blocks/Blocks.cpp"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "659"
+                  endingLineNumber = "659"
+                  offsetFromSymbolStart = "18">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "C1D52BA0-DB4A-4396-B468-9C87DB58CAA7"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Blocks/Blocks.cpp"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "661"
+            endingLineNumber = "661"
+            landmarkName = "InitBlocks(mem, memSize)"
+            landmarkType = "9">
+            <Locations>
+               <Location
+                  uuid = "C1D52BA0-DB4A-4396-B468-9C87DB58CAA7 - 5d77aeae0b6cddd3"
+                  shouldBeEnabled = "No"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "DrawGhostLoopBlock(RenderGroup*, Layout*, Layout*)"
+                  moduleName = "libBlocks.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/seanhickey/Projects/IMBlocks/Blocks/Blocks.cpp"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "661"
+                  endingLineNumber = "661"
+                  offsetFromSymbolStart = "85">
+               </Location>
+               <Location
+                  uuid = "C1D52BA0-DB4A-4396-B468-9C87DB58CAA7 - b2857c9515e8cf35"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "InitBlocks"
+                  moduleName = "libBlocks.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/seanhickey/Projects/IMBlocks/Blocks/Blocks.cpp"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "661"
+                  endingLineNumber = "661"
+                  offsetFromSymbolStart = "46">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "0B9286F9-2ABC-4E90-B054-540700A5B414"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Blocks/Blocks.cpp"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "653"
+            endingLineNumber = "653"
+            landmarkName = "DrawGhostLoopBlock(renderGroup, layout, innerLayout)"
+            landmarkType = "9">
+            <Locations>
+               <Location
+                  uuid = "0B9286F9-2ABC-4E90-B054-540700A5B414 - 9503c8a93ec1d08c"
+                  shouldBeEnabled = "No"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "DrawGhostCommandBlock(RenderGroup*, Layout*)"
+                  moduleName = "libBlocks.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/seanhickey/Projects/IMBlocks/Blocks/Blocks.cpp"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "653"
+                  endingLineNumber = "653"
+                  offsetFromSymbolStart = "77">
+               </Location>
+               <Location
+                  uuid = "0B9286F9-2ABC-4E90-B054-540700A5B414 - 5d77aeae0b6cddd3"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "DrawGhostLoopBlock(RenderGroup*, Layout*, Layout*)"
+                  moduleName = "libBlocks.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/seanhickey/Projects/IMBlocks/Blocks/Blocks.cpp"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "653"
+                  endingLineNumber = "653"
+                  offsetFromSymbolStart = "61">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+   </Breakpoints>
 </Bucket>
