@@ -21,7 +21,7 @@ void PushRect(Arena *arena, Rectangle rect, v4 color) {
         rect.x,          rect.y + rect.h, 100.0f / 512.0f, 100.0f / 512.0f, color.r, color.g, color.b, color.a,
         
         // Upper tri
-        rect.x + rect.w,  rect.y,         100.0f / 512.0f, 100.0f / 512.0f, color.r, color.g, color.b, color.a,
+        rect.x + rect.w, rect.y,          100.0f / 512.0f, 100.0f / 512.0f, color.r, color.g, color.b, color.a,
         rect.x,          rect.y + rect.h, 100.0f / 512.0f, 100.0f / 512.0f, color.r, color.g, color.b, color.a,
         rect.x + rect.w, rect.y + rect.h, 100.0f / 512.0f, 100.0f / 512.0f, color.r, color.g, color.b, color.a,
     };

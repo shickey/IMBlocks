@@ -142,6 +142,39 @@ Layout CreateEmptyLayoutAt(f32 x, f32 y) {
     return {v2{x, y}, Rectangle{x, y, 0, 0}};
 }
 
+void AssembleVertexBuferForRenderGroup(Arena *vertexArena, BlocksRenderInfo *renderInfo, RenderGroup* renderGroup) {
+    Assert(renderInfo->drawCallCount < ArrayCount(renderInfo->drawCalls));
+    
+    BlocksDrawCall *drawCall = &renderInfo->drawCalls[renderInfo->drawCallCount++];
+    drawCall->transform = renderGroup->transform;
+    
+    u8 *start = ArenaAt(vertexArena);
+    drawCall->vertexOffset = (u32)(start - renderInfo->vertexData) / VERTEX_SIZE;
+    
+    for (u32 entryIdx = 0; entryIdx < renderGroup->entryCount; ++entryIdx) {
+        RenderEntry *entry = &renderGroup->entries[entryIdx];
+        switch(entry->type) {
+            case RenderEntryType_Command: {
+                PushCommandBlockVerts(vertexArena, entry->P, entry->color);
+                break;
+            }
+            case RenderEntryType_Loop: {
+                PushLoopBlockVerts(vertexArena, entry->P, entry->color, entry->hStretch, entry->vStretch);
+                break;
+            }
+            case RenderEntryType_Rect: {
+                PushRect(vertexArena, entry->rect, entry->color);
+                break;
+            }
+            case RenderEntryType_RectOutline: {
+                PushRectOutline(vertexArena, entry->rect, entry->color);
+                break;
+            }
+        }
+    }
+    drawCall->vertexCount = (u32)(ArenaAt(vertexArena) - start) / VERTEX_SIZE;
+}
+
 void BeginBlocks(BlocksInput input) {
     blocksCtx->input = input;
     
@@ -305,75 +338,14 @@ BlocksRenderInfo EndBlocks(RenderGroup *renderGroup) {
     
     // Assmble vertex buffer
     BlocksRenderInfo Result = {};
-    Result.vertexData = ArenaAt(blocksCtx->frame);
+    Result.vertexData = ArenaAt(&blocksCtx->frame);
     
-    for (u32 i = 0; i < 2; ++i) {
-        RenderGroup *group = &blocksCtx->renderGroups[i];
-        u8 *start = ArenaAt(blocksCtx->frame);
-        
-        Assert(Result.drawCallCount < ArrayCount(Result.drawCalls));
-        BlocksDrawCall *drawCall = &Result.drawCalls[Result.drawCallCount++];
-        drawCall->transform = group->transform;
-        drawCall->vertexOffset = (u32)(start - Result.vertexData) / VERTEX_SIZE;
-        for (u32 entryIdx = 0; entryIdx < group->entryCount; ++entryIdx) {
-            RenderEntry *entry = &group->entries[entryIdx];
-            switch(entry->type) {
-                case RenderEntryType_Command: {
-                    PushCommandBlockVerts(&blocksCtx->frame, entry->P, entry->color);
-                    break;
-                }
-                case RenderEntryType_Loop: {
-                    PushLoopBlockVerts(&blocksCtx->frame, entry->P, entry->color, entry->hStretch, entry->vStretch);
-                    break;
-                }
-                case RenderEntryType_Rect: {
-                    PushRect(&blocksCtx->frame, entry->rect, entry->color);
-                    break;
-                }
-                case RenderEntryType_RectOutline: {
-                    PushRectOutline(&blocksCtx->frame, entry->rect, entry->color);
-                    break;
-                }
-            }
-        }
-        drawCall->vertexCount = (u32)(ArenaAt(blocksCtx->frame) - start) / VERTEX_SIZE;
-    }
+    AssembleVertexBuferForRenderGroup(&blocksCtx->frame, &Result, &blocksCtx->blocksRenderGroup);
+    AssembleVertexBuferForRenderGroup(&blocksCtx->frame, &Result, &blocksCtx->uiRenderGroup);
+    AssembleVertexBuferForRenderGroup(&blocksCtx->frame, &Result, &blocksCtx->dragRenderGroup);
+    AssembleVertexBuferForRenderGroup(&blocksCtx->frame, &Result, &blocksCtx->debugRenderGroup);
     
-    // Assemble debug data data
-    {
-        RenderGroup *group = &blocksCtx->debugRenderGroup;
-        
-        u8 *start = ArenaAt(blocksCtx->frame);
-        
-        Assert(Result.drawCallCount < ArrayCount(Result.drawCalls));
-        BlocksDrawCall *drawCall = &Result.drawCalls[Result.drawCallCount++];
-        drawCall->transform = group->transform;
-        drawCall->vertexOffset = (u32)(start - Result.vertexData) / VERTEX_SIZE;
-        for (u32 entryIdx = 0; entryIdx < group->entryCount; ++entryIdx) {
-            RenderEntry *entry = &group->entries[entryIdx];
-            switch(entry->type) {
-                case RenderEntryType_Command: {
-                    PushCommandBlockVerts(&blocksCtx->frame, entry->P, entry->color);
-                    break;
-                }
-                case RenderEntryType_Loop: {
-                    PushLoopBlockVerts(&blocksCtx->frame, entry->P, entry->color, entry->hStretch, entry->vStretch);
-                    break;
-                }
-                case RenderEntryType_Rect: {
-                    PushRect(&blocksCtx->frame, entry->rect, entry->color);
-                    break;
-                }
-                case RenderEntryType_RectOutline: {
-                    PushRectOutline(&blocksCtx->frame, entry->rect, entry->color);
-                    break;
-                }
-            }
-        }
-        drawCall->vertexCount = (u32)(ArenaAt(blocksCtx->frame) - start) / VERTEX_SIZE;
-    }
-    
-    Result.vertexDataSize = (u32)(ArenaAt(blocksCtx->frame) - Result.vertexData);
+    Result.vertexDataSize = (u32)(ArenaAt(&blocksCtx->frame) - Result.vertexData);
     return Result;
 }
 
@@ -748,13 +720,16 @@ extern "C" BlocksRenderInfo RunBlocks(void *mem, BlocksInput *input) {
     
     InitRenderGroup(&blocksCtx->debugRenderGroup, blocksTransformPair.transform, blocksTransformPair.invTransform);
     
-    RenderGroup *blocksRenderGroup = &blocksCtx->renderGroups[0];
+    RenderGroup *blocksRenderGroup = &blocksCtx->blocksRenderGroup;
     InitRenderGroup(blocksRenderGroup, blocksTransformPair.transform, blocksTransformPair.invTransform);
+    
+    RenderGroup *dragRenderGroup = &blocksCtx->dragRenderGroup;
+    InitRenderGroup(dragRenderGroup, blocksTransformPair.transform, blocksTransformPair.invTransform);
     
     if (Dragging()) {
         // Update dragging info
         Script *script = blocksCtx->dragInfo.script;
-        Layout dragLayout = RenderScript(blocksRenderGroup, script);
+        Layout dragLayout = RenderScript(dragRenderGroup, script);
         blocksCtx->dragInfo.scriptLayout = dragLayout;
         blocksCtx->dragInfo.inlet = {script->P.x - 4, script->P.y, 8, 16};
         blocksCtx->dragInfo.outlet = {dragLayout.at.x - 4, dragLayout.at.y, 8, 16};
@@ -765,7 +740,7 @@ extern "C" BlocksRenderInfo RunBlocks(void *mem, BlocksInput *input) {
         // Reset this to false each frame so we can update the ghost block insertion point, if necessary
         blocksCtx->dragInfo.readyToInsert = false;
     }
-     for (u32 i = 0; i < blocksCtx->scriptCount; ++i) {
+    for (u32 i = 0; i < blocksCtx->scriptCount; ++i) {
         Script *script = &blocksCtx->scripts[i];
         if (Dragging() && blocksCtx->dragInfo.script == script) {
             continue;
@@ -774,7 +749,7 @@ extern "C" BlocksRenderInfo RunBlocks(void *mem, BlocksInput *input) {
     }
     
     // Floating UI
-    RenderGroup *overlayRenderGroup = &blocksCtx->renderGroups[1];
+    RenderGroup *overlayRenderGroup = &blocksCtx->uiRenderGroup;
     TransformPair oneToOneTransformPair = OneToOneCameraTransformPair(blocksCtx->screenSize);
     InitRenderGroup(overlayRenderGroup, oneToOneTransformPair.transform, oneToOneTransformPair.invTransform);
     RenderNewBlockButton(overlayRenderGroup);

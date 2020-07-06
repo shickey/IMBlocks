@@ -187,7 +187,7 @@ static f32 zoomLevel = 3.0;
         _vertBuffers[i] = [_device newBufferWithLength:(BLOCK_BYTE_SIZE * MAX_BLOCKS) options:MTLResourceStorageModeShared];
         _vertBuffers[i].label = @"Vertex Buffer";
         
-        _worldUniformsBuffers[i] = [_device newBufferWithLength:(sizeof(WorldUniforms) * 3) options:MTLResourceStorageModeShared];
+        _worldUniformsBuffers[i] = [_device newBufferWithLength:(sizeof(WorldUniforms) * 4) options:MTLResourceStorageModeShared];
         _worldUniformsBuffers[i].label = @"World Uniforms Buffer";
     }
     

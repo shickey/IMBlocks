@@ -16,7 +16,7 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "651"
             endingLineNumber = "651"
-            landmarkName = "DrawGhostLoopBlock(renderGroup, layout, innerLayout)"
+            landmarkName = "InitBlocks(mem, memSize)"
             landmarkType = "9">
             <Locations>
                <Location
@@ -160,7 +160,7 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "653"
             endingLineNumber = "653"
-            landmarkName = "DrawGhostLoopBlock(renderGroup, layout, innerLayout)"
+            landmarkName = "InitBlocks(mem, memSize)"
             landmarkType = "9">
             <Locations>
                <Location

@@ -145,7 +145,9 @@ struct BlocksContext {
     Arena permanent;
     Arena frame;
     
-    RenderGroup renderGroups[2];
+    RenderGroup blocksRenderGroup;
+    RenderGroup uiRenderGroup;
+    RenderGroup dragRenderGroup;
     RenderGroup debugRenderGroup;
     
     Script scripts[1024];
@@ -195,8 +197,8 @@ Arena SubArena(Arena *arena, u32 size) {
 }
 
 inline
-u8 *ArenaAt(Arena arena) {
-    return arena.data + arena.used;
+u8 *ArenaAt(Arena *arena) {
+    return arena->data + arena->used;
 }
 
 #define PushStruct(arena, type) (type *)PushSize(arena, sizeof(type))
