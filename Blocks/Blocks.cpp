@@ -365,6 +365,7 @@ BlocksRenderInfo EndBlocks(RenderGroup *renderGroup) {
                         // @NOTE: We *always* keep the script we're adding the dragging blocks to and throw out the dragging script
                         switch(dragInfo.insertionType) {
                             case InsertionType_Before: {
+                                Assert(HasOutlet(dragInfo.lastBlock->type));
                                 Connect(dragInfo.lastBlock, dragInfo.insertionBaseBlock);
                                 dragInfo.insertionBaseScript->topBlock = dragInfo.firstBlock;
                                 dragInfo.insertionBaseScript->P.x -= dragInfo.scriptLayout.bounds.w;
@@ -378,11 +379,19 @@ BlocksRenderInfo EndBlocks(RenderGroup *renderGroup) {
                                 }
                                 Connect(dragInfo.insertionBaseBlock, dragInfo.firstBlock);
                                 if (next) {
-                                    if (dragInfo.firstBlock->type == BlockType_Loop && !dragInfo.firstBlock->inner) {
+                                    if (IsBranchBlockType(dragInfo.firstBlock->type) && !dragInfo.firstBlock->inner) {
                                         ConnectInner(dragInfo.firstBlock, next);
                                     }
-                                    else {
+                                    else if (HasOutlet(dragInfo.lastBlock->type)) {
                                         Connect(dragInfo.lastBlock, next);
+                                    }
+                                    else {
+                                        // The last block we're inserting doesn't have an outlet (e.g., forever or stop)
+                                        // So we take the rest of the existing stack and turn it into a new script
+                                        // 
+                                        // @TODO: Better method for placing the new stack
+                                        Script *restOfStack = CreateScript(dragInfo.scriptLayout.at);
+                                        restOfStack->topBlock = next;
                                     }
                                 }
                                 DeleteScript(dragInfo.script);
@@ -395,18 +404,26 @@ BlocksRenderInfo EndBlocks(RenderGroup *renderGroup) {
                                 }
                                 ConnectInner(dragInfo.insertionBaseBlock, dragInfo.firstBlock);
                                 if (inner) {
-                                    if (dragInfo.firstBlock->type == BlockType_Loop && !dragInfo.firstBlock->inner) {
+                                    if (IsBranchBlockType(dragInfo.firstBlock->type) && !dragInfo.firstBlock->inner) {
                                         ConnectInner(dragInfo.firstBlock, inner);
                                     }
-                                    else {
+                                    else if (HasOutlet(dragInfo.lastBlock->type)) {
                                         Connect(dragInfo.lastBlock, inner);
+                                    }
+                                    else {
+                                        // The last block we're inserting doesn't have an outlet (e.g., forever or stop)
+                                        // So we take the rest of the existing stack and turn it into a new script
+                                        // 
+                                        // @TODO: Better method for placing the new stack
+                                        Script *restOfStack = CreateScript(dragInfo.scriptLayout.at);
+                                        restOfStack->topBlock = inner;
                                     }
                                 }
                                 DeleteScript(dragInfo.script);
                                 break;
                             }
                             case InsertionType_Around: {
-                                Assert(!dragInfo.firstBlock->inner);
+                                Assert(HasInnerOutlet(dragInfo.firstBlock->type) && !dragInfo.firstBlock->inner);
                                 ConnectInner(dragInfo.firstBlock, dragInfo.insertionBaseBlock);
                                 dragInfo.insertionBaseScript->topBlock = dragInfo.firstBlock;
                                 dragInfo.insertionBaseScript->P.x -= 6;
