@@ -11,11 +11,29 @@
 #define PushVerts(arena, v) PushData_(arena, (v), sizeof((v)))
 #define VERTEX_SIZE (8 * sizeof(f32))
 
+#define COLOR_RED     v4{1, 0, 0, 1}
+#define COLOR_GREEN   v4{0, 1, 0, 1}
+#define COLOR_BLUE    v4{0, 0, 1, 1}
+#define COLOR_CYAN    v4{0, 1, 1, 1}
+#define COLOR_MAGENTA v4{1, 0, 1, 1}
+#define COLOR_YELLOW  v4{1, 1, 0, 1}
+#define COLOR_BLACK   v4{0, 0, 0, 1}
+#define COLOR_WHITE   v4{1, 1, 1, 1}
+#define COLOR_GREY_25 v4{0.25, 0.25, 0.25, 1}
+#define COLOR_GREY_50 v4{0.50, 0.50, 0.50, 1}
+#define COLOR_GREY_75 v4{0.75, 0.75, 0.75, 1}
+
 struct BlockMetrics {
     v2 size;
     v2 sizeWithConnectors;
+    
+    // Everything below here is relative to the block origin (lower-left corner)
     v2 innerOrigin;
     v2 innerSize;
+    
+    Rectangle inlet;
+    Rectangle outlet;
+    Rectangle innerOutlet;
 };
 
 global_var BlockMetrics METRICS[BlockTypeCount] = {
@@ -24,30 +42,45 @@ global_var BlockMetrics METRICS[BlockTypeCount] = {
         v2{18, 16},
         v2{0, 0},
         v2{0, 0},
+        Rectangle{-4, 0, 8, 16},
+        Rectangle{12, 0, 8, 16},
+        Rectangle{0, 0, 0, 0},
     },
     { // BlockType_Event
         v2{17, 16},
         v2{19, 16},
         v2{0, 0},
         v2{0, 0},
+        Rectangle{0, 0, 0, 0},
+        Rectangle{13, 0, 8, 16},
+        Rectangle{0, 0, 0, 0},
     },
     { // BlockType_EndCap
         v2{17, 16},
         v2{17, 16},
         v2{0, 0},
         v2{0, 0},
+        Rectangle{-4, 0, 8, 16},
+        Rectangle{0, 0, 0, 0},
+        Rectangle{0, 0, 0, 0},
     },
     { // BlockType_Loop
         v2{38, 20},
         v2{40, 20},
         v2{6, 0},
         v2{16, 16},
+        Rectangle{-4, 0, 7, 16},
+        Rectangle{34, 0, 8, 16},
+        Rectangle{3, 0, 6, 16},
     },
     { // BlockType_Forever
         v2{38, 20},
         v2{38, 20},
         v2{6, 0},
         v2{16, 16},
+        Rectangle{-4, 0, 7, 16},
+        Rectangle{0, 0, 0, 0},
+        Rectangle{3, 0, 6, 16},
     },
 };
 

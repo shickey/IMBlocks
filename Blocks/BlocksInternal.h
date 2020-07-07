@@ -177,13 +177,10 @@ struct BlocksContext {
 void BeginBlocks(BlocksInput input);
 BlocksRenderInfo EndBlocks(RenderGroup *renderGroup);
 void DrawSubScript(RenderGroup *renderGroup, Block *block, Script *script, Layout *layout);
-b32 DrawBlock(RenderGroup *renderGroup, Block *, Script *, Layout *);
-// void DrawCommandBlock(RenderGroup *renderGroup, Block *, Script *, Layout *, u32 flags = 0);
+b32 DrawBlock(RenderGroup *renderGroup, Block *block, Script *script, Layout *layout);
 void DrawSimpleBlock(RenderGroup *renderGroup, BlockType blockType, Block *block, Script *script, Layout *layout, u32 flags = 0);
-// void DrawLoopBlock(RenderGroup *renderGroup, Block *, Script *, Layout *, Layout *, u32 flags = 0);
 void DrawBranchBlock(RenderGroup *renderGroup, BlockType blockType, Block *block, Script *script, Layout *layout, Layout *innerLayout, u32 flags = 0);
-void DrawGhostCommandBlock(RenderGroup *renderGroup, Layout *layout);
-void DrawGhostLoopBlock(RenderGroup *renderGroup, Layout *layout, Layout *innerLayout = 0);
+void DrawGhostBlock(RenderGroup *renderGroup, BlockType blockType, Layout *layout, Layout *innerLayout = 0);
 
 void *PushSize(Arena *arena, u32 size) {
   // Make sure we have enough space left in the arena

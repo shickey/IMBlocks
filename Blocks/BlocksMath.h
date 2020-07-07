@@ -31,6 +31,14 @@ b32 RectsIntersect(Rectangle a, Rectangle b) {
 }
 
 inline
+Rectangle TranslateRectangle(Rectangle rect, v2 translation) {
+    return Rectangle{ rect.origin.x + translation.x,
+                      rect.origin.y + translation.y,
+                      rect.size.w,
+                      rect.size.h};
+}
+
+inline
 f32 Clamp(f32 val, f32 min, f32 max) {
   return Max(min, Min(max, val));
 }
@@ -108,5 +116,10 @@ f32 Dot(v4 a, v4 b) {
 inline
 v4 operator*(mat4x4 a, v4 b) {
   return v4{ Dot(a.columns[0], b), Dot(a.columns[1], b), Dot(a.columns[2], b), Dot(a.columns[3], b) };
+}
+
+inline
+v2 operator-(v2 a, v2 b) {
+    return {a.x - b.x, a.y - b.y};
 }
 

@@ -39,6 +39,8 @@ typedef uint64_t b64;
 
 #define Assert(expr) if(!(expr)) { *(volatile u32 *)0 = 0; }
 
+#define Invalid Assert(0)
+
 union v2 {
     struct {
         f32 x;

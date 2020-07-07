@@ -62,14 +62,56 @@ Block *CreateBlock(BlockType type) {
 }
 
 inline
+b32 HasOutlet(BlockType type) {
+    switch (type) {
+        case BlockType_Command: return true;
+        case BlockType_Event:   return true;
+        case BlockType_EndCap:  return false;
+        case BlockType_Loop:    return true;
+        case BlockType_Forever: return false;
+        default: break;
+    }
+    return true; // I guess? Since most block do have an outlet?
+}
+
+inline
+b32 HasInlet(BlockType type) {
+    switch (type) {
+        case BlockType_Command: return true;
+        case BlockType_Event:   return false;
+        case BlockType_EndCap:  return true;
+        case BlockType_Loop:    return true;
+        case BlockType_Forever: return true;
+        default: break;
+    }
+    return true; // I guess? Since most block do have an outlet?
+}
+
+inline
+b32 HasInnerOutlet(BlockType type) {
+    switch (type) {
+        case BlockType_Command: return false;
+        case BlockType_Event:   return false;
+        case BlockType_EndCap:  return false;
+        case BlockType_Loop:    return true;
+        case BlockType_Forever: return true;
+        default: break;
+    }
+    return true; // I guess? Since most block do have an outlet?
+}
+
+inline
 void Connect(Block *from, Block *to) {
+    Assert(HasOutlet(from->type));
+    Assert(HasInlet(to->type));
     from->next = to;
     to->prev = from;
 }
 
 inline
 void ConnectInner(Block *from, Block *to) {
-    Assert(from->type == BlockType_Loop);
+    Assert(HasInnerOutlet(from->type));
+    Assert(HasInlet(to->type));
     from->inner = to;
     to->parent = from;
 }
@@ -240,6 +282,45 @@ void AssembleVertexBuferForRenderGroup(Arena *vertexArena, BlocksRenderInfo *ren
                 break;
             }
         }
+        
+        #if 0
+        // Draw inlet, outlet, and innerOutlet hit-boxes
+        if (entry->block) {
+            BlockType type = entry->block->type;
+            BlockMetrics metrics = METRICS[type];
+            if (HasInlet(type)) {
+                Rectangle inletRect = {entry->P.x + metrics.inlet.origin.x, 
+                                       entry->P.y + metrics.inlet.origin.y,
+                                       metrics.inlet.size.w,
+                                       metrics.inlet.size.h};
+                DEBUGPushRectOutline(inletRect, v4{0, 1, 1, 1});
+            }
+            if (HasOutlet(type)) {
+                if (IsBranchBlockType(type)) {
+                    Rectangle outletRect = {entry->P.x + metrics.outlet.origin.x + entry->hStretch, 
+                                            entry->P.y + metrics.outlet.origin.y,
+                                            metrics.outlet.size.w,
+                                            metrics.outlet.size.h};
+                    DEBUGPushRectOutline(outletRect, v4{1, 0, 1, 1});
+                }
+                else {
+                    Rectangle outletRect = {entry->P.x + metrics.outlet.origin.x, 
+                                            entry->P.y + metrics.outlet.origin.y,
+                                            metrics.outlet.size.w,
+                                            metrics.outlet.size.h};
+                    DEBUGPushRectOutline(outletRect, v4{1, 0, 1, 1});
+                }
+            }
+            if (HasInnerOutlet(type)) {
+                Rectangle innerOutletRect = {entry->P.x + metrics.innerOutlet.origin.x, 
+                                             entry->P.y + metrics.innerOutlet.origin.y,
+                                             metrics.innerOutlet.size.w,
+                                             metrics.innerOutlet.size.h};
+                DEBUGPushRectOutline(innerOutletRect, v4{1, 1, 0, 1});
+            }
+        }
+        #endif
+        
     }
     drawCall->vertexCount = (u32)(ArenaAt(vertexArena) - start) / VERTEX_SIZE;
 }
@@ -325,7 +406,7 @@ BlocksRenderInfo EndBlocks(RenderGroup *renderGroup) {
                                 break;
                             }
                             case InsertionType_Around: {
-                                Assert(dragInfo.firstBlock->type == BlockType_Loop && !dragInfo.firstBlock->inner);
+                                Assert(!dragInfo.firstBlock->inner);
                                 ConnectInner(dragInfo.firstBlock, dragInfo.insertionBaseBlock);
                                 dragInfo.insertionBaseScript->topBlock = dragInfo.firstBlock;
                                 dragInfo.insertionBaseScript->P.x -= 6;
@@ -397,13 +478,13 @@ BlocksRenderInfo EndBlocks(RenderGroup *renderGroup) {
     }
     
     
-    if (Dragging()) {
-        DEBUGPushRectOutline(blocksCtx->dragInfo.inlet, v4{0, 1, 0, 1});
-        DEBUGPushRectOutline(blocksCtx->dragInfo.outlet, v4{0, 1, 0, 1});
-        if (blocksCtx->interacting.block->type == BlockType_Loop) {
-            DEBUGPushRectOutline(blocksCtx->dragInfo.innerOutlet, v4{0, 1, 0, 1});
-        }
-    }
+    // if (Dragging()) {
+    //     DEBUGPushRectOutline(blocksCtx->dragInfo.inlet, v4{0, 1, 0, 1});
+    //     DEBUGPushRectOutline(blocksCtx->dragInfo.outlet, v4{0, 1, 0, 1});
+    //     if (blocksCtx->interacting.block->type == BlockType_Loop) {
+    //         DEBUGPushRectOutline(blocksCtx->dragInfo.innerOutlet, v4{0, 1, 0, 1});
+    //     }
+    // }
     
     // Assmble vertex buffer
     BlocksRenderInfo Result = {};
@@ -461,46 +542,48 @@ void DrawSubScript(RenderGroup *renderGroup, Block *block, Script *script, Layou
         }
     }
     
+    // If we're dragging a branch block, check to see if we should place it around another stack
     if (Dragging() && !blocksCtx->dragInfo.readyToInsert) {
         DragInfo dragInfo = blocksCtx->dragInfo;
-        if (dragInfo.script != script && dragInfo.firstBlock->type == BlockType_Loop && !dragInfo.script->topBlock->inner) {
+        if (dragInfo.script != script && HasInnerOutlet(dragInfo.firstBlock->type) && !dragInfo.script->topBlock->inner) {
             if (RectsIntersect(inletBounds, dragInfo.innerOutlet)) {
                 Layout loopLayout = CreateEmptyLayoutAt(layout->bounds.origin.x - 6, layout->bounds.origin.y);
-                DrawGhostLoopBlock(renderGroup, &loopLayout, layout);
+                DrawGhostBlock(renderGroup, dragInfo.firstBlock->type, &loopLayout, layout);
                 blocksCtx->dragInfo.readyToInsert = true;
                 blocksCtx->dragInfo.insertionType = InsertionType_Around;
                 blocksCtx->dragInfo.insertionBaseBlock = block;
                 blocksCtx->dragInfo.insertionBaseScript = script;
-                DEBUGPushRectOutline(loopLayout.bounds, {0, 1, 0, 1});
+                // DEBUGPushRectOutline(loopLayout.bounds, {0, 1, 0, 1});
             }
         }
     }
     
+    #if 0
+    // Draw layout bounds
     DEBUGPushRectOutline(layout->bounds, {0, 1, 0, 1});
+    #endif
 }
 
 b32 DrawBlock(RenderGroup *renderGroup, Block *block, Script *script, Layout *layout) {
     DragInfo dragInfo = blocksCtx->dragInfo;
     
     // Draw ghost block before this block, if necessary
-    if (Dragging() && dragInfo.script != script && IsTopBlockOfScript(block, script) && !blocksCtx->dragInfo.readyToInsert) {
-        Rectangle inletBounds = {script->P.x - 4, script->P.y, 8, 16};
-        DEBUGPushRectOutline(inletBounds, v4{1, 0, 0, 1});
+    if (Dragging()
+        && dragInfo.script != script
+        && IsTopBlockOfScript(block, script)
+        && !blocksCtx->dragInfo.readyToInsert 
+        && HasInlet(block->type)
+        && HasOutlet(dragInfo.lastBlock->type))
+    {
+        BlockMetrics blockMetrics = METRICS[block->type];
+        BlockMetrics dragBlockMetrics = METRICS[dragInfo.lastBlock->type];
+        Rectangle inletBounds = TranslateRectangle(blockMetrics.inlet, script->P);
+        DEBUGPushRectOutline(inletBounds, COLOR_RED);
         if (RectsIntersect(inletBounds, dragInfo.outlet)) {
-            switch (dragInfo.lastBlock->type) {
-                case BlockType_Command: {
-                    layout->at.x -= 16;
-                    layout->bounds.x -= 16;
-                    DrawGhostCommandBlock(renderGroup, layout);
-                    break;
-                }
-                case BlockType_Loop: {
-                    layout->at.x -= 38;
-                    layout->bounds.x -= 38;
-                    DrawGhostLoopBlock(renderGroup, layout);
-                    break;
-                }
-            }
+            layout->at.x -= dragBlockMetrics.size.w;
+            layout->bounds.x -= dragBlockMetrics.size.w;
+            DrawGhostBlock(renderGroup, dragInfo.lastBlock->type, layout);
+            
             blocksCtx->dragInfo.readyToInsert = true;
             blocksCtx->dragInfo.insertionType = InsertionType_Before;
             blocksCtx->dragInfo.insertionBaseBlock = block;
@@ -508,101 +591,109 @@ b32 DrawBlock(RenderGroup *renderGroup, Block *block, Script *script, Layout *la
         }
     }
     
-    switch(block->type) {
-        case BlockType_Command: // Fall through
-        case BlockType_Event:   // Fall through
-        case BlockType_EndCap: {
-            DrawSimpleBlock(renderGroup, block->type, block, script, layout);
-            break;
-        }
-        case BlockType_Loop: // Fall through
-        case BlockType_Forever: {
-            BlockMetrics metrics = METRICS[block->type];
-            Layout innerLayout = CreateEmptyLayoutAt(layout->at.x + metrics.innerOrigin.x, layout->at.y + metrics.innerOrigin.y);
-            b32 renderedInner = false;
-            
-            // Draw ghost block inside the loop, if necessary
-            if (Dragging() && dragInfo.script != script && !blocksCtx->dragInfo.readyToInsert) {
-                Rectangle innerOutletBounds = {layout->at.x + 3, layout->at.y, 6, 16};
-                DEBUGPushRectOutline(innerOutletBounds, v4{1, 0, 0, 1});
-                if (RectsIntersect(innerOutletBounds, dragInfo.inlet)) {
-                    switch (dragInfo.firstBlock->type) {
-                        case BlockType_Command: {
-                            DrawGhostCommandBlock(renderGroup, &innerLayout);
-                            break;
-                        }
-                        case BlockType_Loop: {
-                            // Override block drawing so that loop contains the rest of the substack
-                            Layout innerInnerLayout = CreateEmptyLayoutAt(innerLayout.at.x + 6, innerLayout.at.y);
-                            if (block->inner) {
-                                blocksCtx->dragInfo.readyToInsert = true; // Set this here so that the inner substack doesn't also try to draw a ghost block
-                                DrawSubScript(renderGroup, block->inner, script, &innerInnerLayout);
-                            }
-                            DrawGhostLoopBlock(renderGroup, &innerLayout, &innerInnerLayout);
-                            renderedInner = true;
-                            break;
-                        }
-                    }
-                    blocksCtx->dragInfo.readyToInsert = true;
-                    blocksCtx->dragInfo.insertionType = InsertionType_Inside;
-                    blocksCtx->dragInfo.insertionBaseBlock = block;
-                    blocksCtx->dragInfo.insertionBaseScript = script;
+    // Draw the block
+    if (IsSimpleBlockType(block->type)) {
+        DrawSimpleBlock(renderGroup, block->type, block, script, layout);
+    }
+    else if (IsBranchBlockType(block->type)) {
+        BlockMetrics blockMetrics = METRICS[block->type];
+        Layout innerLayout = CreateEmptyLayoutAt(layout->at.x + blockMetrics.innerOrigin.x, layout->at.y + blockMetrics.innerOrigin.y);
+        b32 renderedInner = false;
+        
+        // Draw ghost block inside the branch, if necessary
+        if (Dragging() 
+            && dragInfo.script != script 
+            && !blocksCtx->dragInfo.readyToInsert
+            && HasInnerOutlet(block->type)
+            && HasInlet(dragInfo.firstBlock->type)) 
+        {
+            Rectangle innerOutletBounds = TranslateRectangle(blockMetrics.innerOutlet, layout->at);
+            DEBUGPushRectOutline(innerOutletBounds, COLOR_GREEN);
+            if (RectsIntersect(innerOutletBounds, dragInfo.inlet)) {
+                if (IsSimpleBlockType(dragInfo.firstBlock->type)) {
+                    DrawGhostBlock(renderGroup, dragInfo.firstBlock->type, &innerLayout);
                 }
+                else if (IsBranchBlockType(block->type)) {
+                    // Override block drawing so that branch contains the rest of the substack
+                    BlockMetrics dragMetrics = METRICS[dragInfo.firstBlock->type]; // @TODO: Double-check this. Is this the right metrics to be grabbing here?
+                    Layout innerInnerLayout = CreateEmptyLayoutAt(innerLayout.at.x + dragMetrics.innerOrigin.x, innerLayout.at.y);
+                    if (block->inner) {
+                        blocksCtx->dragInfo.readyToInsert = true; // Set this here so that the inner substack doesn't also try to draw a ghost block
+                        DrawSubScript(renderGroup, block->inner, script, &innerInnerLayout);
+                    }
+                    DrawGhostBlock(renderGroup, dragInfo.firstBlock->type, &innerLayout, &innerInnerLayout);
+                    renderedInner = true;
+                }
+                else {
+                    Invalid;
+                }
+                
+                blocksCtx->dragInfo.readyToInsert = true;
+                blocksCtx->dragInfo.insertionType = InsertionType_Inside;
+                blocksCtx->dragInfo.insertionBaseBlock = block;
+                blocksCtx->dragInfo.insertionBaseScript = script;
             }
-            
-            // If we didn't already draw the entire inner script (i.e., with a ghost block)
-            // then do it now, the normal way
-            if (block->inner && !renderedInner) {
-                DrawSubScript(renderGroup, block->inner, script, &innerLayout);
-            }
-            DrawBranchBlock(renderGroup, block->type, block, script, layout, &innerLayout);
-            
-            break;
         }
-        default: break;
+        
+        // If we didn't already draw the entire inner script (i.e., with a ghost block)
+        // then do it now, the normal way
+        if (block->inner && !renderedInner) {
+            DrawSubScript(renderGroup, block->inner, script, &innerLayout);
+        }
+        DrawBranchBlock(renderGroup, block->type, block, script, layout, &innerLayout);
+    }
+    else {
+        Invalid;
     }
     
     // Draw ghost block after this block, if necessary
-    if (Dragging() && dragInfo.script != script && !blocksCtx->dragInfo.readyToInsert) {
-        Rectangle outletBounds = {layout->at.x - 4, layout->at.y, 8, 16};
-        DEBUGPushRectOutline(outletBounds, v4{1, 0, 0, 1});
+    if (Dragging() 
+        && dragInfo.script != script 
+        && !blocksCtx->dragInfo.readyToInsert
+        && HasOutlet(block->type)
+        && HasInlet(dragInfo.firstBlock->type))
+    {
+        BlockMetrics blockMetrics = METRICS[block->type];
+        Rectangle outletBounds = TranslateRectangle(blockMetrics.outlet, {layout->at.x - blockMetrics.size.w, layout->at.y});
+        DEBUGPushRectOutline(outletBounds, COLOR_BLUE);
         if (RectsIntersect(outletBounds, dragInfo.inlet)) {
-            switch (dragInfo.firstBlock->type) {
-                case BlockType_Command: {
-                    DrawGhostCommandBlock(renderGroup, layout);
+            if (IsSimpleBlockType(dragInfo.firstBlock->type)) {
+                DrawGhostBlock(renderGroup, dragInfo.firstBlock->type, layout);
+                
+                blocksCtx->dragInfo.readyToInsert = true;
+                blocksCtx->dragInfo.insertionType = InsertionType_After;
+                blocksCtx->dragInfo.insertionBaseBlock = block;
+                blocksCtx->dragInfo.insertionBaseScript = script;
+            }
+            else if (IsBranchBlockType(dragInfo.firstBlock->type)) {
+                if (dragInfo.script->topBlock->inner) {
+                    // If the loop already contains an inner stack, just put it in line
+                    DrawGhostBlock(renderGroup, dragInfo.firstBlock->type, layout);
                     blocksCtx->dragInfo.readyToInsert = true;
                     blocksCtx->dragInfo.insertionType = InsertionType_After;
                     blocksCtx->dragInfo.insertionBaseBlock = block;
                     blocksCtx->dragInfo.insertionBaseScript = script;
-                    break;
                 }
-                case BlockType_Loop: {
-                    if (dragInfo.script->topBlock->inner) {
-                        // If the loop already contains an inner stack, just put it in line
-                        DrawGhostLoopBlock(renderGroup, layout);
-                        blocksCtx->dragInfo.readyToInsert = true;
-                        blocksCtx->dragInfo.insertionType = InsertionType_After;
-                        blocksCtx->dragInfo.insertionBaseBlock = block;
-                        blocksCtx->dragInfo.insertionBaseScript = script;
+                else {
+                    // Otherwise, override block drawing so that loop contains the rest of the substack
+                    BlockMetrics dragMetrics = METRICS[dragInfo.firstBlock->type];
+                    Layout innerLayout = CreateEmptyLayoutAt(layout->at.x + dragMetrics.innerOrigin.x, layout->at.y);
+                    blocksCtx->dragInfo.readyToInsert = true; // Set this here so that the inner substack doesn't also try to draw a ghost block
+                    if (block->next) {
+                        DrawSubScript(renderGroup, block->next, script, &innerLayout);
                     }
-                    else {
-                        // Otherwise, override block drawing so that loop contains the rest of the substack
-                        Layout innerLayout = CreateEmptyLayoutAt(layout->at.x + 6, layout->at.y);
-                        blocksCtx->dragInfo.readyToInsert = true; // Set this here so that the inner substack doesn't also try to draw a ghost block
-                        if (block->next) {
-                            DrawSubScript(renderGroup, block->next, script, &innerLayout);
-                        }
-                        DrawGhostLoopBlock(renderGroup, layout, &innerLayout);
-                        blocksCtx->dragInfo.readyToInsert = true;
-                        blocksCtx->dragInfo.insertionType = InsertionType_After;
-                        blocksCtx->dragInfo.insertionBaseBlock = block;
-                        blocksCtx->dragInfo.insertionBaseScript = script;
-                        
-                        // @TODO: I don't love this weird return boolean thing. Is there a way to avoid this?
-                        return false; // Don't continue drawing this substack
-                    }
-                    break;
+                    DrawGhostBlock(renderGroup, dragInfo.firstBlock->type, layout, &innerLayout);
+                    blocksCtx->dragInfo.readyToInsert = true;
+                    blocksCtx->dragInfo.insertionType = InsertionType_After;
+                    blocksCtx->dragInfo.insertionBaseBlock = block;
+                    blocksCtx->dragInfo.insertionBaseScript = script;
+                    
+                    // @TODO: I don't love this weird return boolean thing. Is there a way to avoid this?
+                    return false; // Don't continue drawing this substack
                 }
+            }
+            else {
+                Invalid;
             }
         }
     }
@@ -704,14 +795,16 @@ void DrawBranchBlock(RenderGroup *renderGroup, BlockType blockType, Block *block
     }
 }
 
-inline
-void DrawGhostCommandBlock(RenderGroup *renderGroup, Layout *layout) {
-    DrawSimpleBlock(renderGroup, BlockType_Command, NULL, NULL, layout, DrawBlockFlags_Ghost);
-}
-
-inline
-void DrawGhostLoopBlock(RenderGroup *renderGroup, Layout *layout, Layout *innerLayout) {
-    DrawBranchBlock(renderGroup, BlockType_Loop, NULL, NULL, layout, innerLayout, DrawBlockFlags_Ghost);
+void DrawGhostBlock(RenderGroup *renderGroup, BlockType blockType, Layout *layout, Layout *innerLayout) {
+    if (IsSimpleBlockType(blockType)) {
+        DrawSimpleBlock(renderGroup, blockType, NULL, NULL, layout, DrawBlockFlags_Ghost);
+    }
+    else if (IsBranchBlockType(blockType)) {
+        DrawBranchBlock(renderGroup, blockType, NULL, NULL, layout, innerLayout, DrawBlockFlags_Ghost);
+    }
+    else {
+        Invalid;
+    }
 }
 
 
@@ -764,7 +857,7 @@ extern "C" void InitBlocks(void *mem, u32 memSize) {
     
     {
         // Same as previous, but with an end cap instead of a forever at the end
-        Script *script = CreateScript(v2{-40, -25});
+        Script *script = CreateScript(v2{-40, -50});
         Block *event = CreateBlock(BlockType_Event);
         script->topBlock = event;
         
@@ -835,12 +928,28 @@ extern "C" BlocksRenderInfo RunBlocks(void *mem, BlocksInput *input) {
     if (Dragging()) {
         // Update dragging info
         Script *script = blocksCtx->dragInfo.script;
+        Block *firstBlock = blocksCtx->dragInfo.firstBlock;
+        Block *lastBlock = blocksCtx->dragInfo.lastBlock;
+        BlockMetrics firstMetrics = METRICS[firstBlock->type];
+        BlockMetrics lastMetrics = METRICS[lastBlock->type];
+        
         Layout dragLayout = RenderScript(dragRenderGroup, script);
         blocksCtx->dragInfo.scriptLayout = dragLayout;
-        blocksCtx->dragInfo.inlet = {script->P.x - 4, script->P.y, 8, 16};
-        blocksCtx->dragInfo.outlet = {dragLayout.at.x - 4, dragLayout.at.y, 8, 16};
-        if (blocksCtx->interacting.block->type == BlockType_Loop) {
-            blocksCtx->dragInfo.innerOutlet = {script->P.x + 3, script->P.y, 6, 16};
+        
+        DEBUGPushRectOutline(dragLayout.bounds, COLOR_GREEN);
+        
+        if (HasInlet(firstBlock->type)) {
+            blocksCtx->dragInfo.inlet = TranslateRectangle(firstMetrics.inlet, dragLayout.bounds.origin);
+            DEBUGPushRectOutline(blocksCtx->dragInfo.inlet, COLOR_CYAN);
+        }
+        if (HasOutlet(lastBlock->type)) {
+            // Account for outlet offset in block metrics
+            blocksCtx->dragInfo.outlet = TranslateRectangle(lastMetrics.outlet, {dragLayout.at.x - lastMetrics.size.w, dragLayout.at.y});
+            DEBUGPushRectOutline(blocksCtx->dragInfo.outlet, COLOR_MAGENTA);
+        }
+        if (HasInnerOutlet(firstBlock->type)) {
+            blocksCtx->dragInfo.innerOutlet = TranslateRectangle(firstMetrics.innerOutlet, dragLayout.bounds.origin);
+            DEBUGPushRectOutline(blocksCtx->dragInfo.innerOutlet, COLOR_YELLOW);
         }
         
         // Reset this to false each frame so we can update the ghost block insertion point, if necessary
