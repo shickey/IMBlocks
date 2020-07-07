@@ -133,6 +133,16 @@ b32 Dragging() {
 }
 
 inline
+b32 IsSimpleBlockType(BlockType type) {
+    return type == BlockType_Command || type == BlockType_Event || type == BlockType_EndCap;
+}
+
+inline
+b32 IsBranchBlockType(BlockType type) {
+    return type == BlockType_Loop || type == BlockType_Forever;
+}
+
+inline
 Layout CreateEmptyLayoutAt(v2 at) {
     return {at, Rectangle{at.x, at.y, 0, 0}};
 }
@@ -140,6 +150,48 @@ Layout CreateEmptyLayoutAt(v2 at) {
 inline
 Layout CreateEmptyLayoutAt(f32 x, f32 y) {
     return {v2{x, y}, Rectangle{x, y, 0, 0}};
+}
+
+inline
+RenderEntryType RenderEntryTypeForBlockType(BlockType blockType) {
+    switch (blockType) {
+        case BlockType_Command: return RenderEntryType_Command;
+        case BlockType_Event:   return RenderEntryType_Event;
+        case BlockType_EndCap:  return RenderEntryType_EndCap;
+        case BlockType_Loop:    return RenderEntryType_Loop;
+        case BlockType_Forever: return RenderEntryType_Forever;
+        default: break;
+    }
+    return RenderEntryType_Null;
+}
+
+inline
+v4 ColorForBlockType(BlockType blockType) {
+    switch (blockType) {
+        case BlockType_Command: return HexToColor(0x4C97FF);
+        case BlockType_Event:   return HexToColor(0xFFD500);
+        case BlockType_EndCap:  return HexToColor(0x9966FF);
+        case BlockType_Loop:    return HexToColor(0xFFAB19);
+        case BlockType_Forever: return HexToColor(0xD65CD6);
+        default: break;
+    }
+    return v4{1, 1, 1, 1};
+}
+
+v2 UnprojectMouse(v2 mouseP, RenderGroup *group) {
+    f32 projectedX = (((2.0 * mouseP.x) / blocksCtx->screenSize.w) - 1.0);
+    f32 projectedY = (((2.0 * mouseP.y) / blocksCtx->screenSize.h) - 1.0);
+    
+    mat4x4 unprojection = group->invTransform;
+    v4 unprojectedP = unprojection * v4{projectedX, projectedY, 0, 1};
+    return unprojectedP.xy;
+}
+
+void InitRenderGroup(RenderGroup *group, mat4x4 transform, mat4x4 invTransform) {
+    group->entryCount = 0;
+    group->transform = transform;
+    group->invTransform = invTransform;
+    group->mouseP = UnprojectMouse(blocksCtx->input.mouseP, group);
 }
 
 void AssembleVertexBuferForRenderGroup(Arena *vertexArena, BlocksRenderInfo *renderInfo, RenderGroup* renderGroup) {
@@ -158,8 +210,20 @@ void AssembleVertexBuferForRenderGroup(Arena *vertexArena, BlocksRenderInfo *ren
                 PushCommandBlockVerts(vertexArena, entry->P, entry->color);
                 break;
             }
+            case RenderEntryType_Event: {
+                PushEventBlockVerts(vertexArena, entry->P, entry->color);
+                break;
+            }
+            case RenderEntryType_EndCap: {
+                PushEndCapBlockVerts(vertexArena, entry->P, entry->color);
+                break;
+            }
             case RenderEntryType_Loop: {
                 PushLoopBlockVerts(vertexArena, entry->P, entry->color, entry->hStretch, entry->vStretch);
+                break;
+            }
+            case RenderEntryType_Forever: {
+                PushForeverBlockVerts(vertexArena, entry->P, entry->color, entry->hStretch, entry->vStretch);
                 break;
             }
             case RenderEntryType_Rect: {
@@ -168,6 +232,11 @@ void AssembleVertexBuferForRenderGroup(Arena *vertexArena, BlocksRenderInfo *ren
             }
             case RenderEntryType_RectOutline: {
                 PushRectOutline(vertexArena, entry->rect, entry->color);
+                break;
+            }
+            case RenderEntryType_Null: {
+                // No-op
+                // @TODO: Assert? Warning? Nothing?
                 break;
             }
         }
@@ -440,12 +509,16 @@ b32 DrawBlock(RenderGroup *renderGroup, Block *block, Script *script, Layout *la
     }
     
     switch(block->type) {
-        case BlockType_Command: {
-            DrawCommandBlock(renderGroup, block, script, layout);
+        case BlockType_Command: // Fall through
+        case BlockType_Event:   // Fall through
+        case BlockType_EndCap: {
+            DrawSimpleBlock(renderGroup, block->type, block, script, layout);
             break;
         }
-        case BlockType_Loop: {
-            Layout innerLayout = CreateEmptyLayoutAt(layout->at.x + 6, layout->at.y);
+        case BlockType_Loop: // Fall through
+        case BlockType_Forever: {
+            BlockMetrics metrics = METRICS[block->type];
+            Layout innerLayout = CreateEmptyLayoutAt(layout->at.x + metrics.innerOrigin.x, layout->at.y + metrics.innerOrigin.y);
             b32 renderedInner = false;
             
             // Draw ghost block inside the loop, if necessary
@@ -482,7 +555,7 @@ b32 DrawBlock(RenderGroup *renderGroup, Block *block, Script *script, Layout *la
             if (block->inner && !renderedInner) {
                 DrawSubScript(renderGroup, block->inner, script, &innerLayout);
             }
-            DrawLoopBlock(renderGroup, block, script, layout, &innerLayout);
+            DrawBranchBlock(renderGroup, block->type, block, script, layout, &innerLayout);
             
             break;
         }
@@ -537,27 +610,36 @@ b32 DrawBlock(RenderGroup *renderGroup, Block *block, Script *script, Layout *la
     return true;
 }
 
-void DrawCommandBlock(RenderGroup *renderGroup, Block *block, Script *script, Layout *layout, u32 flags) {
+void DrawSimpleBlock(RenderGroup *renderGroup, BlockType blockType, Block *block, Script *script, Layout *layout, u32 flags) {
     b32 isGhost = flags & DrawBlockFlags_Ghost;
+    if (block) {
+        Assert(blockType == block->type);
+        Assert(IsSimpleBlockType(blockType));
+    }
+    else {
+        Assert(isGhost);
+    }
     
-    Rectangle hitBox = { layout->at.x, layout->at.y, 16, 16};
+    BlockMetrics metrics = METRICS[blockType];
+    
+    Rectangle hitBox = { layout->at.x, layout->at.y, metrics.size.w, metrics.size.h};
     
     RenderEntry *entry = PushRenderEntry(renderGroup);
-    entry->type = RenderEntryType_Command;
+    entry->type = RenderEntryTypeForBlockType(blockType);
     entry->block = block;
     entry->P = v2{layout->at.x, layout->at.y};
     if (isGhost) {
         entry->color = v4{1, 1, 1, 0.5};
     }
     else {
-        entry->color = v4{0, 1, 1, 1};
+        entry->color = ColorForBlockType(blockType);
     }
     
     
-    layout->at.x += 16;
+    layout->at.x += metrics.size.w;
 
-    layout->bounds.w += 16;
-    layout->bounds.h = Max(layout->bounds.h, 16);
+    layout->bounds.w += metrics.size.w;
+    layout->bounds.h = Max(layout->bounds.h, metrics.size.h);
     
     if (!isGhost && PointInRect(renderGroup->mouseP, hitBox)) {
         blocksCtx->nextHot.type = InteractionType_Select;
@@ -568,40 +650,48 @@ void DrawCommandBlock(RenderGroup *renderGroup, Block *block, Script *script, La
         blocksCtx->nextHot.mouseStartP = renderGroup->mouseP;
         blocksCtx->nextHot.mouseOffset = { renderGroup->mouseP.x - script->P.x, renderGroup->mouseP.y - script->P.y };
     }
-    
 }
 
-void DrawLoopBlock(RenderGroup *renderGroup, Block *block, Script *script, Layout *layout, Layout *innerLayout, u32 flags) {
+void DrawBranchBlock(RenderGroup *renderGroup, BlockType blockType, Block *block, Script *script, Layout *layout, Layout *innerLayout, u32 flags) {
     b32 isGhost = flags & DrawBlockFlags_Ghost;
+    if (block) {
+        Assert(blockType == block->type);
+        Assert(IsBranchBlockType(blockType));
+    }
+    else {
+        Assert(isGhost);
+    }
+    
+    BlockMetrics metrics = METRICS[blockType];
     
     u32 horizStretch = 0;
     u32 vertStretch = 0;
     if (innerLayout) {
-        horizStretch = Max(innerLayout->bounds.w - 16, 0);
-        vertStretch = Max(innerLayout->bounds.h - 16, 0);
+        horizStretch = Max(innerLayout->bounds.w - metrics.innerSize.w, 0);
+        vertStretch = Max(innerLayout->bounds.h - metrics.innerSize.h, 0);
     }
     
         
-    Rectangle hitBox = { layout->at.x, layout->at.y, 38 + (f32)horizStretch, 20 + (f32)vertStretch };
-    Rectangle innerHitBox = { layout->at.x + 6, layout->at.y, (f32)horizStretch + 16, (f32)vertStretch + 16 };
+    Rectangle hitBox = { layout->at.x, layout->at.y, metrics.size.w + (f32)horizStretch, metrics.size.h + (f32)vertStretch };
+    Rectangle innerHitBox = { layout->at.x + metrics.innerOrigin.x, layout->at.y, metrics.innerSize.w + (f32)horizStretch, metrics.innerSize.h + (f32)vertStretch };
     
     RenderEntry *entry = PushRenderEntry(renderGroup);
-    entry->type = RenderEntryType_Loop;
+    entry->type = RenderEntryTypeForBlockType(blockType);
     entry->block = block;
     entry->P = v2{layout->at.x, layout->at.y};
     if (isGhost) {
         entry->color = v4{1, 1, 1, 0.5};
     }
     else {
-        entry->color = v4{1, 0, 1, 1};
+        entry->color = ColorForBlockType(blockType);
     }
     entry->hStretch = horizStretch;
     entry->vStretch = vertStretch;
     
-    layout->at.x += 38 + horizStretch;
+    layout->at.x += metrics.size.w + horizStretch;
     
-    layout->bounds.w += 38 + horizStretch;
-    layout->bounds.h = Max(layout->bounds.h, 20 + vertStretch);
+    layout->bounds.w += metrics.size.w + horizStretch;
+    layout->bounds.h = Max(layout->bounds.h, metrics.size.h + vertStretch);
     
     if (!isGhost && PointInRect(renderGroup->mouseP, hitBox) && !PointInRect(renderGroup->mouseP, innerHitBox)) {
         blocksCtx->nextHot.type = InteractionType_Select;
@@ -616,12 +706,12 @@ void DrawLoopBlock(RenderGroup *renderGroup, Block *block, Script *script, Layou
 
 inline
 void DrawGhostCommandBlock(RenderGroup *renderGroup, Layout *layout) {
-    DrawCommandBlock(renderGroup, NULL, NULL, layout, DrawBlockFlags_Ghost);
+    DrawSimpleBlock(renderGroup, BlockType_Command, NULL, NULL, layout, DrawBlockFlags_Ghost);
 }
 
 inline
 void DrawGhostLoopBlock(RenderGroup *renderGroup, Layout *layout, Layout *innerLayout) {
-    DrawLoopBlock(renderGroup, NULL, NULL, layout, innerLayout, DrawBlockFlags_Ghost);
+    DrawBranchBlock(renderGroup, BlockType_Loop, NULL, NULL, layout, innerLayout, DrawBlockFlags_Ghost);
 }
 
 
@@ -654,6 +744,38 @@ extern "C" void InitBlocks(void *mem, u32 memSize) {
         Script *script = CreateScript(v2{0, 0});
         Block *block = CreateBlock(BlockType_Command);
         script->topBlock = block;
+    }
+    
+    {
+        // A script with some different types of blocks
+        Script *script = CreateScript(v2{-40, -25});
+        Block *event = CreateBlock(BlockType_Event);
+        script->topBlock = event;
+        
+        Block *command = CreateBlock(BlockType_Command);
+        Connect(event, command);
+        
+        Block *repeat = CreateBlock(BlockType_Loop);
+        Connect(command, repeat);
+        
+        Block *forever = CreateBlock(BlockType_Forever);
+        Connect(repeat, forever);
+    }
+    
+    {
+        // Same as previous, but with an end cap instead of a forever at the end
+        Script *script = CreateScript(v2{-40, -25});
+        Block *event = CreateBlock(BlockType_Event);
+        script->topBlock = event;
+        
+        Block *command = CreateBlock(BlockType_Command);
+        Connect(event, command);
+        
+        Block *repeat = CreateBlock(BlockType_Loop);
+        Connect(command, repeat);
+        
+        Block *endCap = CreateBlock(BlockType_EndCap);
+        Connect(repeat, endCap);
     }
     
     {
@@ -693,22 +815,6 @@ extern "C" void InitBlocks(void *mem, u32 memSize) {
     }
     
     
-}
-
-v2 UnprojectMouse(v2 mouseP, RenderGroup *group) {
-    f32 projectedX = (((2.0 * mouseP.x) / blocksCtx->screenSize.w) - 1.0);
-    f32 projectedY = (((2.0 * mouseP.y) / blocksCtx->screenSize.h) - 1.0);
-    
-    mat4x4 unprojection = group->invTransform;
-    v4 unprojectedP = unprojection * v4{projectedX, projectedY, 0, 1};
-    return unprojectedP.xy;
-}
-
-void InitRenderGroup(RenderGroup *group, mat4x4 transform, mat4x4 invTransform) {
-    group->entryCount = 0;
-    group->transform = transform;
-    group->invTransform = invTransform;
-    group->mouseP = UnprojectMouse(blocksCtx->input.mouseP, group);
 }
 
 extern "C" BlocksRenderInfo RunBlocks(void *mem, BlocksInput *input) {

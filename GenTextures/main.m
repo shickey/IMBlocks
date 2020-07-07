@@ -42,7 +42,7 @@ f32 clamp(f32 val, f32 min, f32 max) {
 int main(int argc, const char * argv[]) {
     @autoreleasepool {
         
-        NSImage *nsImage = [[NSImage alloc] initWithContentsOfFile:@"/Users/seanhickey/Projects/IMBlocks/GenTextures/block-textures.png"];
+        NSImage *nsImage = [[NSImage alloc] initWithContentsOfFile:@"/Users/seanhickey/Projects/IMBlocks/GenTextures/blocks-atlas.png"];
         NSImageRep *imageRep = nsImage.representations[0];
         u32 inWidth = (u32)imageRep.pixelsWide;
         u32 inHeight = (u32)imageRep.pixelsHigh;
@@ -83,7 +83,7 @@ int main(int argc, const char * argv[]) {
         }
         
         // Clamp, normalize, convert to u8s
-        const f32 scale = 20.0f;
+        const f32 scale = 40.0f;
         u8 *outPixels = malloc(outWidth * outHeight);
         for (u32 y = 0; y < outHeight; ++y) {
             for (u32 x = 0; x < outWidth; ++x) {
@@ -96,13 +96,13 @@ int main(int argc, const char * argv[]) {
         }
         
         NSData *pixelData = [NSData dataWithBytes:outPixels length:outWidth * outHeight];
-        [pixelData writeToFile:@"/Users/seanhickey/Projects/IMBlocks/Shared/Textures/block-textures.dat" atomically:YES];
+        [pixelData writeToFile:@"/Users/seanhickey/Projects/IMBlocks/Shared/Textures/blocks-atlas.dat" atomically:YES];
 
 #if OUTPUT_SDF_IMAGE
         CGContextRef outCtx = CGBitmapContextCreate(outPixels, outWidth, outHeight, 8, outWidth, colorSpace, kCGImageAlphaNone);
         CGImageRef outImage = CGBitmapContextCreateImage(outCtx);
         
-        CFURLRef url = (__bridge CFURLRef)[NSURL fileURLWithPath:@"/Users/seanhickey/Projects/IMBlocks/GenTextures/block-textures-sdf.png"];
+        CFURLRef url = (__bridge CFURLRef)[NSURL fileURLWithPath:@"/Users/seanhickey/Projects/IMBlocks/GenTextures/blocks-atlas-sdf.png"];
         CGImageDestinationRef dest = CGImageDestinationCreateWithURL(url, kUTTypePNG, 1, nil);
         CGImageDestinationAddImage(dest, outImage, nil);
         CGImageDestinationFinalize(dest);

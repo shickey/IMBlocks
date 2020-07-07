@@ -41,6 +41,8 @@
 		A3A90524249810B4004835B7 /* MetalView.m in Sources */ = {isa = PBXBuildFile; fileRef = A3A90523249810B4004835B7 /* MetalView.m */; };
 		A3A90525249810B4004835B7 /* MetalView.m in Sources */ = {isa = PBXBuildFile; fileRef = A3A90523249810B4004835B7 /* MetalView.m */; };
 		A3AA9852249B04AC00928544 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = A3AA9851249B04AC00928544 /* main.m */; };
+		A3AF0EAC24B39D5D00439C4E /* blocks-atlas.dat in Resources */ = {isa = PBXBuildFile; fileRef = A3AF0EAB24B39D5D00439C4E /* blocks-atlas.dat */; };
+		A3AF0EAD24B39D5D00439C4E /* blocks-atlas.dat in Resources */ = {isa = PBXBuildFile; fileRef = A3AF0EAB24B39D5D00439C4E /* blocks-atlas.dat */; };
 		A3C07B0624A6F31D0031BF23 /* Blocks.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3C07B0524A6F3180031BF23 /* Blocks.cpp */; };
 /* End PBXBuildFile section */
 
@@ -130,6 +132,7 @@
 		A3A90523249810B4004835B7 /* MetalView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MetalView.m; sourceTree = "<group>"; };
 		A3AA984F249B04AB00928544 /* GenTextures */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = GenTextures; sourceTree = BUILT_PRODUCTS_DIR; };
 		A3AA9851249B04AC00928544 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		A3AF0EAB24B39D5D00439C4E /* blocks-atlas.dat */ = {isa = PBXFileReference; lastKnownFileType = file; path = "blocks-atlas.dat"; sourceTree = "<group>"; };
 		A3C07B0024A6F3180031BF23 /* BlocksInternal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BlocksInternal.h; sourceTree = "<group>"; };
 		A3C07B0124A6F3180031BF23 /* BlocksVerts.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BlocksVerts.h; sourceTree = "<group>"; };
 		A3C07B0224A6F3180031BF23 /* BlocksTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BlocksTypes.h; sourceTree = "<group>"; };
@@ -297,6 +300,7 @@
 			isa = PBXGroup;
 			children = (
 				A37CB53D24A1565B008FF9E0 /* block-textures.dat */,
+				A3AF0EAB24B39D5D00439C4E /* blocks-atlas.dat */,
 			);
 			path = Textures;
 			sourceTree = "<group>";
@@ -484,6 +488,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A3AF0EAC24B39D5D00439C4E /* blocks-atlas.dat in Resources */,
 				A3A904F62497D37F004835B7 /* Main.storyboard in Resources */,
 				A37CB53E24A1565B008FF9E0 /* block-textures.dat in Resources */,
 				A3A905132497D37F004835B7 /* Assets.xcassets in Resources */,
@@ -498,6 +503,7 @@
 				A3A905142497D37F004835B7 /* Assets.xcassets in Resources */,
 				A37CB53F24A1565B008FF9E0 /* block-textures.dat in Resources */,
 				A3A9050B2497D37F004835B7 /* Main.storyboard in Resources */,
+				A3AF0EAD24B39D5D00439C4E /* blocks-atlas.dat in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

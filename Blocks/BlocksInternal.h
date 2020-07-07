@@ -13,8 +13,13 @@ struct Script;
 struct Layout;
 
 enum BlockType {
-    BlockType_Command,
-    BlockType_Loop
+    BlockType_Command = 0,
+    BlockType_Event,
+    BlockType_EndCap,
+    BlockType_Loop,
+    BlockType_Forever,
+    
+    BlockTypeCount
 };
 
 struct Arena {
@@ -47,10 +52,15 @@ struct Layout {
 
 enum RenderEntryType {
     RenderEntryType_Command,
+    RenderEntryType_Event,
+    RenderEntryType_EndCap,
     RenderEntryType_Loop,
+    RenderEntryType_Forever,
     
     RenderEntryType_Rect,
     RenderEntryType_RectOutline,
+    
+    RenderEntryType_Null,
 };
 
 struct RenderEntry {
@@ -168,8 +178,10 @@ void BeginBlocks(BlocksInput input);
 BlocksRenderInfo EndBlocks(RenderGroup *renderGroup);
 void DrawSubScript(RenderGroup *renderGroup, Block *block, Script *script, Layout *layout);
 b32 DrawBlock(RenderGroup *renderGroup, Block *, Script *, Layout *);
-void DrawCommandBlock(RenderGroup *renderGroup, Block *, Script *, Layout *, u32 flags = 0);
-void DrawLoopBlock(RenderGroup *renderGroup, Block *, Script *, Layout *, Layout *, u32 flags = 0);
+// void DrawCommandBlock(RenderGroup *renderGroup, Block *, Script *, Layout *, u32 flags = 0);
+void DrawSimpleBlock(RenderGroup *renderGroup, BlockType blockType, Block *block, Script *script, Layout *layout, u32 flags = 0);
+// void DrawLoopBlock(RenderGroup *renderGroup, Block *, Script *, Layout *, Layout *, u32 flags = 0);
+void DrawBranchBlock(RenderGroup *renderGroup, BlockType blockType, Block *block, Script *script, Layout *layout, Layout *innerLayout, u32 flags = 0);
 void DrawGhostCommandBlock(RenderGroup *renderGroup, Layout *layout);
 void DrawGhostLoopBlock(RenderGroup *renderGroup, Layout *layout, Layout *innerLayout = 0);
 

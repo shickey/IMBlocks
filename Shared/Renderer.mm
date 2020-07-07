@@ -198,7 +198,7 @@ static f32 zoomLevel = 3.0;
                                                                                          mipmapped:false];
     blockTexture = [_device newTextureWithDescriptor:texDescriptor];
     
-    NSData *texData = [NSData dataWithContentsOfURL:[NSBundle.mainBundle URLForResource:@"block-textures" withExtension:@"dat"]];
+    NSData *texData = [NSData dataWithContentsOfURL:[NSBundle.mainBundle URLForResource:@"blocks-atlas" withExtension:@"dat"]];
     [blockTexture replaceRegion:MTLRegionMake2D(0, 0, 512, 512) mipmapLevel:0 withBytes:texData.bytes bytesPerRow:512];
     
     // Init Blocks Memory

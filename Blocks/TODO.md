@@ -21,6 +21,7 @@
     - Rotating between scripts?
   - Debug System
     - Simple string rendering
+  - Serialization
     
 ### Done?
   - Finish drag and drop
