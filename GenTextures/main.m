@@ -10,6 +10,8 @@
 #import <CoreGraphics/CoreGraphics.h>
 #import <stdint.h>
 
+#define GENERATE_SDF 0
+#define GENERATE_MIPMAPS 1
 #define OUTPUT_SDF_IMAGE 1
 
 typedef uint8_t  u8;
@@ -33,82 +35,120 @@ typedef struct Pt {
     s32 y;
 } Pt;
 
-f32 *deadReckoning(u8 *pixels, u32 width, u32 height);
+
 
 f32 clamp(f32 val, f32 min, f32 max) {
     return (val < min) ? min : (val > max ? max : val);
 }
+f32 *deadReckoning(u8 *pixels, u32 width, u32 height);
+void generateSdfTexture(void);
+void generateMipmaps(void);
 
 int main(int argc, const char * argv[]) {
     @autoreleasepool {
-        
-        NSImage *nsImage = [[NSImage alloc] initWithContentsOfFile:@"/Users/seanhickey/Projects/IMBlocks/GenTextures/blocks-atlas.png"];
+        #ifdef GENERATE_SDF
+        generateSdfTexture();  
+        #endif
+        #ifdef GENERATE_MIPMAPS
+        generateMipmaps();
+        #endif
+    }
+    return 0;
+}
+
+void generateMipmaps() {
+    const u32 firstMipSize = 512;
+    for (u32 i = firstMipSize; i > 0; i /= 2) {
+        NSString *filename = [NSString stringWithFormat:@"/Users/seanhickey/Projects/IMBlocks/GenTextures/mipmap-images/blocks-atlas-%d.png", i];
+        NSImage *nsImage = [[NSImage alloc] initWithContentsOfFile:filename];
         NSImageRep *imageRep = nsImage.representations[0];
         u32 inWidth = (u32)imageRep.pixelsWide;
         u32 inHeight = (u32)imageRep.pixelsHigh;
-        
-        assert(inWidth == inHeight);
-        
-        u32 outWidth = 512;
-        u32 outHeight = 512;
 
         CGImageRef image = [nsImage CGImageForProposedRect:nil context:nil hints:nil];
-        
+
         CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceGray();
         CGContextRef ctx = CGBitmapContextCreate(NULL, inWidth, inHeight, 8, inWidth, colorSpace, kCGImageAlphaNone);
-        
+
         CGRect rect = CGRectMake(0, 0, inWidth, inHeight);
         CGContextDrawImage(ctx, rect, image);
-        
-        u8 *pixels = (u8 *)CGBitmapContextGetData(ctx);
-        
-        f32 *sdfRep = deadReckoning(pixels, inWidth, inHeight);
-        
-        // Downsample 
-        assert(inHeight % outHeight == 0 && inWidth % outWidth == 0 && outHeight == outWidth);
-        f32 *downsampled = malloc(outWidth * outHeight * sizeof(f32));
-        u32 stride = inHeight / outHeight;
-        for (u32 y = 0; y < inHeight; y += stride) {
-            for (u32 x = 0; x < inWidth; x += stride) {
-                
-                // Blend the square region to the right and down from each `stride`-th pixel into the downsampled buffer
-                f32 total = 0;
-                for (u32 dy = 0; dy < stride; ++dy) {
-                    for (u32 dx = 0; dx < stride; ++dx) {
-                        total += sdfRep[(y + dy) * inWidth + (x + dx)];
-                    }
-                }
-                downsampled[(y / stride) * outWidth + (x / stride)] = total / (f32)(stride * stride);
-            }
-        }
-        
-        // Clamp, normalize, convert to u8s
-        const f32 scale = 40.0f;
-        u8 *outPixels = malloc(outWidth * outHeight);
-        for (u32 y = 0; y < outHeight; ++y) {
-            for (u32 x = 0; x < outWidth; ++x) {
-                f32 val = downsampled[y * outWidth + x];
-                f32 clamped = clamp(val, -scale, scale); // Now in interval [-scale, scale]
-                f32 normalized = clamped / scale; // Now in interval [-1, 1]
-                f32 newVal = ((normalized + 1.0f) / 2.0f) * UINT8_MAX; // Now uint in range [0...UINT8_MAX]
-                outPixels[y * outWidth + x] = newVal;
-            }
-        }
-        
-        NSData *pixelData = [NSData dataWithBytes:outPixels length:outWidth * outHeight];
-        [pixelData writeToFile:@"/Users/seanhickey/Projects/IMBlocks/Shared/Textures/blocks-atlas.dat" atomically:YES];
 
-#if OUTPUT_SDF_IMAGE
-        CGContextRef outCtx = CGBitmapContextCreate(outPixels, outWidth, outHeight, 8, outWidth, colorSpace, kCGImageAlphaNone);
-        CGImageRef outImage = CGBitmapContextCreateImage(outCtx);
+        u8 *texels = (u8 *)CGBitmapContextGetData(ctx);
         
-        CFURLRef url = (__bridge CFURLRef)[NSURL fileURLWithPath:@"/Users/seanhickey/Projects/IMBlocks/GenTextures/blocks-atlas-sdf.png"];
-        CGImageDestinationRef dest = CGImageDestinationCreateWithURL(url, kUTTypePNG, 1, nil);
-        CGImageDestinationAddImage(dest, outImage, nil);
-        CGImageDestinationFinalize(dest);
-#endif
+        NSData *pixelData = [NSData dataWithBytes:texels length:inWidth * inHeight];
+        NSString *outFilename = [NSString stringWithFormat:@"/Users/seanhickey/Projects/IMBlocks/Shared/Textures/blocks-mip-%d.dat", i];
+        [pixelData writeToFile:outFilename atomically:YES];
     }
-    return 0;
+    
+}
+
+void generateSdfTexture() {
+            
+    NSImage *nsImage = [[NSImage alloc] initWithContentsOfFile:@"/Users/seanhickey/Projects/IMBlocks/GenTextures/blocks-atlas.png"];
+    NSImageRep *imageRep = nsImage.representations[0];
+    u32 inWidth = (u32)imageRep.pixelsWide;
+    u32 inHeight = (u32)imageRep.pixelsHigh;
+
+    assert(inWidth == inHeight);
+
+    u32 outWidth = 512;
+    u32 outHeight = 512;
+
+    CGImageRef image = [nsImage CGImageForProposedRect:nil context:nil hints:nil];
+
+    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceGray();
+    CGContextRef ctx = CGBitmapContextCreate(NULL, inWidth, inHeight, 8, inWidth, colorSpace, kCGImageAlphaNone);
+
+    CGRect rect = CGRectMake(0, 0, inWidth, inHeight);
+    CGContextDrawImage(ctx, rect, image);
+
+    u8 *pixels = (u8 *)CGBitmapContextGetData(ctx);
+
+    f32 *sdfRep = deadReckoning(pixels, inWidth, inHeight);
+
+    // Downsample 
+    assert(inHeight % outHeight == 0 && inWidth % outWidth == 0 && outHeight == outWidth);
+    f32 *downsampled = malloc(outWidth * outHeight * sizeof(f32));
+    u32 stride = inHeight / outHeight;
+    for (u32 y = 0; y < inHeight; y += stride) {
+        for (u32 x = 0; x < inWidth; x += stride) {
+            
+            // Blend the square region to the right and down from each `stride`-th pixel into the downsampled buffer
+            f32 total = 0;
+            for (u32 dy = 0; dy < stride; ++dy) {
+                for (u32 dx = 0; dx < stride; ++dx) {
+                    total += sdfRep[(y + dy) * inWidth + (x + dx)];
+                }
+            }
+            downsampled[(y / stride) * outWidth + (x / stride)] = total / (f32)(stride * stride);
+        }
+    }
+
+    // Clamp, normalize, convert to u8s
+    const f32 scale = 40.0f;
+    u8 *outPixels = malloc(outWidth * outHeight);
+    for (u32 y = 0; y < outHeight; ++y) {
+        for (u32 x = 0; x < outWidth; ++x) {
+            f32 val = downsampled[y * outWidth + x];
+            f32 clamped = clamp(val, -scale, scale); // Now in interval [-scale, scale]
+            f32 normalized = clamped / scale; // Now in interval [-1, 1]
+            f32 newVal = ((normalized + 1.0f) / 2.0f) * UINT8_MAX; // Now uint in range [0...UINT8_MAX]
+            outPixels[y * outWidth + x] = newVal;
+        }
+    }
+
+    NSData *pixelData = [NSData dataWithBytes:outPixels length:outWidth * outHeight];
+    [pixelData writeToFile:@"/Users/seanhickey/Projects/IMBlocks/Shared/Textures/blocks-atlas.dat" atomically:YES];
+
+    #if OUTPUT_SDF_IMAGE
+    CGContextRef outCtx = CGBitmapContextCreate(outPixels, outWidth, outHeight, 8, outWidth, colorSpace, kCGImageAlphaNone);
+    CGImageRef outImage = CGBitmapContextCreateImage(outCtx);
+
+    CFURLRef url = (__bridge CFURLRef)[NSURL fileURLWithPath:@"/Users/seanhickey/Projects/IMBlocks/GenTextures/blocks-atlas-sdf.png"];
+    CGImageDestinationRef dest = CGImageDestinationCreateWithURL(url, kUTTypePNG, 1, nil);
+    CGImageDestinationAddImage(dest, outImage, nil);
+    CGImageDestinationFinalize(dest);
+    #endif
 }
 
 f32 *deadReckoning(u8 *pixels, u32 width, u32 height) {

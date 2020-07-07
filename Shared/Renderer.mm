@@ -87,11 +87,13 @@ static f32 zoomLevel = 3.0;
     id <MTLBuffer> _vertBuffers[MAX_BUFFERS_IN_FLIGHT];
     id <MTLBuffer> _worldUniformsBuffers[MAX_BUFFERS_IN_FLIGHT];
     
-    id <MTLTexture> blockTexture;
+    id <MTLTexture> blockSdfTexture;
+    id <MTLTexture> blockMipTexture;
     
     id<MTLSamplerState> _sampler;
     
-    id <MTLRenderPipelineState> _pipelineState;
+    id <MTLRenderPipelineState> _sdfPipelineState;
+    id <MTLRenderPipelineState> _mipPipelineState;
     MTLVertexDescriptor *_mtlVertexDescriptor;
 
     uint8_t _bufferIndex;
@@ -153,29 +155,56 @@ static f32 zoomLevel = 3.0;
     samplerDescriptor.sAddressMode = MTLSamplerAddressModeClampToZero;
     samplerDescriptor.tAddressMode = MTLSamplerAddressModeClampToZero;
     _sampler = [_device newSamplerStateWithDescriptor:samplerDescriptor];
+//    MTLSamplerDescriptor *samplerDescriptor = [[MTLSamplerDescriptor alloc] init];
+//    samplerDescriptor.minFilter = MTLSamplerMinMagFilterLinear;
+//    samplerDescriptor.magFilter = MTLSamplerMinMagFilterLinear;
+//    samplerDescriptor.sAddressMode = MTLSamplerAddressModeClampToZero;
+//    samplerDescriptor.tAddressMode = MTLSamplerAddressModeClampToZero;
+//    _sampler = [_device newSamplerStateWithDescriptor:samplerDescriptor];
     
     // Set up shaders
     id<MTLLibrary> defaultLibrary = [_device newDefaultLibrary];
     id <MTLFunction> vertexFunction = [defaultLibrary newFunctionWithName:@"TexturedVertex"];
-    id <MTLFunction> fragmentFunction = [defaultLibrary newFunctionWithName:@"SdfFragment"];
+    id <MTLFunction> sdfFragmentFunction = [defaultLibrary newFunctionWithName:@"SdfFragment"];
+    id <MTLFunction> mipFragmentFunction = [defaultLibrary newFunctionWithName:@"MipmapFragment"];
 
-    // Create rendering pipeline
-    MTLRenderPipelineDescriptor *pipelineStateDescriptor = [[MTLRenderPipelineDescriptor alloc] init];
-    pipelineStateDescriptor.vertexFunction = vertexFunction;
-    pipelineStateDescriptor.fragmentFunction = fragmentFunction;
-    pipelineStateDescriptor.vertexDescriptor = _mtlVertexDescriptor;
-    pipelineStateDescriptor.colorAttachments[0].pixelFormat = view.colorPixelFormat;
-    pipelineStateDescriptor.colorAttachments[0].blendingEnabled = YES;
-    pipelineStateDescriptor.colorAttachments[0].rgbBlendOperation = MTLBlendOperationAdd;
-    pipelineStateDescriptor.colorAttachments[0].alphaBlendOperation = MTLBlendOperationAdd;
-    pipelineStateDescriptor.colorAttachments[0].sourceRGBBlendFactor = MTLBlendFactorSourceAlpha;
-    pipelineStateDescriptor.colorAttachments[0].sourceAlphaBlendFactor = MTLBlendFactorSourceAlpha;
-    pipelineStateDescriptor.colorAttachments[0].destinationRGBBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
-    pipelineStateDescriptor.colorAttachments[0].destinationAlphaBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
+    // Create rendering pipelines
+    MTLRenderPipelineDescriptor *sdfPipelineStateDescriptor = [[MTLRenderPipelineDescriptor alloc] init];
+    sdfPipelineStateDescriptor.vertexFunction = vertexFunction;
+    sdfPipelineStateDescriptor.fragmentFunction = sdfFragmentFunction;
+    sdfPipelineStateDescriptor.vertexDescriptor = _mtlVertexDescriptor;
+    sdfPipelineStateDescriptor.colorAttachments[0].pixelFormat = view.colorPixelFormat;
+    sdfPipelineStateDescriptor.colorAttachments[0].blendingEnabled = YES;
+    sdfPipelineStateDescriptor.colorAttachments[0].rgbBlendOperation = MTLBlendOperationAdd;
+    sdfPipelineStateDescriptor.colorAttachments[0].alphaBlendOperation = MTLBlendOperationAdd;
+    sdfPipelineStateDescriptor.colorAttachments[0].sourceRGBBlendFactor = MTLBlendFactorSourceAlpha;
+    sdfPipelineStateDescriptor.colorAttachments[0].sourceAlphaBlendFactor = MTLBlendFactorSourceAlpha;
+    sdfPipelineStateDescriptor.colorAttachments[0].destinationRGBBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
+    sdfPipelineStateDescriptor.colorAttachments[0].destinationAlphaBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
     
     NSError *error = NULL;
-    _pipelineState = [_device newRenderPipelineStateWithDescriptor:pipelineStateDescriptor error:&error];
-    if (!_pipelineState)
+    _sdfPipelineState = [_device newRenderPipelineStateWithDescriptor:sdfPipelineStateDescriptor error:&error];
+    if (!_sdfPipelineState)
+    {
+        NSLog(@"Failed to created pipeline state, error %@", error);
+    }
+    
+    MTLRenderPipelineDescriptor *mipPipelineStateDescriptor = [[MTLRenderPipelineDescriptor alloc] init];
+    mipPipelineStateDescriptor.vertexFunction = vertexFunction;
+    mipPipelineStateDescriptor.fragmentFunction = mipFragmentFunction;
+    mipPipelineStateDescriptor.vertexDescriptor = _mtlVertexDescriptor;
+    mipPipelineStateDescriptor.colorAttachments[0].pixelFormat = view.colorPixelFormat;
+    mipPipelineStateDescriptor.colorAttachments[0].blendingEnabled = YES;
+    mipPipelineStateDescriptor.colorAttachments[0].rgbBlendOperation = MTLBlendOperationAdd;
+    mipPipelineStateDescriptor.colorAttachments[0].alphaBlendOperation = MTLBlendOperationAdd;
+    mipPipelineStateDescriptor.colorAttachments[0].sourceRGBBlendFactor = MTLBlendFactorSourceAlpha;
+    mipPipelineStateDescriptor.colorAttachments[0].sourceAlphaBlendFactor = MTLBlendFactorSourceAlpha;
+    mipPipelineStateDescriptor.colorAttachments[0].destinationRGBBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
+    mipPipelineStateDescriptor.colorAttachments[0].destinationAlphaBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
+    
+    error = NULL;
+    _mipPipelineState = [_device newRenderPipelineStateWithDescriptor:mipPipelineStateDescriptor error:&error];
+    if (!_mipPipelineState)
     {
         NSLog(@"Failed to created pipeline state, error %@", error);
     }
@@ -191,15 +220,29 @@ static f32 zoomLevel = 3.0;
         _worldUniformsBuffers[i].label = @"World Uniforms Buffer";
     }
     
-    // Load block texture
+    // Load SDF block texture
     MTLTextureDescriptor *texDescriptor = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatR8Unorm 
                                                                                              width:512 
                                                                                             height:512 
                                                                                          mipmapped:false];
-    blockTexture = [_device newTextureWithDescriptor:texDescriptor];
+    blockSdfTexture = [_device newTextureWithDescriptor:texDescriptor];
     
     NSData *texData = [NSData dataWithContentsOfURL:[NSBundle.mainBundle URLForResource:@"blocks-atlas" withExtension:@"dat"]];
-    [blockTexture replaceRegion:MTLRegionMake2D(0, 0, 512, 512) mipmapLevel:0 withBytes:texData.bytes bytesPerRow:512];
+    [blockSdfTexture replaceRegion:MTLRegionMake2D(0, 0, 512, 512) mipmapLevel:0 withBytes:texData.bytes bytesPerRow:512];
+    
+    // Load mipmapped textures
+    MTLTextureDescriptor *mipTexDescriptor = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatR8Unorm 
+                                                                                                width:512 
+                                                                                               height:512 
+                                                                                            mipmapped:true];
+    blockMipTexture = [_device newTextureWithDescriptor:mipTexDescriptor];
+    u32 totalMipLevels = ceil(log2(512));
+    for (u32 i = 512; i > 0; i /= 2) {
+        u32 mipLevel = totalMipLevels - (ceil(log2(i)));
+        NSString *filename = [NSString stringWithFormat:@"blocks-mip-%i", i];
+        NSData *texData = [NSData dataWithContentsOfURL:[NSBundle.mainBundle URLForResource:filename withExtension:@"dat"]];
+        [blockMipTexture replaceRegion:MTLRegionMake2D(0, 0, i, i) mipmapLevel:mipLevel withBytes:texData.bytes bytesPerRow:i];
+    }
     
     // Init Blocks Memory
     loadLibBlocks();
@@ -280,7 +323,7 @@ static f32 zoomLevel = 3.0;
     _bufferIndex = (_bufferIndex + 1) % MAX_BUFFERS_IN_FLIGHT;
 
     id <MTLCommandBuffer> commandBuffer = [_commandQueue commandBuffer];
-    commandBuffer.label = @"MyCommand";
+    commandBuffer.label = @"BlocksCommandBuffer";
 
     __block dispatch_semaphore_t block_sema = _inFlightSemaphore;
     [commandBuffer addCompletedHandler:^(id<MTLCommandBuffer> buffer)
@@ -323,15 +366,15 @@ static f32 zoomLevel = 3.0;
         renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColorMake((f64)0x33 / 255.0, (f64)0x47 / 255.0, (f64)0x71 / 255.0, 1.0);
         
         id <MTLRenderCommandEncoder> renderEncoder = [commandBuffer renderCommandEncoderWithDescriptor:renderPassDescriptor];
-        renderEncoder.label = @"MyRenderEncoder";
+        renderEncoder.label = @"BlocksRenderEncoder";
         
-        [renderEncoder setRenderPipelineState:_pipelineState];
+        [renderEncoder setRenderPipelineState:_sdfPipelineState];
         
         // Render data from libBlocks
         [renderEncoder setVertexBuffer:vertBuffer offset:0 atIndex:0];
         [renderEncoder setVertexBuffer:worldUniformsBuffer offset:0 atIndex:1];
         
-        [renderEncoder setFragmentTexture:blockTexture atIndex:0];
+        [renderEncoder setFragmentTexture:blockSdfTexture atIndex:0];
         [renderEncoder setFragmentSamplerState:_sampler atIndex:0];
         
         for (u32 i = 0; i < renderInfo.drawCallCount; ++i) {

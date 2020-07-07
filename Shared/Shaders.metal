@@ -59,3 +59,11 @@ fragment float4 SdfFragment(VertexOut v [[ stage_in ]],
     return float4(v.color.rgb, opacity * v.color.a);
 }
 
+fragment float4 MipmapFragment(VertexOut v [[ stage_in ]],
+                               sampler samplr [[sampler(0)]],
+                               texture2d<float, access::sample> blockTex [[ texture(0) ]]) {
+    
+    float opacity = blockTex.sample(samplr, v.texCoord).r;
+    return float4(v.color.rgb, opacity * v.color.a);
+}
+

@@ -21,8 +21,6 @@
 		A3600D9B24ABDECE00D5075F /* imgui_impl_osx.mm in Sources */ = {isa = PBXBuildFile; fileRef = A3600D8A24ABDECD00D5075F /* imgui_impl_osx.mm */; };
 		A3600D9C24ABDECE00D5075F /* imgui_widgets.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3600D9024ABDECE00D5075F /* imgui_widgets.cpp */; };
 		A3600D9D24ABDECE00D5075F /* imgui_widgets.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3600D9024ABDECE00D5075F /* imgui_widgets.cpp */; };
-		A37CB53E24A1565B008FF9E0 /* block-textures.dat in Resources */ = {isa = PBXBuildFile; fileRef = A37CB53D24A1565B008FF9E0 /* block-textures.dat */; };
-		A37CB53F24A1565B008FF9E0 /* block-textures.dat in Resources */ = {isa = PBXBuildFile; fileRef = A37CB53D24A1565B008FF9E0 /* block-textures.dat */; };
 		A3A904F02497D37F004835B7 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = A3A904EF2497D37F004835B7 /* AppDelegate.m */; };
 		A3A904F32497D37F004835B7 /* GameViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A3A904F22497D37F004835B7 /* GameViewController.m */; };
 		A3A904F62497D37F004835B7 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A3A904F42497D37F004835B7 /* Main.storyboard */; };
@@ -43,6 +41,26 @@
 		A3AA9852249B04AC00928544 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = A3AA9851249B04AC00928544 /* main.m */; };
 		A3AF0EAC24B39D5D00439C4E /* blocks-atlas.dat in Resources */ = {isa = PBXBuildFile; fileRef = A3AF0EAB24B39D5D00439C4E /* blocks-atlas.dat */; };
 		A3AF0EAD24B39D5D00439C4E /* blocks-atlas.dat in Resources */ = {isa = PBXBuildFile; fileRef = A3AF0EAB24B39D5D00439C4E /* blocks-atlas.dat */; };
+		A3AF0EB824B4D67500439C4E /* blocks-mip-8.dat in Resources */ = {isa = PBXBuildFile; fileRef = A3AF0EAE24B4D67500439C4E /* blocks-mip-8.dat */; };
+		A3AF0EB924B4D67500439C4E /* blocks-mip-8.dat in Resources */ = {isa = PBXBuildFile; fileRef = A3AF0EAE24B4D67500439C4E /* blocks-mip-8.dat */; };
+		A3AF0EBA24B4D67500439C4E /* blocks-mip-32.dat in Resources */ = {isa = PBXBuildFile; fileRef = A3AF0EAF24B4D67500439C4E /* blocks-mip-32.dat */; };
+		A3AF0EBB24B4D67500439C4E /* blocks-mip-32.dat in Resources */ = {isa = PBXBuildFile; fileRef = A3AF0EAF24B4D67500439C4E /* blocks-mip-32.dat */; };
+		A3AF0EBC24B4D67500439C4E /* blocks-mip-512.dat in Resources */ = {isa = PBXBuildFile; fileRef = A3AF0EB024B4D67500439C4E /* blocks-mip-512.dat */; };
+		A3AF0EBD24B4D67500439C4E /* blocks-mip-512.dat in Resources */ = {isa = PBXBuildFile; fileRef = A3AF0EB024B4D67500439C4E /* blocks-mip-512.dat */; };
+		A3AF0EBE24B4D67500439C4E /* blocks-mip-16.dat in Resources */ = {isa = PBXBuildFile; fileRef = A3AF0EB124B4D67500439C4E /* blocks-mip-16.dat */; };
+		A3AF0EBF24B4D67500439C4E /* blocks-mip-16.dat in Resources */ = {isa = PBXBuildFile; fileRef = A3AF0EB124B4D67500439C4E /* blocks-mip-16.dat */; };
+		A3AF0EC024B4D67500439C4E /* blocks-mip-1.dat in Resources */ = {isa = PBXBuildFile; fileRef = A3AF0EB224B4D67500439C4E /* blocks-mip-1.dat */; };
+		A3AF0EC124B4D67500439C4E /* blocks-mip-1.dat in Resources */ = {isa = PBXBuildFile; fileRef = A3AF0EB224B4D67500439C4E /* blocks-mip-1.dat */; };
+		A3AF0EC224B4D67500439C4E /* blocks-mip-4.dat in Resources */ = {isa = PBXBuildFile; fileRef = A3AF0EB324B4D67500439C4E /* blocks-mip-4.dat */; };
+		A3AF0EC324B4D67500439C4E /* blocks-mip-4.dat in Resources */ = {isa = PBXBuildFile; fileRef = A3AF0EB324B4D67500439C4E /* blocks-mip-4.dat */; };
+		A3AF0EC424B4D67500439C4E /* blocks-mip-128.dat in Resources */ = {isa = PBXBuildFile; fileRef = A3AF0EB424B4D67500439C4E /* blocks-mip-128.dat */; };
+		A3AF0EC524B4D67500439C4E /* blocks-mip-128.dat in Resources */ = {isa = PBXBuildFile; fileRef = A3AF0EB424B4D67500439C4E /* blocks-mip-128.dat */; };
+		A3AF0EC624B4D67500439C4E /* blocks-mip-256.dat in Resources */ = {isa = PBXBuildFile; fileRef = A3AF0EB524B4D67500439C4E /* blocks-mip-256.dat */; };
+		A3AF0EC724B4D67500439C4E /* blocks-mip-256.dat in Resources */ = {isa = PBXBuildFile; fileRef = A3AF0EB524B4D67500439C4E /* blocks-mip-256.dat */; };
+		A3AF0EC824B4D67500439C4E /* blocks-mip-64.dat in Resources */ = {isa = PBXBuildFile; fileRef = A3AF0EB624B4D67500439C4E /* blocks-mip-64.dat */; };
+		A3AF0EC924B4D67500439C4E /* blocks-mip-64.dat in Resources */ = {isa = PBXBuildFile; fileRef = A3AF0EB624B4D67500439C4E /* blocks-mip-64.dat */; };
+		A3AF0ECA24B4D67500439C4E /* blocks-mip-2.dat in Resources */ = {isa = PBXBuildFile; fileRef = A3AF0EB724B4D67500439C4E /* blocks-mip-2.dat */; };
+		A3AF0ECB24B4D67500439C4E /* blocks-mip-2.dat in Resources */ = {isa = PBXBuildFile; fileRef = A3AF0EB724B4D67500439C4E /* blocks-mip-2.dat */; };
 		A3C07B0624A6F31D0031BF23 /* Blocks.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3C07B0524A6F3180031BF23 /* Blocks.cpp */; };
 /* End PBXBuildFile section */
 
@@ -105,7 +123,6 @@
 		A3600D8F24ABDECE00D5075F /* imgui_impl_osx.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = imgui_impl_osx.h; sourceTree = "<group>"; };
 		A3600D9024ABDECE00D5075F /* imgui_widgets.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = imgui_widgets.cpp; sourceTree = "<group>"; };
 		A3600D9124ABDECE00D5075F /* imgui.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = imgui.h; sourceTree = "<group>"; };
-		A37CB53D24A1565B008FF9E0 /* block-textures.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "block-textures.dat"; sourceTree = "<group>"; };
 		A3A904E22497D37E004835B7 /* Renderer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Renderer.h; sourceTree = "<group>"; };
 		A3A904E32497D37E004835B7 /* Renderer.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = Renderer.mm; sourceTree = "<group>"; };
 		A3A904E42497D37E004835B7 /* ShaderTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ShaderTypes.h; sourceTree = "<group>"; };
@@ -133,6 +150,16 @@
 		A3AA984F249B04AB00928544 /* GenTextures */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = GenTextures; sourceTree = BUILT_PRODUCTS_DIR; };
 		A3AA9851249B04AC00928544 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		A3AF0EAB24B39D5D00439C4E /* blocks-atlas.dat */ = {isa = PBXFileReference; lastKnownFileType = file; path = "blocks-atlas.dat"; sourceTree = "<group>"; };
+		A3AF0EAE24B4D67500439C4E /* blocks-mip-8.dat */ = {isa = PBXFileReference; lastKnownFileType = file; path = "blocks-mip-8.dat"; sourceTree = "<group>"; };
+		A3AF0EAF24B4D67500439C4E /* blocks-mip-32.dat */ = {isa = PBXFileReference; lastKnownFileType = file; path = "blocks-mip-32.dat"; sourceTree = "<group>"; };
+		A3AF0EB024B4D67500439C4E /* blocks-mip-512.dat */ = {isa = PBXFileReference; lastKnownFileType = file; path = "blocks-mip-512.dat"; sourceTree = "<group>"; };
+		A3AF0EB124B4D67500439C4E /* blocks-mip-16.dat */ = {isa = PBXFileReference; lastKnownFileType = file; path = "blocks-mip-16.dat"; sourceTree = "<group>"; };
+		A3AF0EB224B4D67500439C4E /* blocks-mip-1.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "blocks-mip-1.dat"; sourceTree = "<group>"; };
+		A3AF0EB324B4D67500439C4E /* blocks-mip-4.dat */ = {isa = PBXFileReference; lastKnownFileType = file; path = "blocks-mip-4.dat"; sourceTree = "<group>"; };
+		A3AF0EB424B4D67500439C4E /* blocks-mip-128.dat */ = {isa = PBXFileReference; lastKnownFileType = file; path = "blocks-mip-128.dat"; sourceTree = "<group>"; };
+		A3AF0EB524B4D67500439C4E /* blocks-mip-256.dat */ = {isa = PBXFileReference; lastKnownFileType = file; path = "blocks-mip-256.dat"; sourceTree = "<group>"; };
+		A3AF0EB624B4D67500439C4E /* blocks-mip-64.dat */ = {isa = PBXFileReference; lastKnownFileType = file; path = "blocks-mip-64.dat"; sourceTree = "<group>"; };
+		A3AF0EB724B4D67500439C4E /* blocks-mip-2.dat */ = {isa = PBXFileReference; lastKnownFileType = file; path = "blocks-mip-2.dat"; sourceTree = "<group>"; };
 		A3C07B0024A6F3180031BF23 /* BlocksInternal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BlocksInternal.h; sourceTree = "<group>"; };
 		A3C07B0124A6F3180031BF23 /* BlocksVerts.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BlocksVerts.h; sourceTree = "<group>"; };
 		A3C07B0224A6F3180031BF23 /* BlocksTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BlocksTypes.h; sourceTree = "<group>"; };
@@ -299,8 +326,17 @@
 		A3AA9857249B1C1300928544 /* Textures */ = {
 			isa = PBXGroup;
 			children = (
-				A37CB53D24A1565B008FF9E0 /* block-textures.dat */,
 				A3AF0EAB24B39D5D00439C4E /* blocks-atlas.dat */,
+				A3AF0EB224B4D67500439C4E /* blocks-mip-1.dat */,
+				A3AF0EB724B4D67500439C4E /* blocks-mip-2.dat */,
+				A3AF0EB324B4D67500439C4E /* blocks-mip-4.dat */,
+				A3AF0EAE24B4D67500439C4E /* blocks-mip-8.dat */,
+				A3AF0EB124B4D67500439C4E /* blocks-mip-16.dat */,
+				A3AF0EAF24B4D67500439C4E /* blocks-mip-32.dat */,
+				A3AF0EB624B4D67500439C4E /* blocks-mip-64.dat */,
+				A3AF0EB424B4D67500439C4E /* blocks-mip-128.dat */,
+				A3AF0EB524B4D67500439C4E /* blocks-mip-256.dat */,
+				A3AF0EB024B4D67500439C4E /* blocks-mip-512.dat */,
 			);
 			path = Textures;
 			sourceTree = "<group>";
@@ -489,10 +525,19 @@
 			buildActionMask = 2147483647;
 			files = (
 				A3AF0EAC24B39D5D00439C4E /* blocks-atlas.dat in Resources */,
+				A3AF0EC424B4D67500439C4E /* blocks-mip-128.dat in Resources */,
+				A3AF0EC224B4D67500439C4E /* blocks-mip-4.dat in Resources */,
+				A3AF0ECA24B4D67500439C4E /* blocks-mip-2.dat in Resources */,
+				A3AF0EB824B4D67500439C4E /* blocks-mip-8.dat in Resources */,
 				A3A904F62497D37F004835B7 /* Main.storyboard in Resources */,
-				A37CB53E24A1565B008FF9E0 /* block-textures.dat in Resources */,
+				A3AF0EBA24B4D67500439C4E /* blocks-mip-32.dat in Resources */,
 				A3A905132497D37F004835B7 /* Assets.xcassets in Resources */,
+				A3AF0EC024B4D67500439C4E /* blocks-mip-1.dat in Resources */,
+				A3AF0EC824B4D67500439C4E /* blocks-mip-64.dat in Resources */,
+				A3AF0EC624B4D67500439C4E /* blocks-mip-256.dat in Resources */,
+				A3AF0EBE24B4D67500439C4E /* blocks-mip-16.dat in Resources */,
 				A3A904F92497D37F004835B7 /* LaunchScreen.storyboard in Resources */,
+				A3AF0EBC24B4D67500439C4E /* blocks-mip-512.dat in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -500,10 +545,19 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A3AF0EC924B4D67500439C4E /* blocks-mip-64.dat in Resources */,
+				A3AF0ECB24B4D67500439C4E /* blocks-mip-2.dat in Resources */,
 				A3A905142497D37F004835B7 /* Assets.xcassets in Resources */,
-				A37CB53F24A1565B008FF9E0 /* block-textures.dat in Resources */,
+				A3AF0EBF24B4D67500439C4E /* blocks-mip-16.dat in Resources */,
+				A3AF0EC724B4D67500439C4E /* blocks-mip-256.dat in Resources */,
+				A3AF0EB924B4D67500439C4E /* blocks-mip-8.dat in Resources */,
 				A3A9050B2497D37F004835B7 /* Main.storyboard in Resources */,
 				A3AF0EAD24B39D5D00439C4E /* blocks-atlas.dat in Resources */,
+				A3AF0EC324B4D67500439C4E /* blocks-mip-4.dat in Resources */,
+				A3AF0EC524B4D67500439C4E /* blocks-mip-128.dat in Resources */,
+				A3AF0EBB24B4D67500439C4E /* blocks-mip-32.dat in Resources */,
+				A3AF0EC124B4D67500439C4E /* blocks-mip-1.dat in Resources */,
+				A3AF0EBD24B4D67500439C4E /* blocks-mip-512.dat in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
