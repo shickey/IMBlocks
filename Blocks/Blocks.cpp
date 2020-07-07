@@ -562,7 +562,10 @@ void DrawSubScript(RenderGroup *renderGroup, Block *block, Script *script, Layou
     // If we're dragging a branch block, check to see if we should place it around another stack
     if (Dragging() && !blocksCtx->dragInfo.readyToInsert) {
         DragInfo dragInfo = blocksCtx->dragInfo;
-        if (dragInfo.script != script && HasInnerOutlet(dragInfo.firstBlock->type) && !dragInfo.script->topBlock->inner) {
+        if (dragInfo.script != script 
+            && !dragInfo.script->topBlock->inner
+            && HasInnerOutlet(dragInfo.firstBlock->type)
+            && HasInlet(block->type)) {
             if (RectsIntersect(inletBounds, dragInfo.innerOutlet)) {
                 Layout loopLayout = CreateEmptyLayoutAt(layout->bounds.origin.x - 6, layout->bounds.origin.y);
                 DrawGhostBlock(renderGroup, dragInfo.firstBlock->type, &loopLayout, layout);
@@ -634,12 +637,12 @@ b32 DrawBlock(RenderGroup *renderGroup, Block *block, Script *script, Layout *la
                     // Override block drawing so that branch contains the rest of the substack
                     BlockMetrics dragMetrics = METRICS[dragInfo.firstBlock->type]; // @TODO: Double-check this. Is this the right metrics to be grabbing here?
                     Layout innerInnerLayout = CreateEmptyLayoutAt(innerLayout.at.x + dragMetrics.innerOrigin.x, innerLayout.at.y);
-                    if (block->inner) {
+                    if (block->inner && !dragInfo.firstBlock->inner) {
                         blocksCtx->dragInfo.readyToInsert = true; // Set this here so that the inner substack doesn't also try to draw a ghost block
                         DrawSubScript(renderGroup, block->inner, script, &innerInnerLayout);
+                        renderedInner = true;
                     }
                     DrawGhostBlock(renderGroup, dragInfo.firstBlock->type, &innerLayout, &innerInnerLayout);
-                    renderedInner = true;
                 }
                 else {
                     Invalid;
