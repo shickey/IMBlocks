@@ -124,8 +124,6 @@
 		A3600D9124ABDECE00D5075F /* imgui.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = imgui.h; sourceTree = "<group>"; };
 		A3A904E22497D37E004835B7 /* Renderer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Renderer.h; sourceTree = "<group>"; };
 		A3A904E32497D37E004835B7 /* Renderer.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = Renderer.mm; sourceTree = "<group>"; };
-		A3A904E42497D37E004835B7 /* ShaderTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ShaderTypes.h; sourceTree = "<group>"; };
-		A3A904E52497D37E004835B7 /* Shaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Shaders.metal; sourceTree = "<group>"; };
 		A3A904E62497D37F004835B7 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A3A904EB2497D37F004835B7 /* IMBlocks.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = IMBlocks.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A3A904EE2497D37F004835B7 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
@@ -265,8 +263,6 @@
 				A3AA9857249B1C1300928544 /* Textures */,
 				A3A904E22497D37E004835B7 /* Renderer.h */,
 				A3A904E32497D37E004835B7 /* Renderer.mm */,
-				A3A904E42497D37E004835B7 /* ShaderTypes.h */,
-				A3A904E52497D37E004835B7 /* Shaders.metal */,
 				A3A904E62497D37F004835B7 /* Assets.xcassets */,
 				A3A90522249810B4004835B7 /* MetalView.h */,
 				A3A90523249810B4004835B7 /* MetalView.m */,

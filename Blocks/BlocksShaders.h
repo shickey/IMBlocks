@@ -8,7 +8,11 @@
 *
 **********************************************************/
 
-extern "C" const char *BlocksShaders_Metal = R"END(
+#ifdef __cplusplus
+extern "C" {
+#endif
+  
+const char *BlocksShaders_Metal = R"END(
 #include <metal_stdlib>
 #include <simd/simd.h>
 
@@ -64,3 +68,7 @@ fragment float4 MipmapFragment(VertexOut v [[ stage_in ]],
     return float4(v.color.rgb, opacity * v.color.a);
 }
 )END";
+
+#ifdef __cplusplus
+}
+#endif
