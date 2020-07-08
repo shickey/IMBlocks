@@ -22,6 +22,7 @@
   - Debug System
     - Simple string rendering
   - Serialization
+  - Input fields and input system
     
 ### Done?
   - Finish drag and drop

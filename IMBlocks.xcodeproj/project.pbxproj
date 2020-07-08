@@ -32,8 +32,6 @@
 		A3A9050E2497D37F004835B7 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = A3A9050D2497D37F004835B7 /* main.m */; };
 		A3A9050F2497D37F004835B7 /* Renderer.mm in Sources */ = {isa = PBXBuildFile; fileRef = A3A904E32497D37E004835B7 /* Renderer.mm */; };
 		A3A905102497D37F004835B7 /* Renderer.mm in Sources */ = {isa = PBXBuildFile; fileRef = A3A904E32497D37E004835B7 /* Renderer.mm */; };
-		A3A905112497D37F004835B7 /* Shaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = A3A904E52497D37E004835B7 /* Shaders.metal */; };
-		A3A905122497D37F004835B7 /* Shaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = A3A904E52497D37E004835B7 /* Shaders.metal */; };
 		A3A905132497D37F004835B7 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A3A904E62497D37F004835B7 /* Assets.xcassets */; };
 		A3A905142497D37F004835B7 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A3A904E62497D37F004835B7 /* Assets.xcassets */; };
 		A3A90524249810B4004835B7 /* MetalView.m in Sources */ = {isa = PBXBuildFile; fileRef = A3A90523249810B4004835B7 /* MetalView.m */; };
@@ -61,6 +59,7 @@
 		A3AF0EC924B4D67500439C4E /* blocks-mip-64.dat in Resources */ = {isa = PBXBuildFile; fileRef = A3AF0EB624B4D67500439C4E /* blocks-mip-64.dat */; };
 		A3AF0ECA24B4D67500439C4E /* blocks-mip-2.dat in Resources */ = {isa = PBXBuildFile; fileRef = A3AF0EB724B4D67500439C4E /* blocks-mip-2.dat */; };
 		A3AF0ECB24B4D67500439C4E /* blocks-mip-2.dat in Resources */ = {isa = PBXBuildFile; fileRef = A3AF0EB724B4D67500439C4E /* blocks-mip-2.dat */; };
+		A3AF0ECD24B56A8400439C4E /* BlocksShaders.h in Headers */ = {isa = PBXBuildFile; fileRef = A3AF0ECC24B56A8400439C4E /* BlocksShaders.h */; };
 		A3C07B0624A6F31D0031BF23 /* Blocks.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3C07B0524A6F3180031BF23 /* Blocks.cpp */; };
 /* End PBXBuildFile section */
 
@@ -160,6 +159,7 @@
 		A3AF0EB524B4D67500439C4E /* blocks-mip-256.dat */ = {isa = PBXFileReference; lastKnownFileType = file; path = "blocks-mip-256.dat"; sourceTree = "<group>"; };
 		A3AF0EB624B4D67500439C4E /* blocks-mip-64.dat */ = {isa = PBXFileReference; lastKnownFileType = file; path = "blocks-mip-64.dat"; sourceTree = "<group>"; };
 		A3AF0EB724B4D67500439C4E /* blocks-mip-2.dat */ = {isa = PBXFileReference; lastKnownFileType = file; path = "blocks-mip-2.dat"; sourceTree = "<group>"; };
+		A3AF0ECC24B56A8400439C4E /* BlocksShaders.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BlocksShaders.h; sourceTree = "<group>"; };
 		A3C07B0024A6F3180031BF23 /* BlocksInternal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BlocksInternal.h; sourceTree = "<group>"; };
 		A3C07B0124A6F3180031BF23 /* BlocksVerts.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BlocksVerts.h; sourceTree = "<group>"; };
 		A3C07B0224A6F3180031BF23 /* BlocksTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BlocksTypes.h; sourceTree = "<group>"; };
@@ -349,6 +349,7 @@
 				A3C07B0224A6F3180031BF23 /* BlocksTypes.h */,
 				A3C07B0324A6F3180031BF23 /* Blocks.h */,
 				A3C07B0424A6F3180031BF23 /* BlocksMath.h */,
+				A3AF0ECC24B56A8400439C4E /* BlocksShaders.h */,
 				A3C07B0524A6F3180031BF23 /* Blocks.cpp */,
 			);
 			path = Blocks;
@@ -369,6 +370,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A3AF0ECD24B56A8400439C4E /* BlocksShaders.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -591,7 +593,6 @@
 				A3600D9224ABDECE00D5075F /* imgui_impl_metal.mm in Sources */,
 				A3A904F02497D37F004835B7 /* AppDelegate.m in Sources */,
 				A3600D9C24ABDECE00D5075F /* imgui_widgets.cpp in Sources */,
-				A3A905112497D37F004835B7 /* Shaders.metal in Sources */,
 				A3600D9424ABDECE00D5075F /* imgui_demo.cpp in Sources */,
 				A3A90524249810B4004835B7 /* MetalView.m in Sources */,
 				A3600D9624ABDECE00D5075F /* imgui.cpp in Sources */,
@@ -610,7 +611,6 @@
 				A3600D9324ABDECE00D5075F /* imgui_impl_metal.mm in Sources */,
 				A3A905052497D37F004835B7 /* AppDelegate.m in Sources */,
 				A3600D9D24ABDECE00D5075F /* imgui_widgets.cpp in Sources */,
-				A3A905122497D37F004835B7 /* Shaders.metal in Sources */,
 				A3600D9524ABDECE00D5075F /* imgui_demo.cpp in Sources */,
 				A3A90525249810B4004835B7 /* MetalView.m in Sources */,
 				A3600D9724ABDECE00D5075F /* imgui.cpp in Sources */,

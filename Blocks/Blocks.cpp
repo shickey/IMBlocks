@@ -12,6 +12,7 @@
 #include "BlocksInternal.h"
 #include "BlocksMath.h"
 #include "BlocksVerts.h"
+#include "BlocksShaders.h"
 
 #define MIN_DRAG_DIST 4.0
 

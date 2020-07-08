@@ -18,9 +18,6 @@
 
 #import "BlocksInternal.h"
 
-// Include header shared between C code here, which executes Metal API commands, and .metal files
-#import "ShaderTypes.h"
-
 static const u32 MAX_BUFFERS_IN_FLIGHT = 3;
 static const u32 MAX_BLOCKS = 1024;
 
@@ -36,6 +33,7 @@ static NSDate *lastLibWriteTime = 0;
 static DylibHandle libBlocks = 0;
 static InitBlocksSignature initBlocks = 0;
 static RunBlocksSignature runBlocks = 0;
+static char **shaderSource = 0;
 
 static void *blocksMem = 0;
 
@@ -64,6 +62,7 @@ void loadLibBlocks() {
     libBlocks = dlopen(libPathRaw, RTLD_LAZY|RTLD_LOCAL);
     initBlocks = (InitBlocksSignature)dlsym(libBlocks, "InitBlocks");
     runBlocks = (RunBlocksSignature)dlsym(libBlocks, "RunBlocks");
+    shaderSource = (char **)dlsym(libBlocks, "BlocksShaders_Metal");
     lastLibWriteTime = getLastWriteTime(libPath);
 }
 
@@ -71,6 +70,7 @@ void unloadLibBlocks() {
     NSLog(@"Unloading libBlocks");
     initBlocks = NULL;
     runBlocks = NULL;
+    shaderSource = NULL;
     dlclose(libBlocks);
     libBlocks = NULL;
 }
@@ -155,59 +155,12 @@ static f32 zoomLevel = 3.0;
     samplerDescriptor.sAddressMode = MTLSamplerAddressModeClampToZero;
     samplerDescriptor.tAddressMode = MTLSamplerAddressModeClampToZero;
     _sampler = [_device newSamplerStateWithDescriptor:samplerDescriptor];
-//    MTLSamplerDescriptor *samplerDescriptor = [[MTLSamplerDescriptor alloc] init];
-//    samplerDescriptor.minFilter = MTLSamplerMinMagFilterLinear;
-//    samplerDescriptor.magFilter = MTLSamplerMinMagFilterLinear;
-//    samplerDescriptor.sAddressMode = MTLSamplerAddressModeClampToZero;
-//    samplerDescriptor.tAddressMode = MTLSamplerAddressModeClampToZero;
-//    _sampler = [_device newSamplerStateWithDescriptor:samplerDescriptor];
     
-    // Set up shaders
-    id<MTLLibrary> defaultLibrary = [_device newDefaultLibrary];
-    id <MTLFunction> vertexFunction = [defaultLibrary newFunctionWithName:@"TexturedVertex"];
-    id <MTLFunction> sdfFragmentFunction = [defaultLibrary newFunctionWithName:@"SdfFragment"];
-    id <MTLFunction> mipFragmentFunction = [defaultLibrary newFunctionWithName:@"MipmapFragment"];
-
-    // Create rendering pipelines
-    MTLRenderPipelineDescriptor *sdfPipelineStateDescriptor = [[MTLRenderPipelineDescriptor alloc] init];
-    sdfPipelineStateDescriptor.vertexFunction = vertexFunction;
-    sdfPipelineStateDescriptor.fragmentFunction = sdfFragmentFunction;
-    sdfPipelineStateDescriptor.vertexDescriptor = _mtlVertexDescriptor;
-    sdfPipelineStateDescriptor.colorAttachments[0].pixelFormat = view.colorPixelFormat;
-    sdfPipelineStateDescriptor.colorAttachments[0].blendingEnabled = YES;
-    sdfPipelineStateDescriptor.colorAttachments[0].rgbBlendOperation = MTLBlendOperationAdd;
-    sdfPipelineStateDescriptor.colorAttachments[0].alphaBlendOperation = MTLBlendOperationAdd;
-    sdfPipelineStateDescriptor.colorAttachments[0].sourceRGBBlendFactor = MTLBlendFactorSourceAlpha;
-    sdfPipelineStateDescriptor.colorAttachments[0].sourceAlphaBlendFactor = MTLBlendFactorSourceAlpha;
-    sdfPipelineStateDescriptor.colorAttachments[0].destinationRGBBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
-    sdfPipelineStateDescriptor.colorAttachments[0].destinationAlphaBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
+    // Load the dylib
+    loadLibBlocks();
     
-    NSError *error = NULL;
-    _sdfPipelineState = [_device newRenderPipelineStateWithDescriptor:sdfPipelineStateDescriptor error:&error];
-    if (!_sdfPipelineState)
-    {
-        NSLog(@"Failed to created pipeline state, error %@", error);
-    }
-    
-    MTLRenderPipelineDescriptor *mipPipelineStateDescriptor = [[MTLRenderPipelineDescriptor alloc] init];
-    mipPipelineStateDescriptor.vertexFunction = vertexFunction;
-    mipPipelineStateDescriptor.fragmentFunction = mipFragmentFunction;
-    mipPipelineStateDescriptor.vertexDescriptor = _mtlVertexDescriptor;
-    mipPipelineStateDescriptor.colorAttachments[0].pixelFormat = view.colorPixelFormat;
-    mipPipelineStateDescriptor.colorAttachments[0].blendingEnabled = YES;
-    mipPipelineStateDescriptor.colorAttachments[0].rgbBlendOperation = MTLBlendOperationAdd;
-    mipPipelineStateDescriptor.colorAttachments[0].alphaBlendOperation = MTLBlendOperationAdd;
-    mipPipelineStateDescriptor.colorAttachments[0].sourceRGBBlendFactor = MTLBlendFactorSourceAlpha;
-    mipPipelineStateDescriptor.colorAttachments[0].sourceAlphaBlendFactor = MTLBlendFactorSourceAlpha;
-    mipPipelineStateDescriptor.colorAttachments[0].destinationRGBBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
-    mipPipelineStateDescriptor.colorAttachments[0].destinationAlphaBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
-    
-    error = NULL;
-    _mipPipelineState = [_device newRenderPipelineStateWithDescriptor:mipPipelineStateDescriptor error:&error];
-    if (!_mipPipelineState)
-    {
-        NSLog(@"Failed to created pipeline state, error %@", error);
-    }
+    // Setup rendering pipelines
+    [self buildRenderPipelines];
 
     // Allocate buffers for GPU data
     for(u32 i = 0; i < MAX_BUFFERS_IN_FLIGHT; ++i)
@@ -245,12 +198,66 @@ static f32 zoomLevel = 3.0;
     }
     
     // Init Blocks Memory
-    loadLibBlocks();
     u32 memSize = Megabytes(128);
     blocksMem = malloc(memSize);
     initBlocks(blocksMem, memSize);
 
     _commandQueue = [_device newCommandQueue];
+}
+
+- (void)buildRenderPipelines {
+    // Set up shaders
+    NSString *nsShaderSource = [NSString stringWithUTF8String:*shaderSource];
+    
+    NSError *shaderError = nil;
+    id<MTLLibrary> library = [_device newLibraryWithSource:nsShaderSource options:nil error:&shaderError];
+    if (shaderError) {
+        NSLog(@"%@", shaderError.localizedDescription);
+    }
+    id <MTLFunction> vertexFunction = [library newFunctionWithName:@"TexturedVertex"];
+    id <MTLFunction> sdfFragmentFunction = [library newFunctionWithName:@"SdfFragment"];
+    id <MTLFunction> mipFragmentFunction = [library newFunctionWithName:@"MipmapFragment"];
+
+    // Create rendering pipelines
+    MTLRenderPipelineDescriptor *sdfPipelineStateDescriptor = [[MTLRenderPipelineDescriptor alloc] init];
+    sdfPipelineStateDescriptor.vertexFunction = vertexFunction;
+    sdfPipelineStateDescriptor.fragmentFunction = sdfFragmentFunction;
+    sdfPipelineStateDescriptor.vertexDescriptor = _mtlVertexDescriptor;
+    sdfPipelineStateDescriptor.colorAttachments[0].pixelFormat = MTLPixelFormatBGRA8Unorm;
+    sdfPipelineStateDescriptor.colorAttachments[0].blendingEnabled = YES;
+    sdfPipelineStateDescriptor.colorAttachments[0].rgbBlendOperation = MTLBlendOperationAdd;
+    sdfPipelineStateDescriptor.colorAttachments[0].alphaBlendOperation = MTLBlendOperationAdd;
+    sdfPipelineStateDescriptor.colorAttachments[0].sourceRGBBlendFactor = MTLBlendFactorSourceAlpha;
+    sdfPipelineStateDescriptor.colorAttachments[0].sourceAlphaBlendFactor = MTLBlendFactorSourceAlpha;
+    sdfPipelineStateDescriptor.colorAttachments[0].destinationRGBBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
+    sdfPipelineStateDescriptor.colorAttachments[0].destinationAlphaBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
+    
+    NSError *error = NULL;
+    _sdfPipelineState = [_device newRenderPipelineStateWithDescriptor:sdfPipelineStateDescriptor error:&error];
+    if (!_sdfPipelineState)
+    {
+        NSLog(@"Failed to created pipeline state, error %@", error);
+    }
+    
+    MTLRenderPipelineDescriptor *mipPipelineStateDescriptor = [[MTLRenderPipelineDescriptor alloc] init];
+    mipPipelineStateDescriptor.vertexFunction = vertexFunction;
+    mipPipelineStateDescriptor.fragmentFunction = mipFragmentFunction;
+    mipPipelineStateDescriptor.vertexDescriptor = _mtlVertexDescriptor;
+    mipPipelineStateDescriptor.colorAttachments[0].pixelFormat = MTLPixelFormatBGRA8Unorm;
+    mipPipelineStateDescriptor.colorAttachments[0].blendingEnabled = YES;
+    mipPipelineStateDescriptor.colorAttachments[0].rgbBlendOperation = MTLBlendOperationAdd;
+    mipPipelineStateDescriptor.colorAttachments[0].alphaBlendOperation = MTLBlendOperationAdd;
+    mipPipelineStateDescriptor.colorAttachments[0].sourceRGBBlendFactor = MTLBlendFactorSourceAlpha;
+    mipPipelineStateDescriptor.colorAttachments[0].sourceAlphaBlendFactor = MTLBlendFactorSourceAlpha;
+    mipPipelineStateDescriptor.colorAttachments[0].destinationRGBBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
+    mipPipelineStateDescriptor.colorAttachments[0].destinationAlphaBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
+    
+    error = NULL;
+    _mipPipelineState = [_device newRenderPipelineStateWithDescriptor:mipPipelineStateDescriptor error:&error];
+    if (!_mipPipelineState)
+    {
+        NSLog(@"Failed to created pipeline state, error %@", error);
+    }
 }
 
 - (CGPoint)_unprojectPoint:(CGPoint)point inView:(MetalView *)view {
@@ -316,6 +323,7 @@ static f32 zoomLevel = 3.0;
             // The dylib may still be being written, so we spin until the next frame when (hopefully) it will be ready
             return;
         }
+        [self buildRenderPipelines]; // Rebuild shaders and such
     }
 
     dispatch_semaphore_wait(_inFlightSemaphore, DISPATCH_TIME_FOREVER);
