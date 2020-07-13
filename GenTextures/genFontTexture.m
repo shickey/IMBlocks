@@ -233,7 +233,7 @@ void generateStbFont() {
     int fontIdx = 1; // I *think* this is the Bold variant
     
     stbtt_fontinfo fontInfo;
-    stbtt_InitFont(&fontInfo, fontBytes, fontIdx);
+    stbtt_InitFont(&fontInfo, fontBytes, stbtt_GetFontOffsetForIndex(fontBytes, fontIdx));
     
     stbtt_pack_context packCtx;
     const u32 TEX_WIDTH = 512;
@@ -261,6 +261,14 @@ void generateStbFont() {
     CGImageDestinationAddImage(dest, outImage, nil);
     CGImageDestinationFinalize(dest);
 #endif
+    
+    // Get kerns
+    float kernTable[127][127] = {};
+    for (u32 j = 0; j < 127; ++j) {
+        for (u32 i = 0; i < 127; ++i) {
+            kernTable[i][j] = scale * (float)stbtt_GetCodepointKernAdvance(&fontInfo, i, j);
+        }
+    }
     
     NSMutableString *fontCHeaderOut = [NSMutableString stringWithString:
 @"\n"
@@ -295,6 +303,17 @@ void generateStbFont() {
                                                                                              packedChar.xadvance];
     }
     
+    [fontCHeaderOut appendString:@"};\n\n"];
+    
+    // Kerning table
+    [fontCHeaderOut appendFormat:@"float KERN_TABLE[%d][%d] = {\n", numChars + 32, numChars + 32];
+    for (u32 j = 0; j < 127; ++j) {
+        [fontCHeaderOut appendString:@"    { "];
+        for (u32 i = 0; i < 127; ++i) {
+            [fontCHeaderOut appendFormat:@"%0.8f, ", kernTable[i][j]];
+        }
+        [fontCHeaderOut appendString:@" },\n"];
+    }
     [fontCHeaderOut appendString:@"};\n\n"];
     
     [fontCHeaderOut writeToFile:@"/Users/seanhickey/Projects/IMBlocks/Blocks/font-atlas.h" atomically:YES encoding:NSUTF8StringEncoding error:nil];

@@ -248,11 +248,15 @@ void AssembleVertexBuferForRenderGroup(Arena *vertexArena, BlocksRenderInfo *ren
     
     if (renderGroup == &blocksCtx->fontRenderGroup) {
         v2 at = {-50, 0};
-        char *str = "AVA To Hello world!";
+        const char *str = "AVA To Hello world!";
         for (u32 i = 0; i < strlen(str); ++i) {
             SdfFontChar c = FONT_DATA[str[i]];
             PushChar(vertexArena, c, at, COLOR_GREEN);
             at.x += c.advance;
+            if (i < strlen(str) - 1) {
+                f32 kern = KERN_TABLE[str[i + 1]][str[i]];
+                at.x += kern;
+            }
         }
         
     }
