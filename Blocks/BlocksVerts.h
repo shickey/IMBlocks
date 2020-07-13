@@ -185,7 +185,7 @@ void PushRectOutline(Arena *arena, Rectangle rect, v4 color) {
 void PushCommandBlockVerts(Arena *arena, v2 position, v4 color, f32 scale = 1) {
     #define unitSize 4.0f
     #define texSize  512.0f
-    #define originX  64.0f
+    #define originX  32.0f
     #define originY  96.0f
     
     f32 verts[] = {
@@ -209,7 +209,7 @@ void PushCommandBlockVerts(Arena *arena, v2 position, v4 color, f32 scale = 1) {
 void PushEndCapBlockVerts(Arena *arena, v2 position, v4 color) {
     #define unitSize 4.0f
     #define texSize  512.0f
-    #define originX  384.0f
+    #define originX  288.0f
     #define originY  96.0f
     
     f32 verts[] = {
@@ -233,7 +233,7 @@ void PushEndCapBlockVerts(Arena *arena, v2 position, v4 color) {
 void PushEventBlockVerts(Arena *arena, v2 position, v4 color) {
     #define unitSize 4.0f
     #define texSize  512.0f
-    #define originX  224.0f
+    #define originX  160.0f
     #define originY  96.0f
     
     f32 verts[] = {
@@ -254,10 +254,44 @@ void PushEventBlockVerts(Arena *arena, v2 position, v4 color) {
     #undef originY
 }
 
+void PushNumberInputVerts(Arena *arena, v2 position, v4 color) {
+    #define unitSize 4.0f
+    #define texSize  512.0f
+    #define originX  416.0f
+    #define originY  128.0f
+    
+    Rectangle inputRect = Rectangle{ position.x - 1, position.y - 1, 12 + 2, 8 + 2 };
+    v2 uv0 = v2{ (originX - (1 * unitSize)) / texSize, (originY + (1 * unitSize)) / texSize };
+    v2 uv1 = v2{ (originX + ((inputRect.w - 1) * unitSize)) / texSize, (originY - ((inputRect.h - 1) * unitSize)) / texSize };
+    PushRect(arena, inputRect, uv0, uv1, color);
+    
+    #undef unitSize
+    #undef texSize
+    #undef originX
+    #undef originY
+}
+
+void PushStringInputVerts(Arena *arena, v2 position, v4 color) {
+    #define unitSize 4.0f
+    #define texSize  512.0f
+    #define originX  416.0f
+    #define originY  64.0f
+    
+    Rectangle inputRect = Rectangle{ position.x - 1, position.y - 1, 12 + 2, 8 + 2 };
+    v2 uv0 = v2{ (originX - (1 * unitSize)) / texSize, (originY + (1 * unitSize)) / texSize };
+    v2 uv1 = v2{ (originX + ((inputRect.w - 1) * unitSize)) / texSize, (originY - ((inputRect.h - 1) * unitSize)) / texSize };
+    PushRect(arena, inputRect, uv0, uv1, color);
+    
+    #undef unitSize
+    #undef texSize
+    #undef originX
+    #undef originY
+}
+
 void PushLoopBlockVerts(Arena *arena, v2 position, v4 color, u32 horizontalStretch = 0, u32 verticalStretch = 0) {
     #define unitSize 4.0f
     #define texSize  512.0f
-    #define originX  64.0f
+    #define originX  32.0f
     #define originY  208.0f
     
     f32 verts[] = {
@@ -336,7 +370,7 @@ void PushLoopBlockVerts(Arena *arena, v2 position, v4 color, u32 horizontalStret
 void PushForeverBlockVerts(Arena *arena, v2 position, v4 color, u32 horizontalStretch = 0, u32 verticalStretch = 0) {
     #define unitSize 4.0f
     #define texSize  512.0f
-    #define originX  288.0f
+    #define originX  232.0f
     #define originY  208.0f
     
     f32 verts[] = {

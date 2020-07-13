@@ -246,19 +246,12 @@ void AssembleVertexBuferForRenderGroup(Arena *vertexArena, BlocksRenderInfo *ren
     u8 *start = ArenaAt(vertexArena);
     drawCall->vertexOffset = (u32)(start - renderInfo->vertexData) / VERTEX_SIZE;
     
-    // if (renderGroup == &blocksCtx->fontRenderGroup) {
-    //     v2 at = {25, 30};
-    //     const char *str = "Aw Te Ava";
-    //     f32 fontHeight = 24.0;
-    //     v4 color = COLOR_CYAN;
-        
-    // }
-    
     for (u32 entryIdx = 0; entryIdx < renderGroup->entryCount; ++entryIdx) {
         RenderEntry *entry = &renderGroup->entries[entryIdx];
         switch(entry->type) {
             case RenderEntryType_Command: {
                 PushCommandBlockVerts(vertexArena, entry->P, entry->color, entry->scale);
+                PushStringInputVerts(vertexArena, entry->P + v2{2, -6}, COLOR_WHITE);
                 break;
             }
             case RenderEntryType_Event: {
@@ -267,6 +260,7 @@ void AssembleVertexBuferForRenderGroup(Arena *vertexArena, BlocksRenderInfo *ren
             }
             case RenderEntryType_EndCap: {
                 PushEndCapBlockVerts(vertexArena, entry->P, entry->color);
+                PushNumberInputVerts(vertexArena, entry->P + v2{2, -6}, COLOR_WHITE);
                 break;
             }
             case RenderEntryType_Loop: {

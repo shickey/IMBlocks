@@ -11,9 +11,9 @@
 #import <stdint.h>
 #import <CoreText/CoreText.h>
 
-#define GENERATE_SDF 0
-#define GENERATE_MIPMAPS 0
-#define GENERATE_FONT 1
+#define GENERATE_SDF 1
+#define GENERATE_MIPMAPS 1
+#define GENERATE_FONT 0
 #define OUTPUT_SDF_IMAGE 1
 
 typedef uint8_t  u8;
