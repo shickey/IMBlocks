@@ -8,6 +8,8 @@
 *
 **********************************************************/
 
+#include "font-atlas.h"
+
 #define PushVerts(arena, v) PushData_(arena, (v), sizeof((v)))
 #define VERTEX_SIZE (8 * sizeof(f32))
 
@@ -84,22 +86,56 @@ global_var BlockMetrics METRICS[BlockTypeCount] = {
     },
 };
 
-void PushRect(Arena *arena, Rectangle rect, v4 color) {
+// void PushChar(Arena *arena, char character) {
+//     Assert(character >= 32 && character <= 127);
     
-    // @TODO: @NOTE: The UV coords here are just a silly hack. They point at a texel firmly inside one of the block shapes (to force shader to definitely draw the fragments)
+    
+//     v4 color = COLOR_YELLOW;
+    
+//     f32 verts[] = {
+//         0,                             0, (f32)charData.x0 / 512.0f, (f32)charData.y1 / 512.0f, color.r, color.g, color.b, color.a,
+//         (f32)charData.w,               0, (f32)charData.x1 / 512.0f, (f32)charData.y1 / 512.0f, color.r, color.g, color.b, color.a,
+//         0,               (f32)charData.h, (f32)charData.x0 / 512.0f, (f32)charData.y0 / 512.0f, color.r, color.g, color.b, color.a,
+        
+//         (f32)charData.w,               0, (f32)charData.x1 / 512.0f, (f32)charData.y1 / 512.0f, color.r, color.g, color.b, color.a,
+//         0,               (f32)charData.h, (f32)charData.x0 / 512.0f, (f32)charData.y0 / 512.0f, color.r, color.g, color.b, color.a,
+//         (f32)charData.w, (f32)charData.h, (f32)charData.x1 / 512.0f, (f32)charData.y0 / 512.0f, color.r, color.g, color.b, color.a,
+//     };
+    
+//     PushVerts(arena, verts);
+// }
+
+void PushRect(Arena *arena, Rectangle rect, v2 uv0, v2 uv1, v4 color) {
+    
     f32 verts[] = {
         // Lower tri
-        rect.x,          rect.y,          75.0f / 512.0f, 75.0f / 512.0f, color.r, color.g, color.b, color.a,
-        rect.x + rect.w, rect.y,          75.0f / 512.0f, 75.0f / 512.0f, color.r, color.g, color.b, color.a,
-        rect.x,          rect.y + rect.h, 75.0f / 512.0f, 75.0f / 512.0f, color.r, color.g, color.b, color.a,
+        rect.x,          rect.y,          uv0.u, uv0.v, color.r, color.g, color.b, color.a,
+        rect.x + rect.w, rect.y,          uv1.u, uv0.v, color.r, color.g, color.b, color.a,
+        rect.x,          rect.y + rect.h, uv0.u, uv1.v, color.r, color.g, color.b, color.a,
         
         // Upper tri
-        rect.x + rect.w, rect.y,          75.0f / 512.0f, 75.0f / 512.0f, color.r, color.g, color.b, color.a,
-        rect.x,          rect.y + rect.h, 75.0f / 512.0f, 75.0f / 512.0f, color.r, color.g, color.b, color.a,
-        rect.x + rect.w, rect.y + rect.h, 75.0f / 512.0f, 75.0f / 512.0f, color.r, color.g, color.b, color.a,
+        rect.x + rect.w, rect.y,          uv1.u, uv0.v, color.r, color.g, color.b, color.a,
+        rect.x,          rect.y + rect.h, uv0.u, uv1.v, color.r, color.g, color.b, color.a,
+        rect.x + rect.w, rect.y + rect.h, uv1.u, uv1.v, color.r, color.g, color.b, color.a,
     };
     
     PushVerts(arena, verts);
+}
+
+void PushSolidRect(Arena *arena, Rectangle rect, v4 color) {
+    // @TODO: @NOTE: The UV coords here are just a silly hack. They point at a texel firmly inside one of the block shapes (to force shader to definitely draw the fragments)
+    v2 uv = v2{75.0f / 255.0f, 75.0f / 255.0f};
+    PushRect(arena, rect, uv, uv, color);
+}
+
+void PushChar(Arena *arena, SdfFontChar character, v2 at, v4 color) {
+    Rectangle rect = Rectangle{ at.x + character.xOffset, 
+                                at.y - (character.h + character.yOffset), 
+                                (f32)character.w, 
+                                (f32)character.h };
+    v2 uv0 = v2{ (f32)character.x0 / 512.0f, (f32)character.y1 / 512.0f }; // Flip y
+    v2 uv1 = v2{ (f32)character.x1 / 512.0f, (f32)character.y0 / 512.0f };
+    PushRect(arena, rect, uv0, uv1, color);
 }
 
 void PushRectOutline(Arena *arena, Rectangle rect, v4 color) {
@@ -151,20 +187,20 @@ void PushRectOutline(Arena *arena, Rectangle rect, v4 color) {
     #undef rectWidth
 }
 
-void PushCommandBlockVerts(Arena *arena, v2 position, v4 color) {
+void PushCommandBlockVerts(Arena *arena, v2 position, v4 color, f32 scale = 1) {
     #define unitSize 4.0f
     #define texSize  512.0f
     #define originX  64.0f
     #define originY  96.0f
     
     f32 verts[] = {
-        -1 + position.x, -1 + position.y, (((-1 * unitSize) + originX) / (texSize)), ((originY - (-1 * unitSize)) / (texSize)), color.r, color.g, color.b, color.a,
-        19 + position.x, -1 + position.y, (((19 * unitSize) + originX) / (texSize)), ((originY - (-1 * unitSize)) / (texSize)), color.r, color.g, color.b, color.a,
-        -1 + position.x, 17 + position.y, (((-1 * unitSize) + originX) / (texSize)), ((originY - (17 * unitSize)) / (texSize)), color.r, color.g, color.b, color.a,
+        (-1 * scale) + position.x, (-1 * scale) + position.y, (((-1 * unitSize) + originX) / (texSize)), ((originY - (-1 * unitSize)) / (texSize)), color.r, color.g, color.b, color.a,
+        (19 * scale) + position.x, (-1 * scale) + position.y, (((19 * unitSize) + originX) / (texSize)), ((originY - (-1 * unitSize)) / (texSize)), color.r, color.g, color.b, color.a,
+        (-1 * scale) + position.x, (17 * scale) + position.y, (((-1 * unitSize) + originX) / (texSize)), ((originY - (17 * unitSize)) / (texSize)), color.r, color.g, color.b, color.a,
         
-        19 + position.x, -1 + position.y, (((19 * unitSize) + originX) / (texSize)), ((originY - (-1 * unitSize)) / (texSize)), color.r, color.g, color.b, color.a,
-        -1 + position.x, 17 + position.y, (((-1 * unitSize) + originX) / (texSize)), ((originY - (17 * unitSize)) / (texSize)), color.r, color.g, color.b, color.a,
-        19 + position.x, 17 + position.y, (((19 * unitSize) + originX) / (texSize)), ((originY - (17 * unitSize)) / (texSize)), color.r, color.g, color.b, color.a,
+        (19 * scale) + position.x, (-1 * scale) + position.y, (((19 * unitSize) + originX) / (texSize)), ((originY - (-1 * unitSize)) / (texSize)), color.r, color.g, color.b, color.a,
+        (-1 * scale) + position.x, (17 * scale) + position.y, (((-1 * unitSize) + originX) / (texSize)), ((originY - (17 * unitSize)) / (texSize)), color.r, color.g, color.b, color.a,
+        (19 * scale) + position.x, (17 * scale) + position.y, (((19 * unitSize) + originX) / (texSize)), ((originY - (17 * unitSize)) / (texSize)), color.r, color.g, color.b, color.a,
     };
     
     PushVerts(arena, verts);

@@ -172,7 +172,7 @@ b32 Interacting() {
 
 inline
 b32 Dragging() {
-    return blocksCtx->interacting.type == InteractionType_Drag;
+    return blocksCtx->interacting.type == InteractionType_BlockDrag;
 }
 
 inline
@@ -246,11 +246,22 @@ void AssembleVertexBuferForRenderGroup(Arena *vertexArena, BlocksRenderInfo *ren
     u8 *start = ArenaAt(vertexArena);
     drawCall->vertexOffset = (u32)(start - renderInfo->vertexData) / VERTEX_SIZE;
     
+    if (renderGroup == &blocksCtx->fontRenderGroup) {
+        v2 at = {-50, 0};
+        char *str = "AVA To Hello world!";
+        for (u32 i = 0; i < strlen(str); ++i) {
+            SdfFontChar c = FONT_DATA[str[i]];
+            PushChar(vertexArena, c, at, COLOR_GREEN);
+            at.x += c.advance;
+        }
+        
+    }
+    
     for (u32 entryIdx = 0; entryIdx < renderGroup->entryCount; ++entryIdx) {
         RenderEntry *entry = &renderGroup->entries[entryIdx];
         switch(entry->type) {
             case RenderEntryType_Command: {
-                PushCommandBlockVerts(vertexArena, entry->P, entry->color);
+                PushCommandBlockVerts(vertexArena, entry->P, entry->color, entry->scale);
                 break;
             }
             case RenderEntryType_Event: {
@@ -270,7 +281,7 @@ void AssembleVertexBuferForRenderGroup(Arena *vertexArena, BlocksRenderInfo *ren
                 break;
             }
             case RenderEntryType_Rect: {
-                PushRect(vertexArena, entry->rect, entry->color);
+                PushSolidRect(vertexArena, entry->rect, entry->color);
                 break;
             }
             case RenderEntryType_RectOutline: {
@@ -332,8 +343,8 @@ void BeginBlocks(BlocksInput input) {
     // Clear per-frame memory
     blocksCtx->frame.used = 0;
     
-    blocksCtx->hot.block = 0;
-    blocksCtx->nextHot.block = 0;
+    blocksCtx->hot.type = InteractionType_None;
+    blocksCtx->nextHot.type = InteractionType_None;
     
     // Update view metrics
     blocksCtx->screenSize = input.screenSize;
@@ -348,18 +359,18 @@ void BeginBlocks(BlocksInput input) {
     } 
 }
 
-BlocksRenderInfo EndBlocks(RenderGroup *renderGroup) {
+BlocksRenderInfo EndBlocks() {
     if (Interacting()) {
         Interaction *interact = &blocksCtx->interacting;
         
         if (!blocksCtx->input.mouseDown) {
             // End interaction
             switch(interact->type) {
-                case InteractionType_Select: {
+                case InteractionType_BlockSelect: {
                     // @TODO: Eventually, toggle script thread execution
                     break;
                 }
-                case InteractionType_Drag: {
+                case InteractionType_BlockDrag: {
                     DragInfo dragInfo = blocksCtx->dragInfo;
                     // Drop and combine stacks as necessary
                     if (dragInfo.readyToInsert) {
@@ -444,10 +455,10 @@ BlocksRenderInfo EndBlocks(RenderGroup *renderGroup) {
         else {
             // Update interaction
             switch(interact->type) {
-                case InteractionType_Select: {
+                case InteractionType_BlockSelect: {
                     // If the mouse has moved far enough, start dragging
-                    if (DistSq(renderGroup->mouseP, interact->mouseStartP) > MIN_DRAG_DIST * MIN_DRAG_DIST) {
-                        interact->type = InteractionType_Drag;
+                    if (DistSq(blocksCtx->blocksRenderGroup.mouseP, interact->mouseStartP) > MIN_DRAG_DIST * MIN_DRAG_DIST) {
+                        interact->type = InteractionType_BlockDrag;
                         
                         // If we're in the middle of a stack, tear off into a new stack
                         Block *hotBlock = interact->block;
@@ -469,10 +480,10 @@ BlocksRenderInfo EndBlocks(RenderGroup *renderGroup) {
                     }
                     break;
                 }
-                case InteractionType_Drag: {
+                case InteractionType_BlockDrag: {
                     Script *script = interact->script;
-                    script->P.x = renderGroup->mouseP.x - interact->mouseOffset.x;
-                    script->P.y = renderGroup->mouseP.y - interact->mouseOffset.y;
+                    script->P.x = blocksCtx->blocksRenderGroup.mouseP.x - interact->mouseOffset.x;
+                    script->P.y = blocksCtx->blocksRenderGroup.mouseP.y - interact->mouseOffset.y;
                     
                     break;
                 }
@@ -481,28 +492,51 @@ BlocksRenderInfo EndBlocks(RenderGroup *renderGroup) {
         }
     }
     else {
-        if (blocksCtx->nextHot.block) {
+        if (blocksCtx->nextHot.type != InteractionType_None) {
             blocksCtx->hot = blocksCtx->nextHot;
         }
-        if (blocksCtx->hot.block && blocksCtx->input.mouseDown) {
+        if (blocksCtx->hot.type != InteractionType_None && blocksCtx->input.mouseDown) {
             // Begin interaction
-            blocksCtx->interacting = blocksCtx->hot;
+            if (blocksCtx->hot.type == InteractionType_NewBlockSelect) {
+                // Start a dragging interaction with a new block, instead of passing along the existing interaction
+                v2 P = blocksCtx->blocksRenderGroup.mouseP;
+                Script *script = CreateScript(P);
+                Block *block = CreateBlock(BlockType_Command);
+                script->topBlock = block;
+                
+                RenderEntry *entry = PushRenderEntry(&blocksCtx->blocksRenderGroup);
+                entry->type = RenderEntryTypeForBlockType(BlockType_Command);
+                entry->block = block;
+                entry->P = P;
+                entry->color = ColorForBlockType(BlockType_Command);
+                entry->scale = 1.0f;
+                
+                Interaction interaction = {};
+                interaction.type = InteractionType_BlockDrag;
+                interaction.block = block;
+                interaction.blockP = P;
+                interaction.script = script;
+                interaction.entry = entry;
+                interaction.mouseStartP = P;
+                interaction.mouseOffset = { 0, 0 };
+                
+                // Set constant dragInfo
+                blocksCtx->dragInfo.script = script;
+                blocksCtx->dragInfo.firstBlock = block;
+                blocksCtx->dragInfo.lastBlock = block;
+                
+                blocksCtx->interacting = interaction;
+            }
+            else {
+                blocksCtx->interacting = blocksCtx->hot;
+            }
         }
     }
     
     // Change the color of the hot block
-    if (blocksCtx->hot.block) {
+    if (blocksCtx->hot.type != InteractionType_None) {
         blocksCtx->hot.entry->color = v4{1, 1, 0, 1};
     }
-    
-    
-    // if (Dragging()) {
-    //     DEBUGPushRectOutline(blocksCtx->dragInfo.inlet, v4{0, 1, 0, 1});
-    //     DEBUGPushRectOutline(blocksCtx->dragInfo.outlet, v4{0, 1, 0, 1});
-    //     if (blocksCtx->interacting.block->type == BlockType_Loop) {
-    //         DEBUGPushRectOutline(blocksCtx->dragInfo.innerOutlet, v4{0, 1, 0, 1});
-    //     }
-    // }
     
     // Assmble vertex buffer
     BlocksRenderInfo Result = {};
@@ -512,29 +546,39 @@ BlocksRenderInfo EndBlocks(RenderGroup *renderGroup) {
     AssembleVertexBuferForRenderGroup(&blocksCtx->frame, &Result, &blocksCtx->uiRenderGroup);
     AssembleVertexBuferForRenderGroup(&blocksCtx->frame, &Result, &blocksCtx->dragRenderGroup);
     AssembleVertexBuferForRenderGroup(&blocksCtx->frame, &Result, &blocksCtx->debugRenderGroup);
+    AssembleVertexBuferForRenderGroup(&blocksCtx->frame, &Result, &blocksCtx->fontRenderGroup);
     
     Result.vertexDataSize = (u32)(ArenaAt(&blocksCtx->frame) - Result.vertexData);
     return Result;
 }
 
 void RenderNewBlockButton(RenderGroup *renderGroup) {
-    f32 buttonSizeInPixels = 50.0f;
-    f32 edgeOffsetInPixels = 20.0f;
+    BlockMetrics metrics = METRICS[BlockType_Command];
     v2 screenSize = blocksCtx->screenSize;
-    Rectangle blockButtonRect = {screenSize.w - edgeOffsetInPixels - buttonSizeInPixels,
-                                 screenSize.h - edgeOffsetInPixels - buttonSizeInPixels,
-                                 buttonSizeInPixels,
-                                 buttonSizeInPixels};
+    f32 scale = 4.0f;
+    f32 edgePadding = 20.0f;
+    v2 P = {screenSize.w - edgePadding - (scale * metrics.size.w),
+            screenSize.h - edgePadding - (scale * metrics.size.h)};
+    Rectangle hitBox = {P.x, P.y, scale * metrics.size.w, scale * metrics.size.h};
     
     RenderEntry *entry = PushRenderEntry(renderGroup);
-    entry->type = RenderEntryType_Rect;
-    entry->rect = blockButtonRect;
-    if (PointInRect(renderGroup->mouseP, blockButtonRect)) {
-        entry->color = v4{1, 1, 0, 1};
+    entry->type = RenderEntryType_Command;
+    entry->P = P;
+    entry->color = COLOR_GREY_50;
+    entry->scale = scale;
+    
+    if (PointInRect(renderGroup->mouseP, hitBox)) {
+        // entry->color = v4{1, 1, 0, 1};
+        
+        blocksCtx->nextHot.type = InteractionType_NewBlockSelect;
+        // blocksCtx->nextHot.block = block;
+        blocksCtx->nextHot.blockP = entry->P;
+        // blocksCtx->nextHot.script = script;
+        blocksCtx->nextHot.entry = entry;
+        blocksCtx->nextHot.mouseStartP = renderGroup->mouseP;
+        blocksCtx->nextHot.mouseOffset = { renderGroup->mouseP.x - P.x, renderGroup->mouseP.y - P.y };
     }
-    else {
-        entry->color = v4{0, 1, 1, 0.5};
-    }
+    
     
 }
 
@@ -746,6 +790,7 @@ void DrawSimpleBlock(RenderGroup *renderGroup, BlockType blockType, Block *block
     else {
         entry->color = ColorForBlockType(blockType);
     }
+    entry->scale = 1.0f;
     
     
     layout->at.x += metrics.size.w;
@@ -754,7 +799,7 @@ void DrawSimpleBlock(RenderGroup *renderGroup, BlockType blockType, Block *block
     layout->bounds.h = Max(layout->bounds.h, metrics.size.h);
     
     if (!isGhost && PointInRect(renderGroup->mouseP, hitBox)) {
-        blocksCtx->nextHot.type = InteractionType_Select;
+        blocksCtx->nextHot.type = InteractionType_BlockSelect;
         blocksCtx->nextHot.block = block;
         blocksCtx->nextHot.blockP = entry->P;
         blocksCtx->nextHot.script = script;
@@ -806,7 +851,7 @@ void DrawBranchBlock(RenderGroup *renderGroup, BlockType blockType, Block *block
     layout->bounds.h = Max(layout->bounds.h, metrics.size.h + vertStretch);
     
     if (!isGhost && PointInRect(renderGroup->mouseP, hitBox) && !PointInRect(renderGroup->mouseP, innerHitBox)) {
-        blocksCtx->nextHot.type = InteractionType_Select;
+        blocksCtx->nextHot.type = InteractionType_BlockSelect;
         blocksCtx->nextHot.block = block;
         blocksCtx->nextHot.blockP = entry->P;
         blocksCtx->nextHot.script = script;
@@ -946,6 +991,9 @@ extern "C" BlocksRenderInfo RunBlocks(void *mem, BlocksInput *input) {
     RenderGroup *dragRenderGroup = &blocksCtx->dragRenderGroup;
     InitRenderGroup(dragRenderGroup, blocksTransformPair.transform, blocksTransformPair.invTransform);
     
+    RenderGroup *fontRenderGroup = &blocksCtx->fontRenderGroup;
+    InitRenderGroup(fontRenderGroup, blocksTransformPair.transform, blocksTransformPair.invTransform);
+    
     if (Dragging()) {
         // Update dragging info
         Script *script = blocksCtx->dragInfo.script;
@@ -990,5 +1038,5 @@ extern "C" BlocksRenderInfo RunBlocks(void *mem, BlocksInput *input) {
     InitRenderGroup(overlayRenderGroup, oneToOneTransformPair.transform, oneToOneTransformPair.invTransform);
     RenderNewBlockButton(overlayRenderGroup);
     
-    return EndBlocks(blocksRenderGroup);
+    return EndBlocks();
 }

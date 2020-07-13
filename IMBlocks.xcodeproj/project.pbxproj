@@ -60,6 +60,10 @@
 		A3AF0ECA24B4D67500439C4E /* blocks-mip-2.dat in Resources */ = {isa = PBXBuildFile; fileRef = A3AF0EB724B4D67500439C4E /* blocks-mip-2.dat */; };
 		A3AF0ECB24B4D67500439C4E /* blocks-mip-2.dat in Resources */ = {isa = PBXBuildFile; fileRef = A3AF0EB724B4D67500439C4E /* blocks-mip-2.dat */; };
 		A3AF0ECD24B56A8400439C4E /* BlocksShaders.h in Headers */ = {isa = PBXBuildFile; fileRef = A3AF0ECC24B56A8400439C4E /* BlocksShaders.h */; };
+		A3AF0ED024B900CC00439C4E /* genFontTexture.m in Sources */ = {isa = PBXBuildFile; fileRef = A3AF0ECF24B900CC00439C4E /* genFontTexture.m */; };
+		A3AF0ED424BAA9AA00439C4E /* font-atlas.dat in Resources */ = {isa = PBXBuildFile; fileRef = A3AF0ED324BAA9AA00439C4E /* font-atlas.dat */; };
+		A3AF0ED524BAA9AA00439C4E /* font-atlas.dat in Resources */ = {isa = PBXBuildFile; fileRef = A3AF0ED324BAA9AA00439C4E /* font-atlas.dat */; };
+		A3AF0ED724BAA9B300439C4E /* font-atlas.h in Headers */ = {isa = PBXBuildFile; fileRef = A3AF0ED624BAA9B300439C4E /* font-atlas.h */; };
 		A3C07B0624A6F31D0031BF23 /* Blocks.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3C07B0524A6F3180031BF23 /* Blocks.cpp */; };
 /* End PBXBuildFile section */
 
@@ -158,6 +162,12 @@
 		A3AF0EB624B4D67500439C4E /* blocks-mip-64.dat */ = {isa = PBXFileReference; lastKnownFileType = file; path = "blocks-mip-64.dat"; sourceTree = "<group>"; };
 		A3AF0EB724B4D67500439C4E /* blocks-mip-2.dat */ = {isa = PBXFileReference; lastKnownFileType = file; path = "blocks-mip-2.dat"; sourceTree = "<group>"; };
 		A3AF0ECC24B56A8400439C4E /* BlocksShaders.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BlocksShaders.h; sourceTree = "<group>"; };
+		A3AF0ECE24B900CC00439C4E /* genFontTexture.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = genFontTexture.h; sourceTree = "<group>"; };
+		A3AF0ECF24B900CC00439C4E /* genFontTexture.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = genFontTexture.m; sourceTree = "<group>"; };
+		A3AF0ED124B9014100439C4E /* stb_truetype.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stb_truetype.h; sourceTree = "<group>"; };
+		A3AF0ED224B9064C00439C4E /* stb_rect_pack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stb_rect_pack.h; sourceTree = "<group>"; };
+		A3AF0ED324BAA9AA00439C4E /* font-atlas.dat */ = {isa = PBXFileReference; lastKnownFileType = file; path = "font-atlas.dat"; sourceTree = "<group>"; };
+		A3AF0ED624BAA9B300439C4E /* font-atlas.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "font-atlas.h"; sourceTree = "<group>"; };
 		A3C07B0024A6F3180031BF23 /* BlocksInternal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BlocksInternal.h; sourceTree = "<group>"; };
 		A3C07B0124A6F3180031BF23 /* BlocksVerts.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BlocksVerts.h; sourceTree = "<group>"; };
 		A3C07B0224A6F3180031BF23 /* BlocksTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BlocksTypes.h; sourceTree = "<group>"; };
@@ -314,7 +324,11 @@
 		A3AA9850249B04AB00928544 /* GenTextures */ = {
 			isa = PBXGroup;
 			children = (
+				A3AF0ED124B9014100439C4E /* stb_truetype.h */,
+				A3AF0ED224B9064C00439C4E /* stb_rect_pack.h */,
 				A3AA9851249B04AC00928544 /* main.m */,
+				A3AF0ECE24B900CC00439C4E /* genFontTexture.h */,
+				A3AF0ECF24B900CC00439C4E /* genFontTexture.m */,
 			);
 			path = GenTextures;
 			sourceTree = "<group>";
@@ -322,6 +336,7 @@
 		A3AA9857249B1C1300928544 /* Textures */ = {
 			isa = PBXGroup;
 			children = (
+				A3AF0ED324BAA9AA00439C4E /* font-atlas.dat */,
 				A3AF0EAB24B39D5D00439C4E /* blocks-atlas.dat */,
 				A3AF0EB224B4D67500439C4E /* blocks-mip-1.dat */,
 				A3AF0EB724B4D67500439C4E /* blocks-mip-2.dat */,
@@ -346,6 +361,7 @@
 				A3C07B0324A6F3180031BF23 /* Blocks.h */,
 				A3C07B0424A6F3180031BF23 /* BlocksMath.h */,
 				A3AF0ECC24B56A8400439C4E /* BlocksShaders.h */,
+				A3AF0ED624BAA9B300439C4E /* font-atlas.h */,
 				A3C07B0524A6F3180031BF23 /* Blocks.cpp */,
 			);
 			path = Blocks;
@@ -367,6 +383,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A3AF0ECD24B56A8400439C4E /* BlocksShaders.h in Headers */,
+				A3AF0ED724BAA9B300439C4E /* font-atlas.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -525,6 +542,7 @@
 				A3AF0EAC24B39D5D00439C4E /* blocks-atlas.dat in Resources */,
 				A3AF0EC424B4D67500439C4E /* blocks-mip-128.dat in Resources */,
 				A3AF0EC224B4D67500439C4E /* blocks-mip-4.dat in Resources */,
+				A3AF0ED424BAA9AA00439C4E /* font-atlas.dat in Resources */,
 				A3AF0ECA24B4D67500439C4E /* blocks-mip-2.dat in Resources */,
 				A3AF0EB824B4D67500439C4E /* blocks-mip-8.dat in Resources */,
 				A3A904F62497D37F004835B7 /* Main.storyboard in Resources */,
@@ -555,6 +573,7 @@
 				A3AF0EC524B4D67500439C4E /* blocks-mip-128.dat in Resources */,
 				A3AF0EBB24B4D67500439C4E /* blocks-mip-32.dat in Resources */,
 				A3AF0EC124B4D67500439C4E /* blocks-mip-1.dat in Resources */,
+				A3AF0ED524BAA9AA00439C4E /* font-atlas.dat in Resources */,
 				A3AF0EBD24B4D67500439C4E /* blocks-mip-512.dat in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -618,6 +637,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A3AA9852249B04AC00928544 /* main.m in Sources */,
+				A3AF0ED024B900CC00439C4E /* genFontTexture.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -9,9 +9,11 @@
 #import <Cocoa/Cocoa.h>
 #import <CoreGraphics/CoreGraphics.h>
 #import <stdint.h>
+#import <CoreText/CoreText.h>
 
 #define GENERATE_SDF 0
-#define GENERATE_MIPMAPS 1
+#define GENERATE_MIPMAPS 0
+#define GENERATE_FONT 1
 #define OUTPUT_SDF_IMAGE 1
 
 typedef uint8_t  u8;
@@ -30,6 +32,10 @@ typedef double   f64;
 typedef uint32_t b32;
 typedef uint64_t b64;
 
+#define Assert(expr) if(!(expr)) { *(volatile u32 *)0 = 0; }
+
+
+
 typedef struct Pt {
     s32 x;
     s32 y;
@@ -43,18 +49,104 @@ f32 clamp(f32 val, f32 min, f32 max) {
 f32 *deadReckoning(u8 *pixels, u32 width, u32 height);
 void generateSdfTexture(void);
 void generateMipmaps(void);
+void generateFont(void);
 
 int main(int argc, const char * argv[]) {
     @autoreleasepool {
-        #ifdef GENERATE_SDF
+        #if GENERATE_SDF
         generateSdfTexture();  
         #endif
-        #ifdef GENERATE_MIPMAPS
+        #if GENERATE_MIPMAPS
         generateMipmaps();
+        #endif
+        #if GENERATE_FONT
+        generateStbFont();
         #endif
     }
     return 0;
 }
+
+//typedef struct KerningTableHeader {
+//    u32 version;
+//    u32 nTables;
+//} KerningTableHeader;
+//
+//typedef struct KerningSubTableHeader {
+//    u32 length;
+//    u16 coverage;
+//    u16 tupleIndex;
+//} KerningSubTableHeader;
+//
+//typedef struct KerningFormat0Header {
+//    u16 nPairs;
+//    u16 searchPairs;
+//    u16 entrySelector;
+//    u16 rangeShift;
+//} KerningFormat0Header;
+//
+//typedef struct KerningPair {
+//    u16 l;
+//    u16 r;
+//    s16 val;
+//} KerningPair;
+//
+//typedef struct SimpleFontHeader {
+//    KerningTableHeader tableHeader;
+//    KerningSubTableHeader subTableHeader;
+//    KerningFormat0Header format0Header;
+//} SimpleFontHeader;
+
+void generateFont() {
+    
+}
+
+//void generateFont() {
+//    CTFontRef font = CTFontCreateWithName((__bridge CFStringRef)@"Helvetica Neue Bold", 256.0, nil);
+//  
+//    char *chars = " ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789()[]{};:'\"<>?,./\\!@#$%^&*-_+=~";
+//    u32 nChars = (u32)strlen(chars);
+//    UniChar *unichars = malloc(nChars * sizeof(UniChar));
+//    for (u32 i = 0; i < nChars; ++i) {
+//        unichars[i] = (UniChar)chars[i];
+//    }
+//    
+//    // Extract glyphs
+//    CGGlyph *glyphs = malloc(nChars * sizeof(CGGlyph));
+//    b32 success = CTFontGetGlyphsForCharacters(font, unichars, glyphs, nChars);
+//    Assert(success);
+//    
+//    // Extract bounding boxes
+//    CGRect *boundingBoxes = malloc(nChars * sizeof(CGRect));
+//    CTFontGetBoundingRectsForGlyphs(font, kCTFontOrientationDefault, glyphs, boundingBoxes, nChars);
+//    
+//    // Extract advances
+//    CGSize *advances = malloc(nChars * sizeof(CGSize));
+//    CTFontGetAdvancesForGlyphs(font, kCTFontOrientationDefault, glyphs, advances, nChars);
+//    
+//    // Extract kerns
+//    CFDataRef kernTable = CTFontCopyTable(font, kCTFontTableKern, 0);
+//    u8 *kernBytes = malloc(CFDataGetLength(kernTable));
+//    CFDataGetBytes(kernTable, CFRangeMake(0, CFDataGetLength(kernTable)), kernBytes);
+//    
+//    SimpleFontHeader *fontHeader = (SimpleFontHeader *)kernBytes;
+//    Assert(CFSwapInt32BigToHost(fontHeader->tableHeader.version) == 0x00010000);
+//    Assert(CFSwapInt32BigToHost(fontHeader->tableHeader.nTables) == 1);
+//    const u16 coverageKernFormatMask = 0xFF;
+//    Assert((CFSwapInt16BigToHost(fontHeader->subTableHeader.coverage) & coverageKernFormatMask) == 0);
+//    
+//    u16 nPairs = CFSwapInt16BigToHost(fontHeader->format0Header.nPairs);
+//    
+//    KerningPair *pairs = (KerningPair *)(kernBytes + sizeof(SimpleFontHeader));
+//    
+//    for (u32 i = 0; i < nPairs; ++i) {
+//        KerningPair pair = {
+//            CFSwapInt16BigToHost(pairs[i].l),
+//            CFSwapInt16BigToHost(pairs[i].r),
+//            (s16)CFSwapInt16BigToHost(pairs[i].val)
+//        };
+//        NSLog(@"%d, %d, %d", pair.l, pair.r, pair.val);
+//    }
+//}
 
 void generateMipmaps() {
     const u32 firstMipSize = 512;

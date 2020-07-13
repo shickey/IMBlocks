@@ -68,6 +68,7 @@ struct RenderEntry {
     Block* block;
     v2 P;
     v4 color;
+    f32 scale;
     union {
         struct {
             u32 hStretch;
@@ -84,8 +85,11 @@ enum DrawBlockFlags {
 
 enum InteractionType {
     InteractionType_None,
-    InteractionType_Select,
-    InteractionType_Drag
+    
+    InteractionType_BlockSelect,
+    InteractionType_BlockDrag,
+    
+    InteractionType_NewBlockSelect,
 };
 
 struct Interaction {
@@ -160,6 +164,8 @@ struct BlocksContext {
     RenderGroup dragRenderGroup;
     RenderGroup debugRenderGroup;
     
+    RenderGroup fontRenderGroup;
+    
     Script scripts[1024];
     u32 scriptCount;
     
@@ -175,7 +181,7 @@ struct BlocksContext {
 };
 
 void BeginBlocks(BlocksInput input);
-BlocksRenderInfo EndBlocks(RenderGroup *renderGroup);
+BlocksRenderInfo EndBlocks();
 void DrawSubScript(RenderGroup *renderGroup, Block *block, Script *script, Layout *layout);
 b32 DrawBlock(RenderGroup *renderGroup, Block *block, Script *script, Layout *layout);
 void DrawSimpleBlock(RenderGroup *renderGroup, BlockType blockType, Block *block, Script *script, Layout *layout, u32 flags = 0);

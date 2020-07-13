@@ -50,6 +50,10 @@ union v2 {
         f32 w;
         f32 h;
     };
+    struct {
+        f32 u;
+        f32 v;
+    };
 };
 
 union v3 {

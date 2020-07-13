@@ -75,8 +75,6 @@ void unloadLibBlocks() {
     libBlocks = NULL;
 }
 
-static f32 zoomLevel = 3.0;
-
 @implementation Renderer
 {
     dispatch_semaphore_t _inFlightSemaphore;
@@ -88,6 +86,7 @@ static f32 zoomLevel = 3.0;
     id <MTLBuffer> _worldUniformsBuffers[MAX_BUFFERS_IN_FLIGHT];
     
     id <MTLTexture> blockSdfTexture;
+    id <MTLTexture> fontSdfTexture;
     id <MTLTexture> blockMipTexture;
     
     id<MTLSamplerState> _sampler;
@@ -169,7 +168,7 @@ static f32 zoomLevel = 3.0;
         _vertBuffers[i] = [_device newBufferWithLength:(BLOCK_BYTE_SIZE * MAX_BLOCKS) options:MTLResourceStorageModeShared];
         _vertBuffers[i].label = @"Vertex Buffer";
         
-        _worldUniformsBuffers[i] = [_device newBufferWithLength:(sizeof(WorldUniforms) * 4) options:MTLResourceStorageModeShared];
+        _worldUniformsBuffers[i] = [_device newBufferWithLength:(sizeof(WorldUniforms) * 5) options:MTLResourceStorageModeShared];
         _worldUniformsBuffers[i].label = @"World Uniforms Buffer";
     }
     
@@ -182,6 +181,12 @@ static f32 zoomLevel = 3.0;
     
     NSData *texData = [NSData dataWithContentsOfURL:[NSBundle.mainBundle URLForResource:@"blocks-atlas" withExtension:@"dat"]];
     [blockSdfTexture replaceRegion:MTLRegionMake2D(0, 0, 512, 512) mipmapLevel:0 withBytes:texData.bytes bytesPerRow:512];
+    
+    // Load font texture
+    fontSdfTexture = [_device newTextureWithDescriptor:texDescriptor];
+    
+    NSData *fontData = [NSData dataWithContentsOfURL:[NSBundle.mainBundle URLForResource:@"font-atlas" withExtension:@"dat"]];
+    [fontSdfTexture replaceRegion:MTLRegionMake2D(0, 0, 512, 512) mipmapLevel:0 withBytes:fontData.bytes bytesPerRow:512];
     
     // Load mipmapped textures
     MTLTextureDescriptor *mipTexDescriptor = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatR8Unorm 
@@ -272,43 +277,50 @@ static f32 zoomLevel = 3.0;
     return CGPointMake(P.x, P.y);
 }
 
-- (void)drawImGuiIn:(MetalView *)view
-               with:(MTLRenderPassDescriptor *)renderPassDescriptor 
-      commandBuffer:(id<MTLCommandBuffer>)commandBuffer
-      renderEncoder:(id<MTLRenderCommandEncoder>)renderEncoder
-{
-    
+- (void)beginImGuiWithView:(MetalView *)view renderPassDescriptor:(MTLRenderPassDescriptor *)renderPassDescriptor {
     ImGui_ImplMetal_NewFrame(renderPassDescriptor);
     ImGui_ImplOSX_NewFrame(view);
     ImGui::NewFrame();
-    
-//    static bool show_demo_window = true;
-//    ImGui::ShowDemoWindow(&show_demo_window);
-    
-    {
-        ImGui::Begin("Blocks Debug");                          // Create a window called "Hello, world!" and append into it.
-        
-        ImGui::SliderFloat("zoom", &zoomLevel, 0.5, 16.0);
-        
-        BlocksContext *ctx = (BlocksContext *)blocksMem;
-        for (u32 i = 0; i < ctx->scriptCount; ++i) {
-            Script *script = &ctx->scripts[i];
-            char label[50];
-            sprintf(label, "script %i", i);
-            ImGui::InputFloat2(label, (float *)&(script->P));
-        }
+}
 
-//        ImGui::ProgressBar((f32)ctx->blocks.used / (f32)ctx->blocks.size, ImVec2(0.0f, 0.0f), "Blocks Arena Usage");
-//        ImGui::ProgressBar((f32)ctx->verts.used / (f32)ctx->verts.size, ImVec2(0.0f, 0.0f), "Vertex Arena Usage");
-        ImGui::ProgressBar((f32)ctx->scriptCount / 1024.f, ImVec2(0.0f, 0.0f), "Script usage");
-
-        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-        ImGui::End();
-    }
+- (void)endImGuiWithCommandBuffer:(id<MTLCommandBuffer>)commandBuffer renderEncoder:(id<MTLRenderCommandEncoder>)renderEncoder {
     ImGui::Render();
     ImDrawData *drawData = ImGui::GetDrawData();
     ImGui_ImplMetal_RenderDrawData(drawData, commandBuffer, renderEncoder);
 }
+
+//- (void)drawImGuiIn:(MetalView *)view
+//               with:(MTLRenderPassDescriptor *)renderPassDescriptor 
+//      commandBuffer:(id<MTLCommandBuffer>)commandBuffer
+//      renderEncoder:(id<MTLRenderCommandEncoder>)renderEncoder
+//{
+//    
+//    
+//    
+////    static bool show_demo_window = true;
+////    ImGui::ShowDemoWindow(&show_demo_window);
+//    
+////    {
+////        ImGui::Begin("Blocks Debug");                          // Create a window called "Hello, world!" and append into it.
+////        
+////        ImGui::SliderFloat("zoom", &zoomLevel, 0.5, 16.0);
+////        
+////        BlocksContext *ctx = (BlocksContext *)blocksMem;
+////        for (u32 i = 0; i < ctx->scriptCount; ++i) {
+////            Script *script = &ctx->scripts[i];
+////            char label[50];
+////            sprintf(label, "script %i", i);
+////            ImGui::InputFloat2(label, (float *)&(script->P));
+////        }
+////
+//////        ImGui::ProgressBar((f32)ctx->blocks.used / (f32)ctx->blocks.size, ImVec2(0.0f, 0.0f), "Blocks Arena Usage");
+//////        ImGui::ProgressBar((f32)ctx->verts.used / (f32)ctx->verts.size, ImVec2(0.0f, 0.0f), "Vertex Arena Usage");
+////        ImGui::ProgressBar((f32)ctx->scriptCount / 1024.f, ImVec2(0.0f, 0.0f), "Script usage");
+////
+////        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+////        ImGui::End();
+////    }
+//}
 
 - (void)drawInMTKView:(nonnull MetalView *)view
 {
@@ -355,22 +367,22 @@ static f32 zoomLevel = 3.0;
     view->_input.wheelDy = 0;
     
     id <MTLBuffer> vertBuffer = _vertBuffers[_bufferIndex];
-    
-    BlocksRenderInfo renderInfo = runBlocks(blocksMem, &blocksInput);
-    memcpy(vertBuffer.contents, renderInfo.vertexData, renderInfo.vertexDataSize);
-    
-    // World transform
     id <MTLBuffer> worldUniformsBuffer = _worldUniformsBuffers[_bufferIndex];
-    WorldUniforms *worldUniforms = (WorldUniforms *)[worldUniformsBuffer contents];
-    
-    for (u32 i = 0; i < renderInfo.drawCallCount; ++i) {
-        BlocksDrawCall *drawCall = &renderInfo.drawCalls[i];
-        memcpy(worldUniforms + i, &drawCall->transform, sizeof(WorldUniforms));
-    }
     
     MTLRenderPassDescriptor* renderPassDescriptor = view.currentRenderPassDescriptor;
     if(renderPassDescriptor != nil)
     {
+        [self beginImGuiWithView:view renderPassDescriptor:renderPassDescriptor]; 
+        
+        BlocksRenderInfo renderInfo = runBlocks(blocksMem, &blocksInput);
+        memcpy(vertBuffer.contents, renderInfo.vertexData, renderInfo.vertexDataSize);
+        
+        WorldUniforms *worldUniforms = (WorldUniforms *)[worldUniformsBuffer contents];
+        for (u32 i = 0; i < renderInfo.drawCallCount; ++i) {
+            BlocksDrawCall *drawCall = &renderInfo.drawCalls[i];
+            memcpy(worldUniforms + i, &drawCall->transform, sizeof(WorldUniforms));
+        }
+        
         renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColorMake((f64)0x33 / 255.0, (f64)0x47 / 255.0, (f64)0x71 / 255.0, 1.0);
         
         id <MTLRenderCommandEncoder> renderEncoder = [commandBuffer renderCommandEncoderWithDescriptor:renderPassDescriptor];
@@ -388,16 +400,17 @@ static f32 zoomLevel = 3.0;
         for (u32 i = 0; i < renderInfo.drawCallCount; ++i) {
             BlocksDrawCall *drawCall = &renderInfo.drawCalls[i];
             
+            if (i == renderInfo.drawCallCount - 1) {
+                [renderEncoder setFragmentTexture:fontSdfTexture atIndex:0];
+            }
+            
             [renderEncoder setVertexBufferOffset:(i * sizeof(WorldUniforms)) atIndex:1];
             [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle 
                               vertexStart:drawCall->vertexOffset 
                               vertexCount:drawCall->vertexCount];
         }
         
-        [self drawImGuiIn:view 
-                     with:renderPassDescriptor
-            commandBuffer:commandBuffer
-            renderEncoder:renderEncoder];
+        [self endImGuiWithCommandBuffer:commandBuffer renderEncoder:renderEncoder];
 
         [renderEncoder endEncoding];
 
