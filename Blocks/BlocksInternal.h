@@ -60,6 +60,8 @@ enum RenderEntryType {
     RenderEntryType_Rect,
     RenderEntryType_RectOutline,
     
+    RenderEntryType_Text,
+    
     RenderEntryType_Null,
 };
 
@@ -76,6 +78,9 @@ struct RenderEntry {
         };
     };
     Rectangle rect;
+    
+    char *text;
+    f32 textHeight;
 };
 
 enum DrawBlockFlags {

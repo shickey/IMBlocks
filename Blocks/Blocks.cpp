@@ -246,13 +246,13 @@ void AssembleVertexBuferForRenderGroup(Arena *vertexArena, BlocksRenderInfo *ren
     u8 *start = ArenaAt(vertexArena);
     drawCall->vertexOffset = (u32)(start - renderInfo->vertexData) / VERTEX_SIZE;
     
-    if (renderGroup == &blocksCtx->fontRenderGroup) {
-        v2 at = {25, 30};
-        const char *str = "Aw Te Ava";
-        f32 fontHeight = 24.0;
-        v4 color = COLOR_CYAN;
-        PushFontString(vertexArena, str, at, fontHeight, color);
-    }
+    // if (renderGroup == &blocksCtx->fontRenderGroup) {
+    //     v2 at = {25, 30};
+    //     const char *str = "Aw Te Ava";
+    //     f32 fontHeight = 24.0;
+    //     v4 color = COLOR_CYAN;
+        
+    // }
     
     for (u32 entryIdx = 0; entryIdx < renderGroup->entryCount; ++entryIdx) {
         RenderEntry *entry = &renderGroup->entries[entryIdx];
@@ -283,6 +283,10 @@ void AssembleVertexBuferForRenderGroup(Arena *vertexArena, BlocksRenderInfo *ren
             }
             case RenderEntryType_RectOutline: {
                 PushRectOutline(vertexArena, entry->rect, entry->color);
+                break;
+            }
+            case RenderEntryType_Text: {
+                PushFontString(vertexArena, entry->text, entry->P, entry->textHeight, entry->color);
                 break;
             }
             case RenderEntryType_Null: {
@@ -575,8 +579,15 @@ void RenderNewBlockButton(RenderGroup *renderGroup) {
         blocksCtx->nextHot.mouseStartP = renderGroup->mouseP;
         blocksCtx->nextHot.mouseOffset = { renderGroup->mouseP.x - P.x, renderGroup->mouseP.y - P.y };
     }
-    
-    
+}
+
+void RenderText(RenderGroup *renderGroup, char *text, v2 P, f32 textHeight, v4 color) {
+    RenderEntry *entry = PushRenderEntry(renderGroup);
+    entry->type = RenderEntryType_Text;
+    entry->P = P;
+    entry->color = color;
+    entry->text = text;
+    entry->textHeight = textHeight;
 }
 
 Layout RenderScript(RenderGroup *renderGroup, Script *script) {
@@ -1028,6 +1039,15 @@ extern "C" BlocksRenderInfo RunBlocks(void *mem, BlocksInput *input) {
         }
         RenderScript(blocksRenderGroup, script);
     }
+    
+    // Text test
+    const char *text = "AVA Te Hello world!";
+    char *textForEntry = (char *)PushSize(&blocksCtx->frame, (u32)strlen(text) + 1);
+    for (u32 i = 0; i < strlen(text); ++i) {
+        textForEntry[i] = text[i];
+    }
+    textForEntry[strlen(text)] = 0;
+    RenderText(fontRenderGroup, textForEntry, v2{-60, 30}, 24.0, COLOR_MAGENTA);
     
     // Floating UI
     RenderGroup *overlayRenderGroup = &blocksCtx->uiRenderGroup;

@@ -289,8 +289,7 @@ void generateStbFont() {
     
     [fontCHeaderOut appendFormat:@"static float FONT_SIZE = %0.1f;\n\n", fontSize];
     
-    [fontCHeaderOut appendFormat:@"inline float ScaleForFontHeight(float fontHeight) { return fontHeight / FONT_SIZE; }
-     \n\n", fontSize];
+    [fontCHeaderOut appendFormat:@"inline float ScaleForFontHeight(float fontHeight) { return fontHeight / FONT_SIZE; }\n\n", fontSize];
     
     [fontCHeaderOut appendFormat:@"static SdfFontChar FONT_DATA[%i] = {\n", numChars + 32];
     for (u32 i = 0; i < 32; ++i) {
