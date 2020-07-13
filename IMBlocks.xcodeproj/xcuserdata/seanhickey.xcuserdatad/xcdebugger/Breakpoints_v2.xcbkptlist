@@ -20,5 +20,53 @@
             landmarkType = "9">
          </BreakpointContent>
       </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "48A2E85E-7814-4BC5-8809-0366CD169B87"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Blocks/BlocksVerts.h"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "133"
+            endingLineNumber = "133"
+            landmarkName = "PushRectOutline(arena, rect, color)"
+            landmarkType = "9">
+            <Locations>
+               <Location
+                  uuid = "48A2E85E-7814-4BC5-8809-0366CD169B87 - 85427359c809f3fb"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "PushChar(Arena*, SdfFontChar, float, v2, v4)"
+                  moduleName = "libBlocks.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/seanhickey/Projects/IMBlocks/Blocks/BlocksVerts.h"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "133"
+                  endingLineNumber = "133"
+                  offsetFromSymbolStart = "58">
+               </Location>
+               <Location
+                  uuid = "48A2E85E-7814-4BC5-8809-0366CD169B87 - dd6beedc55b0c920"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "PushRectOutline(Arena*, Rectangle, v4)"
+                  moduleName = "libBlocks.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/seanhickey/Projects/IMBlocks/Blocks/BlocksVerts.h"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "136"
+                  endingLineNumber = "136"
+                  offsetFromSymbolStart = "95">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
    </Breakpoints>
 </Bucket>

@@ -235,6 +235,8 @@ void generateStbFont() {
     stbtt_fontinfo fontInfo;
     stbtt_InitFont(&fontInfo, fontBytes, stbtt_GetFontOffsetForIndex(fontBytes, fontIdx));
     
+    f32 fontSize = 48.0;
+    
     stbtt_pack_context packCtx;
     const u32 TEX_WIDTH = 512;
     const u32 TEX_HEIGHT = 512;
@@ -242,8 +244,8 @@ void generateStbFont() {
     stbtt_PackBegin(&packCtx, pixels, TEX_WIDTH, TEX_HEIGHT, TEX_WIDTH, 1, NULL);
     u32 numChars = 127 - 32;
     stbtt_packedchar *packedChars = malloc(numChars * sizeof(stbtt_packedchar));
-    float scale = stbtt_ScaleForPixelHeight(&fontInfo, 48.0);
-    stbtt_PackSdfFontRange(&packCtx, fontBytes, fontIdx, 48.0, scale, 4, 32, numChars, packedChars);
+    float scale = stbtt_ScaleForPixelHeight(&fontInfo, fontSize);
+    stbtt_PackSdfFontRange(&packCtx, fontBytes, fontIdx, fontSize, scale, 4, 32, numChars, packedChars);
     stbtt_PackEnd(&packCtx);
     
     // Write out the image data
@@ -285,6 +287,11 @@ void generateStbFont() {
 "};\n"
 "\n\n"];
     
+    [fontCHeaderOut appendFormat:@"static float FONT_SIZE = %0.1f;\n\n", fontSize];
+    
+    [fontCHeaderOut appendFormat:@"inline float ScaleForFontHeight(float fontHeight) { return fontHeight / FONT_SIZE; }
+     \n\n", fontSize];
+    
     [fontCHeaderOut appendFormat:@"static SdfFontChar FONT_DATA[%i] = {\n", numChars + 32];
     for (u32 i = 0; i < 32; ++i) {
         [fontCHeaderOut appendString:@"    { 0, 0, 0, 0, 0, 0, 0, 0, 0 },\n"];
@@ -306,7 +313,7 @@ void generateStbFont() {
     [fontCHeaderOut appendString:@"};\n\n"];
     
     // Kerning table
-    [fontCHeaderOut appendFormat:@"float KERN_TABLE[%d][%d] = {\n", numChars + 32, numChars + 32];
+    [fontCHeaderOut appendFormat:@"static float KERN_TABLE[%d][%d] = {\n", numChars + 32, numChars + 32];
     for (u32 j = 0; j < 127; ++j) {
         [fontCHeaderOut appendString:@"    { "];
         for (u32 i = 0; i < 127; ++i) {

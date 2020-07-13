@@ -86,25 +86,6 @@ global_var BlockMetrics METRICS[BlockTypeCount] = {
     },
 };
 
-// void PushChar(Arena *arena, char character) {
-//     Assert(character >= 32 && character <= 127);
-    
-    
-//     v4 color = COLOR_YELLOW;
-    
-//     f32 verts[] = {
-//         0,                             0, (f32)charData.x0 / 512.0f, (f32)charData.y1 / 512.0f, color.r, color.g, color.b, color.a,
-//         (f32)charData.w,               0, (f32)charData.x1 / 512.0f, (f32)charData.y1 / 512.0f, color.r, color.g, color.b, color.a,
-//         0,               (f32)charData.h, (f32)charData.x0 / 512.0f, (f32)charData.y0 / 512.0f, color.r, color.g, color.b, color.a,
-        
-//         (f32)charData.w,               0, (f32)charData.x1 / 512.0f, (f32)charData.y1 / 512.0f, color.r, color.g, color.b, color.a,
-//         0,               (f32)charData.h, (f32)charData.x0 / 512.0f, (f32)charData.y0 / 512.0f, color.r, color.g, color.b, color.a,
-//         (f32)charData.w, (f32)charData.h, (f32)charData.x1 / 512.0f, (f32)charData.y0 / 512.0f, color.r, color.g, color.b, color.a,
-//     };
-    
-//     PushVerts(arena, verts);
-// }
-
 void PushRect(Arena *arena, Rectangle rect, v2 uv0, v2 uv1, v4 color) {
     
     f32 verts[] = {
@@ -128,14 +109,28 @@ void PushSolidRect(Arena *arena, Rectangle rect, v4 color) {
     PushRect(arena, rect, uv, uv, color);
 }
 
-void PushChar(Arena *arena, SdfFontChar character, v2 at, v4 color) {
-    Rectangle rect = Rectangle{ at.x + character.xOffset, 
-                                at.y - (character.h + character.yOffset), 
-                                (f32)character.w, 
-                                (f32)character.h };
+void PushChar(Arena *arena, SdfFontChar character, f32 fontScale, v2 at, v4 color) {
+    Rectangle rect = Rectangle{ at.x + (fontScale * character.xOffset), 
+                                at.y - (fontScale * (character.h + character.yOffset)), 
+                                (f32)character.w * fontScale, 
+                                (f32)character.h * fontScale };
     v2 uv0 = v2{ (f32)character.x0 / 512.0f, (f32)character.y1 / 512.0f }; // Flip y
     v2 uv1 = v2{ (f32)character.x1 / 512.0f, (f32)character.y0 / 512.0f };
     PushRect(arena, rect, uv0, uv1, color);
+}
+
+// @TODO: Write our own strlen
+void PushFontString(Arena *arena, const char *str, v2 at, f32 fontHeight, v4 color) {
+    for (u32 i = 0; i < strlen(str); ++i) {
+        SdfFontChar c = FONT_DATA[str[i]];
+        f32 fontScale = ScaleForFontHeight(fontHeight);
+        PushChar(arena, c, fontScale, at, color);
+        at.x += c.advance * fontScale;
+        if (i < strlen(str) - 1) {
+            f32 kern = KERN_TABLE[str[i + 1]][str[i]];
+            at.x += kern * fontScale;
+        }
+    }
 }
 
 void PushRectOutline(Arena *arena, Rectangle rect, v4 color) {

@@ -247,18 +247,11 @@ void AssembleVertexBuferForRenderGroup(Arena *vertexArena, BlocksRenderInfo *ren
     drawCall->vertexOffset = (u32)(start - renderInfo->vertexData) / VERTEX_SIZE;
     
     if (renderGroup == &blocksCtx->fontRenderGroup) {
-        v2 at = {-50, 0};
-        const char *str = "AVA To Hello world!";
-        for (u32 i = 0; i < strlen(str); ++i) {
-            SdfFontChar c = FONT_DATA[str[i]];
-            PushChar(vertexArena, c, at, COLOR_GREEN);
-            at.x += c.advance;
-            if (i < strlen(str) - 1) {
-                f32 kern = KERN_TABLE[str[i + 1]][str[i]];
-                at.x += kern;
-            }
-        }
-        
+        v2 at = {25, 30};
+        const char *str = "Aw Te Ava";
+        f32 fontHeight = 24.0;
+        v4 color = COLOR_CYAN;
+        PushFontString(vertexArena, str, at, fontHeight, color);
     }
     
     for (u32 entryIdx = 0; entryIdx < renderGroup->entryCount; ++entryIdx) {
