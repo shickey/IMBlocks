@@ -28,59 +28,59 @@
 #define HEX_TO_RGB(hex) v4{ ((hex >> 16) & 0xFF) / 255.0f, ((hex >> 8) & 0xFF) / 255.0f, ((hex) & 0xFF) / 255.0f, 1.0f }
 
 enum SCRATCH_COLOR_INDEX {
-  SCRATCH_COLOR_TEXT = 0,
-  
-  SCRATCH_COLOR_MOTION_1,
-  SCRATCH_COLOR_MOTION_2,
-  SCRATCH_COLOR_MOTION_3,
-  
-  SCRATCH_COLOR_LOOKS_1,
-  SCRATCH_COLOR_LOOKS_2,
-  SCRATCH_COLOR_LOOKS_3,
-  
-  SCRATCH_COLOR_SOUNDS_1,
-  SCRATCH_COLOR_SOUNDS_2,
-  SCRATCH_COLOR_SOUNDS_3,
-  
-  SCRATCH_COLOR_CONTROL_1,
-  SCRATCH_COLOR_CONTROL_2,
-  SCRATCH_COLOR_CONTROL_3,
-  
-  SCRATCH_COLOR_EVENTS_1,
-  SCRATCH_COLOR_EVENTS_2,
-  SCRATCH_COLOR_EVENTS_3,
-  
-  SCRATCH_COLOR_COUNT
+    SCRATCH_COLOR_TEXT = 0,
+
+    SCRATCH_COLOR_MOTION_1,
+    SCRATCH_COLOR_MOTION_2,
+    SCRATCH_COLOR_MOTION_3,
+
+    SCRATCH_COLOR_LOOKS_1,
+    SCRATCH_COLOR_LOOKS_2,
+    SCRATCH_COLOR_LOOKS_3,
+
+    SCRATCH_COLOR_SOUNDS_1,
+    SCRATCH_COLOR_SOUNDS_2,
+    SCRATCH_COLOR_SOUNDS_3,
+
+    SCRATCH_COLOR_CONTROL_1,
+    SCRATCH_COLOR_CONTROL_2,
+    SCRATCH_COLOR_CONTROL_3,
+
+    SCRATCH_COLOR_EVENTS_1,
+    SCRATCH_COLOR_EVENTS_2,
+    SCRATCH_COLOR_EVENTS_3,
+
+    SCRATCH_COLOR_COUNT
 };
 
 global_var v4 SCRATCH_COLORS[SCRATCH_COLOR_COUNT] = {
-  // Text
-  HEX_TO_RGB(0x575E75),
-  
-  // Motion
-  HEX_TO_RGB(0x4C97FF),
-  HEX_TO_RGB(0x4280D7),
-  HEX_TO_RGB(0x3373CC),
-  
-  // Looks
-  HEX_TO_RGB(0x9966FF),
-  HEX_TO_RGB(0x855CD6),
-  HEX_TO_RGB(0x774DCB),
-  
-  // Sounds
-  HEX_TO_RGB(0xD65CD6),
-  HEX_TO_RGB(0xBF40BF),
-  HEX_TO_RGB(0xA63FA6),
-  
-  // Control
-  HEX_TO_RGB(0xFFAB19),
-  HEX_TO_RGB(0xEC9C13),
-  HEX_TO_RGB(0xCF8B17),
-  
-  // Events
-  HEX_TO_RGB(0xFFD500),
-  HEX_TO_RGB(0xDBC200),
-  HEX_TO_RGB(0xCCAA00)
+    // Text
+    HEX_TO_RGB(0x575E75),
+
+    // Motion
+    HEX_TO_RGB(0x4C97FF),
+    HEX_TO_RGB(0x4280D7),
+    HEX_TO_RGB(0x3373CC),
+
+    // Looks
+    HEX_TO_RGB(0x9966FF),
+    HEX_TO_RGB(0x855CD6),
+    HEX_TO_RGB(0x774DCB),
+
+    // Sounds
+    HEX_TO_RGB(0xD65CD6),
+    HEX_TO_RGB(0xBF40BF),
+    HEX_TO_RGB(0xA63FA6),
+
+    // Control
+    HEX_TO_RGB(0xFFAB19),
+    HEX_TO_RGB(0xEC9C13),
+    HEX_TO_RGB(0xCF8B17),
+
+    // Events
+    HEX_TO_RGB(0xFFD500),
+    HEX_TO_RGB(0xDBC200),
+    HEX_TO_RGB(0xCCAA00)
 };
 
 
@@ -91,6 +91,8 @@ struct BlockMetrics {
     // Everything below here is relative to the block origin (lower-left corner)
     v2 innerOrigin;
     v2 innerSize;
+    
+    v2 inputOrigin;
     
     Rectangle inlet;
     Rectangle outlet;
@@ -103,6 +105,7 @@ global_var BlockMetrics METRICS[BlockTypeCount] = {
         v2{18, 16},
         v2{0, 0},
         v2{0, 0},
+        v2{2, -6},
         Rectangle{-4, 0, 8, 16},
         Rectangle{12, 0, 8, 16},
         Rectangle{0, 0, 0, 0},
@@ -112,6 +115,7 @@ global_var BlockMetrics METRICS[BlockTypeCount] = {
         v2{19, 16},
         v2{0, 0},
         v2{0, 0},
+        v2{3, -6},
         Rectangle{0, 0, 0, 0},
         Rectangle{13, 0, 8, 16},
         Rectangle{0, 0, 0, 0},
@@ -121,6 +125,7 @@ global_var BlockMetrics METRICS[BlockTypeCount] = {
         v2{17, 16},
         v2{0, 0},
         v2{0, 0},
+        v2{2.5, -6},
         Rectangle{-4, 0, 8, 16},
         Rectangle{0, 0, 0, 0},
         Rectangle{0, 0, 0, 0},
@@ -130,6 +135,7 @@ global_var BlockMetrics METRICS[BlockTypeCount] = {
         v2{40, 20},
         v2{6, 0},
         v2{16, 16},
+        v2{24, -6},
         Rectangle{-4, 0, 7, 16},
         Rectangle{34, 0, 8, 16},
         Rectangle{3, 0, 6, 16},
@@ -139,6 +145,7 @@ global_var BlockMetrics METRICS[BlockTypeCount] = {
         v2{38, 20},
         v2{6, 0},
         v2{16, 16},
+        v2{24, -6},
         Rectangle{-4, 0, 7, 16},
         Rectangle{0, 0, 0, 0},
         Rectangle{3, 0, 6, 16},
@@ -330,7 +337,7 @@ void PushNumberInputVerts(Arena *arena, v2 position, v4 color, v4 outline) {
     #undef originY
 }
 
-void PushStringInputVerts(Arena *arena, v2 position, v4 color, v4 outline) {
+void PushTextInputVerts(Arena *arena, v2 position, v4 color, v4 outline) {
     #define unitSize 4.0f
     #define texSize  512.0f
     #define originX  416.0f

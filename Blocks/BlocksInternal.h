@@ -57,6 +57,9 @@ enum RenderEntryType {
     RenderEntryType_Loop,
     RenderEntryType_Forever,
     
+    RenderEntryType_InputNumber,
+    RenderEntryType_InputText,
+    
     RenderEntryType_Rect,
     RenderEntryType_RectOutline,
     
@@ -109,10 +112,22 @@ struct Interaction {
     v2 mouseOffset;
 };
 
+enum BlockInputType {
+    BlockInputType_None = 0,
+    BlockInputType_Number,
+    BlockInputType_Text,
+};
+
 struct Block {
     Block *prev;
     Block *next;
     BlockType type;
+    
+    BlockInputType inputType;
+    union {
+        f32 inputNumber;
+        char *inputText;
+    };
     
     // Loops
     Block *inner;

@@ -64,8 +64,71 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "262"
             endingLineNumber = "262"
-            landmarkName = "AssembleVertexBuferForRenderGroup(vertexArena, renderInfo, renderGroup)"
+            landmarkName = "UnprojectMouse(mouseP, group)"
             landmarkType = "9">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "FFE07C9D-0509-46F3-A41C-FA5B74ED15C3"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Blocks/Blocks.cpp"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "856"
+            endingLineNumber = "856"
+            landmarkName = "DrawInput(renderGroup, block, blockEntry)"
+            landmarkType = "9">
+            <Locations>
+               <Location
+                  uuid = "FFE07C9D-0509-46F3-A41C-FA5B74ED15C3 - fe71e2cb99ef8381"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "DrawSimpleBlock(RenderGroup*, BlockType, Block*, Script*, Layout*, unsigned int)"
+                  moduleName = "libBlocks.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/seanhickey/Projects/IMBlocks/Blocks/Blocks.cpp"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "856"
+                  endingLineNumber = "856"
+                  offsetFromSymbolStart = "694">
+               </Location>
+               <Location
+                  uuid = "FFE07C9D-0509-46F3-A41C-FA5B74ED15C3 - fe71e2cb99ef8381"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "DrawSimpleBlock(RenderGroup*, BlockType, Block*, Script*, Layout*, unsigned int)"
+                  moduleName = "libBlocks.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/seanhickey/Projects/IMBlocks/Blocks/Blocks.cpp"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "856"
+                  endingLineNumber = "856"
+                  offsetFromSymbolStart = "283">
+               </Location>
+               <Location
+                  uuid = "FFE07C9D-0509-46F3-A41C-FA5B74ED15C3 - fe71e2cb99ef8381"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "DrawSimpleBlock(RenderGroup*, BlockType, Block*, Script*, Layout*, unsigned int)"
+                  moduleName = "libBlocks.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/seanhickey/Projects/IMBlocks/Blocks/Blocks.cpp"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "856"
+                  endingLineNumber = "856"
+                  offsetFromSymbolStart = "176">
+               </Location>
+            </Locations>
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>

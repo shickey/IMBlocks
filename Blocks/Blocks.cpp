@@ -9,6 +9,7 @@
 **********************************************************/
 
 #include "Blocks.h"
+#include "BlocksInclude.h"
 #include "BlocksInternal.h"
 #include "BlocksMath.h"
 #include "BlocksVerts.h"
@@ -60,6 +61,7 @@ Block *CreateBlock(BlockType type) {
     Block *block = PushStruct(&blocksCtx->permanent, Block);
     *block = { 0 };
     block->type = type;
+    block->inputType = BlockInputType_None;
     return block;
 }
 
@@ -210,6 +212,17 @@ RenderEntryType RenderEntryTypeForBlockType(BlockType blockType) {
 }
 
 inline
+RenderEntryType RenderEntryTypeForBlockInputType(BlockInputType type) {
+    switch (type) {
+        case BlockInputType_Number: return RenderEntryType_InputNumber;
+        case BlockInputType_Text:   return RenderEntryType_InputText;
+        default: break;
+    }
+    return RenderEntryType_Null;
+}
+
+
+inline
 v4 ColorForBlockType(BlockType blockType) {
     switch (blockType) {
         case BlockType_Command: return SCRATCH_COLORS[SCRATCH_COLOR_MOTION_1];
@@ -271,7 +284,6 @@ void AssembleVertexBuferForRenderGroup(Arena *vertexArena, BlocksRenderInfo *ren
         switch(entry->type) {
             case RenderEntryType_Command: {
                 PushCommandBlockVerts(vertexArena, entry->P, entry->color, entry->outline, entry->scale);
-                PushNumberInputVerts(vertexArena, entry->P + v2{2, -6}, COLOR_WHITE, SCRATCH_COLORS[SCRATCH_COLOR_MOTION_3]);
                 break;
             }
             case RenderEntryType_Event: {
@@ -280,7 +292,6 @@ void AssembleVertexBuferForRenderGroup(Arena *vertexArena, BlocksRenderInfo *ren
             }
             case RenderEntryType_EndCap: {
                 PushEndCapBlockVerts(vertexArena, entry->P, entry->color, entry->outline);
-                PushStringInputVerts(vertexArena, entry->P + v2{2.5, -6}, COLOR_WHITE, SCRATCH_COLORS[SCRATCH_COLOR_LOOKS_3]);
                 break;
             }
             case RenderEntryType_Loop: {
@@ -289,6 +300,14 @@ void AssembleVertexBuferForRenderGroup(Arena *vertexArena, BlocksRenderInfo *ren
             }
             case RenderEntryType_Forever: {
                 PushForeverBlockVerts(vertexArena, entry->P, entry->color, entry->outline, entry->hStretch, entry->vStretch);
+                break;
+            }
+            case RenderEntryType_InputNumber: {
+                PushNumberInputVerts(vertexArena, entry->P, entry->color, entry->outline);
+                break;
+            }
+            case RenderEntryType_InputText: {
+                PushTextInputVerts(vertexArena, entry->P, entry->color, entry->outline);
                 break;
             }
             case RenderEntryType_Rect: {
@@ -586,16 +605,30 @@ void RenderNewBlockButton(RenderGroup *renderGroup) {
     entry->scale = scale;
     
     if (PointInRect(renderGroup->mouseP, hitBox)) {
-        // entry->color = v4{1, 1, 0, 1};
-        
         blocksCtx->nextHot.type = InteractionType_NewBlockSelect;
-        // blocksCtx->nextHot.block = block;
         blocksCtx->nextHot.blockP = entry->P;
-        // blocksCtx->nextHot.script = script;
         blocksCtx->nextHot.entry = entry;
         blocksCtx->nextHot.mouseStartP = renderGroup->mouseP;
         blocksCtx->nextHot.mouseOffset = { renderGroup->mouseP.x - P.x, renderGroup->mouseP.y - P.y };
     }
+}
+
+
+// @TODO: Incomplete: doesn't calculate y bounds yet. Just x
+v2 BoundsForText(const char *text, f32 textHeight) {
+    v2 result = v2{0, 0};
+    f32 fontScale = ScaleForFontHeight(textHeight);
+    
+    for (u32 i = 0; i < strlen(text); ++i) {
+        SdfFontChar c = FONT_DATA[text[i]];
+        result.w += c.advance * fontScale;
+        if (i < strlen(text) - 1) {
+            f32 kern = KERN_TABLE[text[i + 1]][text[i]];
+            result.w += kern * fontScale;
+        }
+    }
+    
+    return result;
 }
 
 void RenderText(RenderGroup *renderGroup, char *text, v2 P, f32 textHeight, v4 color, v4 outline) {
@@ -606,6 +639,33 @@ void RenderText(RenderGroup *renderGroup, char *text, v2 P, f32 textHeight, v4 c
     entry->outline = outline;
     entry->text = text;
     entry->textHeight = textHeight;
+}
+
+char *PushFormattedText(Arena *arena, const char *formatStr, ...) {
+    va_list args;
+    va_start(args, formatStr);
+    u32 size = SizeForFormatString(formatStr, args);
+    va_end(args);
+    
+    va_start(args, formatStr);
+    char *textBuf = (char *)PushSize(arena, size);
+    FormatString(textBuf, formatStr, args);
+    va_end(args);
+    
+    return textBuf;
+}
+
+// @TODO: This is overkill, just copy the bytes
+char *PushText(Arena *arena, const char *text) {
+    return PushFormattedText(arena, "%s", text);
+}
+
+void RenderInput(RenderGroup *renderGroup, BlockInputType type, v2 position, v4 color, v4 outline) {
+    RenderEntry *entry = PushRenderEntry(renderGroup);
+    entry->type = RenderEntryTypeForBlockInputType(type);
+    entry->P = position;
+    entry->color = color;
+    entry->outline = outline;
 }
 
 Layout RenderScript(RenderGroup *renderGroup, Script *script) {
@@ -669,7 +729,7 @@ b32 DrawBlock(RenderGroup *renderGroup, Block *block, Script *script, Layout *la
         BlockMetrics blockMetrics = METRICS[block->type];
         BlockMetrics dragBlockMetrics = METRICS[dragInfo.lastBlock->type];
         Rectangle inletBounds = TranslateRectangle(blockMetrics.inlet, script->P);
-        DEBUGPushRectOutline(inletBounds, COLOR_RED);
+        // DEBUGPushRectOutline(inletBounds, COLOR_RED);
         if (RectsIntersect(inletBounds, dragInfo.outlet)) {
             layout->at.x -= dragBlockMetrics.size.w;
             layout->bounds.x -= dragBlockMetrics.size.w;
@@ -699,7 +759,7 @@ b32 DrawBlock(RenderGroup *renderGroup, Block *block, Script *script, Layout *la
             && HasInlet(dragInfo.firstBlock->type)) 
         {
             Rectangle innerOutletBounds = TranslateRectangle(blockMetrics.innerOutlet, layout->at);
-            DEBUGPushRectOutline(innerOutletBounds, COLOR_GREEN);
+            // DEBUGPushRectOutline(innerOutletBounds, COLOR_GREEN);
             if (RectsIntersect(innerOutletBounds, dragInfo.inlet)) {
                 if (IsSimpleBlockType(dragInfo.firstBlock->type)) {
                     DrawGhostBlock(renderGroup, dragInfo.firstBlock->type, &innerLayout);
@@ -746,7 +806,7 @@ b32 DrawBlock(RenderGroup *renderGroup, Block *block, Script *script, Layout *la
     {
         BlockMetrics blockMetrics = METRICS[block->type];
         Rectangle outletBounds = TranslateRectangle(blockMetrics.outlet, {layout->at.x - blockMetrics.size.w, layout->at.y});
-        DEBUGPushRectOutline(outletBounds, COLOR_BLUE);
+        // DEBUGPushRectOutline(outletBounds, COLOR_BLUE);
         if (RectsIntersect(outletBounds, dragInfo.inlet)) {
             if (IsSimpleBlockType(dragInfo.firstBlock->type)) {
                 DrawGhostBlock(renderGroup, dragInfo.firstBlock->type, layout);
@@ -792,6 +852,50 @@ b32 DrawBlock(RenderGroup *renderGroup, Block *block, Script *script, Layout *la
     return true;
 }
 
+void DrawInput(RenderGroup *renderGroup, Block *block, RenderEntry *blockEntry, f32 xOffset = 0) {
+    switch (block->inputType) {
+        case BlockInputType_Number: {
+            BlockMetrics metrics = METRICS[block->type];
+            v2 inputP = blockEntry->P + metrics.inputOrigin;
+            inputP.x += xOffset;
+            RenderInput(renderGroup, block->inputType, inputP, COLOR_WHITE, blockEntry->outline);
+            
+            char *blockText = NULL;
+            if(IsInteger(block->inputNumber)) {
+                blockText = PushFormattedText(&blocksCtx->frame, "%0.f", block->inputNumber);
+            }
+            else {
+                blockText = PushFormattedText(&blocksCtx->frame, "%0.2f", block->inputNumber);
+            }
+            
+            f32 textHeight = 4.0; // Block units
+            v2 bounds = BoundsForText(blockText, textHeight);
+            v2 baselineCenter = inputP + v2{6, 2.75};
+            v2 textP = baselineCenter - v2{bounds.w / 2.0f, 0};
+            v4 color = SCRATCH_COLORS[SCRATCH_COLOR_TEXT];
+            RenderText(&blocksCtx->fontRenderGroup, blockText, textP, textHeight, color, color);
+            
+            break;
+        }
+        case BlockInputType_Text: {
+            BlockMetrics metrics = METRICS[block->type];
+            v2 inputP = blockEntry->P + metrics.inputOrigin;
+            inputP.x += xOffset;
+            RenderInput(renderGroup, block->inputType, inputP, COLOR_WHITE, blockEntry->outline);
+            
+            f32 textHeight = 4.0; // Block units
+            v2 bounds = BoundsForText(block->inputText, textHeight);
+            v2 baselineCenter = inputP + v2{6, 2.75};
+            v2 textP = baselineCenter - v2{bounds.w / 2.0f, 0};
+            v4 color = SCRATCH_COLORS[SCRATCH_COLOR_TEXT];
+            RenderText(&blocksCtx->fontRenderGroup, block->inputText, textP, textHeight, color, color);
+            
+            break;
+        }
+        default: break;
+    }
+}
+
 void DrawSimpleBlock(RenderGroup *renderGroup, BlockType blockType, Block *block, Script *script, Layout *layout, u32 flags) {
     b32 isGhost = flags & DrawBlockFlags_Ghost;
     if (block) {
@@ -819,6 +923,10 @@ void DrawSimpleBlock(RenderGroup *renderGroup, BlockType blockType, Block *block
         entry->outline = OutlineColorForBlockType(blockType);
     }
     entry->scale = 1.0f;
+    
+    if (!isGhost && block->inputType) {
+        DrawInput(renderGroup, block, entry);
+    }
     
     
     layout->at.x += metrics.size.w;
@@ -880,6 +988,10 @@ void DrawBranchBlock(RenderGroup *renderGroup, BlockType blockType, Block *block
     layout->bounds.w += metrics.size.w + horizStretch;
     layout->bounds.h = Max(layout->bounds.h, metrics.size.h + vertStretch);
     
+    if (!isGhost && block->inputType) {
+        DrawInput(renderGroup, block, entry, horizStretch);
+    }
+    
     if (!isGhost && PointInRect(renderGroup->mouseP, hitBox) && !PointInRect(renderGroup->mouseP, innerHitBox)) {
         blocksCtx->nextHot.type = InteractionType_BlockSelect;
         blocksCtx->nextHot.block = block;
@@ -930,8 +1042,53 @@ extern "C" void InitBlocks(void *mem, u32 memSize) {
     // Create some blocks, y'know, for fun
     {
         // A script with a single command block
+        Script *script = CreateScript(v2{-40, 0});
+        Block *block = CreateBlock(BlockType_Command);
+        script->topBlock = block;
+    }
+    
+    {
+        // A script with a single command block, with a number input
+        Script *script = CreateScript(v2{-20, 0});
+        Block *block = CreateBlock(BlockType_Command);
+        block->inputType = BlockInputType_Number;
+        block->inputNumber = 25.93f;
+        script->topBlock = block;
+    }
+    
+    {
+        // A script with a single command block, with a text input
         Script *script = CreateScript(v2{0, 0});
         Block *block = CreateBlock(BlockType_Command);
+        block->inputType = BlockInputType_Text;
+        block->inputText = PushText(&blocksCtx->permanent, "Hey!");
+        script->topBlock = block;
+    }
+    
+    {
+        // A loop block with a number input
+        Script *script = CreateScript(v2{20, 0});
+        Block *block = CreateBlock(BlockType_Loop);
+        block->inputType = BlockInputType_Number;
+        block->inputNumber = 10;
+        script->topBlock = block;
+    }
+    
+    {
+        // An event block with a number input
+        Script *script = CreateScript(v2{60, 0});
+        Block *block = CreateBlock(BlockType_Event);
+        block->inputType = BlockInputType_Number;
+        block->inputNumber = 10;
+        script->topBlock = block;
+    }
+    
+    {
+        // An end cap block with a number input
+        Script *script = CreateScript(v2{80, 0});
+        Block *block = CreateBlock(BlockType_EndCap);
+        block->inputType = BlockInputType_Number;
+        block->inputNumber = 10;
         script->topBlock = block;
     }
     
@@ -1035,20 +1192,20 @@ extern "C" BlocksRenderInfo RunBlocks(void *mem, BlocksInput *input) {
         Layout dragLayout = RenderScript(dragRenderGroup, script);
         blocksCtx->dragInfo.scriptLayout = dragLayout;
         
-        DEBUGPushRectOutline(dragLayout.bounds, COLOR_GREEN);
+        // DEBUGPushRectOutline(dragLayout.bounds, COLOR_GREEN);
         
         if (HasInlet(firstBlock->type)) {
             blocksCtx->dragInfo.inlet = TranslateRectangle(firstMetrics.inlet, dragLayout.bounds.origin);
-            DEBUGPushRectOutline(blocksCtx->dragInfo.inlet, COLOR_CYAN);
+            // DEBUGPushRectOutline(blocksCtx->dragInfo.inlet, COLOR_CYAN);
         }
         if (HasOutlet(lastBlock->type)) {
             // Account for outlet offset in block metrics
             blocksCtx->dragInfo.outlet = TranslateRectangle(lastMetrics.outlet, {dragLayout.at.x - lastMetrics.size.w, dragLayout.at.y});
-            DEBUGPushRectOutline(blocksCtx->dragInfo.outlet, COLOR_MAGENTA);
+            // DEBUGPushRectOutline(blocksCtx->dragInfo.outlet, COLOR_MAGENTA);
         }
         if (HasInnerOutlet(firstBlock->type)) {
             blocksCtx->dragInfo.innerOutlet = TranslateRectangle(firstMetrics.innerOutlet, dragLayout.bounds.origin);
-            DEBUGPushRectOutline(blocksCtx->dragInfo.innerOutlet, COLOR_YELLOW);
+            // DEBUGPushRectOutline(blocksCtx->dragInfo.innerOutlet, COLOR_YELLOW);
         }
         
         // Reset this to false each frame so we can update the ghost block insertion point, if necessary
@@ -1061,15 +1218,6 @@ extern "C" BlocksRenderInfo RunBlocks(void *mem, BlocksInput *input) {
         }
         RenderScript(blocksRenderGroup, script);
     }
-    
-    // Text test
-    const char *text = "AVA Te Hello world!";
-    char *textForEntry = (char *)PushSize(&blocksCtx->frame, (u32)strlen(text) + 1);
-    for (u32 i = 0; i < strlen(text); ++i) {
-        textForEntry[i] = text[i];
-    }
-    textForEntry[strlen(text)] = 0;
-    RenderText(fontRenderGroup, textForEntry, v2{-60, 30}, 24.0, SCRATCH_COLORS[SCRATCH_COLOR_LOOKS_1], SCRATCH_COLORS[SCRATCH_COLOR_LOOKS_1]);
     
     // Floating UI
     RenderGroup *overlayRenderGroup = &blocksCtx->uiRenderGroup;

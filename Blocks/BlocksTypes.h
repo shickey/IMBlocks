@@ -10,6 +10,7 @@
 
 #include <stdint.h>
 #include <string.h> // @TODO: We use this only for memcpy. Can we get rid of it eventually?
+#include <stdarg.h> // For variadic functions
 
 #define internal static
 #define global_var static

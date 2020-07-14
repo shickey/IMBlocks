@@ -118,3 +118,8 @@ v2 operator-(v2 a, v2 b) {
     return {a.x - b.x, a.y - b.y};
 }
 
+inline
+b32 IsInteger(f32 num) {
+    return num == Ceil(num);
+}
+
