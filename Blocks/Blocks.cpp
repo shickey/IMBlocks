@@ -29,6 +29,7 @@ void DEBUGPushRectOutline(Rectangle rect, v4 color) {
     entry->type = RenderEntryType_RectOutline;
     entry->rect = rect;
     entry->color = color;
+    entry->outline = color;
 }
 
 Script *CreateScript(v2 position) {
@@ -211,12 +212,31 @@ RenderEntryType RenderEntryTypeForBlockType(BlockType blockType) {
 inline
 v4 ColorForBlockType(BlockType blockType) {
     switch (blockType) {
-        case BlockType_Command: return HexToColor(0x4C97FF);
-        case BlockType_Event:   return HexToColor(0xFFD500);
-        case BlockType_EndCap:  return HexToColor(0x9966FF);
-        case BlockType_Loop:    return HexToColor(0xFFAB19);
-        case BlockType_Forever: return HexToColor(0xD65CD6);
-        default: break;
+        case BlockType_Command: return SCRATCH_COLORS[SCRATCH_COLOR_MOTION_1];
+        case BlockType_Event:   return SCRATCH_COLORS[SCRATCH_COLOR_EVENTS_1];
+        case BlockType_EndCap:  return SCRATCH_COLORS[SCRATCH_COLOR_LOOKS_1];
+        case BlockType_Loop:    return SCRATCH_COLORS[SCRATCH_COLOR_CONTROL_1];
+        case BlockType_Forever: return SCRATCH_COLORS[SCRATCH_COLOR_SOUNDS_1];
+        default: {
+            Invalid;
+            break;
+        }
+    }
+    return v4{1, 1, 1, 1};
+}
+
+inline
+v4 OutlineColorForBlockType(BlockType blockType) {
+    switch (blockType) {
+        case BlockType_Command: return SCRATCH_COLORS[SCRATCH_COLOR_MOTION_2];
+        case BlockType_Event:   return SCRATCH_COLORS[SCRATCH_COLOR_EVENTS_2];
+        case BlockType_EndCap:  return SCRATCH_COLORS[SCRATCH_COLOR_LOOKS_2];
+        case BlockType_Loop:    return SCRATCH_COLORS[SCRATCH_COLOR_CONTROL_2];
+        case BlockType_Forever: return SCRATCH_COLORS[SCRATCH_COLOR_SOUNDS_2];
+        default: {
+            Invalid;
+            break;
+        }
     }
     return v4{1, 1, 1, 1};
 }
@@ -250,25 +270,25 @@ void AssembleVertexBuferForRenderGroup(Arena *vertexArena, BlocksRenderInfo *ren
         RenderEntry *entry = &renderGroup->entries[entryIdx];
         switch(entry->type) {
             case RenderEntryType_Command: {
-                PushCommandBlockVerts(vertexArena, entry->P, entry->color, entry->scale);
-                PushStringInputVerts(vertexArena, entry->P + v2{2, -6}, COLOR_WHITE);
+                PushCommandBlockVerts(vertexArena, entry->P, entry->color, entry->outline, entry->scale);
+                PushNumberInputVerts(vertexArena, entry->P + v2{2, -6}, COLOR_WHITE, SCRATCH_COLORS[SCRATCH_COLOR_MOTION_3]);
                 break;
             }
             case RenderEntryType_Event: {
-                PushEventBlockVerts(vertexArena, entry->P, entry->color);
+                PushEventBlockVerts(vertexArena, entry->P, entry->color, entry->outline);
                 break;
             }
             case RenderEntryType_EndCap: {
-                PushEndCapBlockVerts(vertexArena, entry->P, entry->color);
-                PushNumberInputVerts(vertexArena, entry->P + v2{2, -6}, COLOR_WHITE);
+                PushEndCapBlockVerts(vertexArena, entry->P, entry->color, entry->outline);
+                PushStringInputVerts(vertexArena, entry->P + v2{2.5, -6}, COLOR_WHITE, SCRATCH_COLORS[SCRATCH_COLOR_LOOKS_3]);
                 break;
             }
             case RenderEntryType_Loop: {
-                PushLoopBlockVerts(vertexArena, entry->P, entry->color, entry->hStretch, entry->vStretch);
+                PushLoopBlockVerts(vertexArena, entry->P, entry->color, entry->outline, entry->hStretch, entry->vStretch);
                 break;
             }
             case RenderEntryType_Forever: {
-                PushForeverBlockVerts(vertexArena, entry->P, entry->color, entry->hStretch, entry->vStretch);
+                PushForeverBlockVerts(vertexArena, entry->P, entry->color, entry->outline, entry->hStretch, entry->vStretch);
                 break;
             }
             case RenderEntryType_Rect: {
@@ -276,11 +296,11 @@ void AssembleVertexBuferForRenderGroup(Arena *vertexArena, BlocksRenderInfo *ren
                 break;
             }
             case RenderEntryType_RectOutline: {
-                PushRectOutline(vertexArena, entry->rect, entry->color);
+                PushRectOutline(vertexArena, entry->rect, entry->color, entry->outline);
                 break;
             }
             case RenderEntryType_Text: {
-                PushFontString(vertexArena, entry->text, entry->P, entry->textHeight, entry->color);
+                PushFontString(vertexArena, entry->text, entry->P, entry->textHeight, entry->color, entry->outline);
                 break;
             }
             case RenderEntryType_Null: {
@@ -346,7 +366,7 @@ void BeginBlocks(BlocksInput input) {
     
     if (input.commandDown) {
         blocksCtx->zoomLevel += input.wheelDelta.y * 0.01;
-        blocksCtx->zoomLevel = Clamp(blocksCtx->zoomLevel, 0.25, 16.0);
+        blocksCtx->zoomLevel = Clamp(blocksCtx->zoomLevel, 0.25, 100.0);
     }
     else {
         blocksCtx->cameraOrigin.x += input.wheelDelta.x * 0.1;
@@ -504,6 +524,7 @@ BlocksRenderInfo EndBlocks() {
                 entry->block = block;
                 entry->P = P;
                 entry->color = ColorForBlockType(BlockType_Command);
+                entry->outline = OutlineColorForBlockType(BlockType_Command);
                 entry->scale = 1.0f;
                 
                 Interaction interaction = {};
@@ -531,6 +552,7 @@ BlocksRenderInfo EndBlocks() {
     // Change the color of the hot block
     if (blocksCtx->hot.type != InteractionType_None) {
         blocksCtx->hot.entry->color = v4{1, 1, 0, 1};
+        blocksCtx->hot.entry->outline = v4{0.8, 0.8, 0, 1};
     }
     
     // Assmble vertex buffer
@@ -560,6 +582,7 @@ void RenderNewBlockButton(RenderGroup *renderGroup) {
     entry->type = RenderEntryType_Command;
     entry->P = P;
     entry->color = COLOR_GREY_50;
+    entry->outline = COLOR_GREY_25;
     entry->scale = scale;
     
     if (PointInRect(renderGroup->mouseP, hitBox)) {
@@ -575,11 +598,12 @@ void RenderNewBlockButton(RenderGroup *renderGroup) {
     }
 }
 
-void RenderText(RenderGroup *renderGroup, char *text, v2 P, f32 textHeight, v4 color) {
+void RenderText(RenderGroup *renderGroup, char *text, v2 P, f32 textHeight, v4 color, v4 outline) {
     RenderEntry *entry = PushRenderEntry(renderGroup);
     entry->type = RenderEntryType_Text;
     entry->P = P;
     entry->color = color;
+    entry->outline = outline;
     entry->text = text;
     entry->textHeight = textHeight;
 }
@@ -788,9 +812,11 @@ void DrawSimpleBlock(RenderGroup *renderGroup, BlockType blockType, Block *block
     entry->P = v2{layout->at.x, layout->at.y};
     if (isGhost) {
         entry->color = v4{1, 1, 1, 0.5};
+        entry->outline = v4{1, 1, 1, 0.5};
     }
     else {
         entry->color = ColorForBlockType(blockType);
+        entry->outline = OutlineColorForBlockType(blockType);
     }
     entry->scale = 1.0f;
     
@@ -840,9 +866,11 @@ void DrawBranchBlock(RenderGroup *renderGroup, BlockType blockType, Block *block
     entry->P = v2{layout->at.x, layout->at.y};
     if (isGhost) {
         entry->color = v4{1, 1, 1, 0.5};
+        entry->outline = v4{1, 1, 1, 0.5};
     }
     else {
         entry->color = ColorForBlockType(blockType);
+        entry->outline = OutlineColorForBlockType(blockType);
     }
     entry->hStretch = horizStretch;
     entry->vStretch = vertStretch;
@@ -1041,7 +1069,7 @@ extern "C" BlocksRenderInfo RunBlocks(void *mem, BlocksInput *input) {
         textForEntry[i] = text[i];
     }
     textForEntry[strlen(text)] = 0;
-    RenderText(fontRenderGroup, textForEntry, v2{-60, 30}, 24.0, COLOR_MAGENTA);
+    RenderText(fontRenderGroup, textForEntry, v2{-60, 30}, 24.0, SCRATCH_COLORS[SCRATCH_COLOR_LOOKS_1], SCRATCH_COLORS[SCRATCH_COLOR_LOOKS_1]);
     
     // Floating UI
     RenderGroup *overlayRenderGroup = &blocksCtx->uiRenderGroup;

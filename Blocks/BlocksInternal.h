@@ -70,6 +70,7 @@ struct RenderEntry {
     Block* block;
     v2 P;
     v4 color;
+    v4 outline;
     f32 scale;
     union {
         struct {

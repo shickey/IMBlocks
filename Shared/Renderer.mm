@@ -143,8 +143,13 @@ void unloadLibBlocks() {
     _mtlVertexDescriptor.attributes[2].bufferIndex = 0;
     _mtlVertexDescriptor.attributes[2].offset = 4 * sizeof(f32);
     
+        // Outline Color
+    _mtlVertexDescriptor.attributes[3].format = MTLVertexFormatFloat4;
+    _mtlVertexDescriptor.attributes[3].bufferIndex = 0;
+    _mtlVertexDescriptor.attributes[3].offset = 8 * sizeof(f32);
+    
         // Stride
-    _mtlVertexDescriptor.layouts[0].stride = 8 * sizeof(f32);
+    _mtlVertexDescriptor.layouts[0].stride = 12 * sizeof(f32);
     _mtlVertexDescriptor.layouts[0].stepFunction = MTLVertexStepFunctionPerVertex;
 
     // Sampler

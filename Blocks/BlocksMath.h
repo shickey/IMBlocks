@@ -44,16 +44,6 @@ f32 Clamp(f32 val, f32 min, f32 max) {
 }
 
 inline
-v4 HexToColor(u32 hex) {
-    return v4{
-        (f32)((hex >> 16) & 0xFF) / 255.0f,
-        (f32)((hex >> 8 ) & 0xFF) / 255.0f,
-        (f32)((hex >> 0 ) & 0xFF) / 255.0f,
-        1.0
-    };
-}
-
-inline
 mat4x4 OrthographicProjection(f32 left, f32 right, f32 bottom, f32 top, f32 near, f32 far) {
     return mat4x4{
         v4{            2.0f / (right - left),                                0,                            0,     0 },
