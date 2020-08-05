@@ -1,13 +1,14 @@
 #IMBlocks Todo List
 
 ## Basics to match existing blocks behaviors
+  - Input system for fields
+  - Bug: text rendering on top of everything else (need to combine sdfs into single texture (or z buffer or something))
   - Better input processing
     - Touch events
   - Block creation and deletion
   - Script copying (likely can use existing TearOff code)
   - Blocks palette
   - Categories
-  - Inputs (i.e., number/string/etc on blocks)
   - Renderer
     - Block texturing (icons, etc)
     - Mipmapping for small block sizes, (keep SDF for larger)
@@ -18,11 +19,10 @@
   - Animations
     - Discarding scripts
     - Scrolling palette
+    - Zoom in on focused input
     - Rotating between scripts?
-  - Debug System
-    - Simple string rendering
   - Serialization
-  - Input fields and input system
+  - Zoom and pan: add boundaries
     
 ### Done?
   - Finish drag and drop
@@ -32,11 +32,16 @@
   - Script deletion
   - Mouse wheel to pan and zoom
   - Background color
+  - Inputs (i.e., number/string/etc on blocks)
+  - Input fields
+  - Debug System
+    - Simple string rendering
   
 ## VM integration
   - Likely bring the VM code into IMBlocks
   - Pluggable runtime? What does this mean/look like? (Sketch out some usage examples)
   - Multithreading?
+  - "Compile" to bytecode which is then consumed by the VM
 
 
 ## Example Projects

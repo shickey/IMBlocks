@@ -121,8 +121,6 @@ void unloadLibBlocks() {
 
 - (void)_loadMetalWithView:(nonnull MTKView *)view;
 {
-    /// Load Metal state objects and initalize renderer dependent view properties
-
     view.colorPixelFormat = MTLPixelFormatBGRA8Unorm;
     
     // Set up vertex descriptor
@@ -223,6 +221,7 @@ void unloadLibBlocks() {
     id<MTLLibrary> library = [_device newLibraryWithSource:nsShaderSource options:nil error:&shaderError];
     if (shaderError) {
         NSLog(@"%@", shaderError.localizedDescription);
+        return;
     }
     id <MTLFunction> vertexFunction = [library newFunctionWithName:@"TexturedVertex"];
     id <MTLFunction> sdfFragmentFunction = [library newFunctionWithName:@"SdfFragment"];
@@ -377,6 +376,8 @@ void unloadLibBlocks() {
     MTLRenderPassDescriptor* renderPassDescriptor = view.currentRenderPassDescriptor;
     if(renderPassDescriptor != nil)
     {
+        renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColorMake((f64)0x33 / 255.0, (f64)0x47 / 255.0, (f64)0x71 / 255.0, 1.0);
+        
         [self beginImGuiWithView:view renderPassDescriptor:renderPassDescriptor]; 
         
         BlocksRenderInfo renderInfo = runBlocks(blocksMem, &blocksInput);
@@ -387,8 +388,6 @@ void unloadLibBlocks() {
             BlocksDrawCall *drawCall = &renderInfo.drawCalls[i];
             memcpy(worldUniforms + i, &drawCall->transform, sizeof(WorldUniforms));
         }
-        
-        renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColorMake((f64)0x33 / 255.0, (f64)0x47 / 255.0, (f64)0x71 / 255.0, 1.0);
         
         id <MTLRenderCommandEncoder> renderEncoder = [commandBuffer renderCommandEncoderWithDescriptor:renderPassDescriptor];
         renderEncoder.label = @"BlocksRenderEncoder";
