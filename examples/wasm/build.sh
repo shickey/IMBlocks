@@ -1,3 +1,7 @@
 # Build blocks.wasm
 
-emcc -g ../../Blocks/Blocks.cpp -o blocks.js -s EXPORTED_FUNCTIONS='["_InitBlocks", "_RunBlocks"]' -s EXPORTED_RUNTIME_METHODS='["ccall", "cwrap", "getValue", "setValue"]'
+mkdir build
+emcc -g ../../Blocks/Blocks.cpp -o build/blocks.js -s EXPORTED_FUNCTIONS='["_InitBlocks", "_RunBlocks"]' -s EXPORTED_RUNTIME_METHODS='["ccall", "cwrap", "getValue", "setValue"]'
+cp index.html build/index.html
+cp imblocks.js build/imblocks.js
+
