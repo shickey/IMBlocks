@@ -25,7 +25,17 @@
   
   function setup() {
     const canvas = document.getElementById('blocks-canvas');
-    gl = canvas.getContext('webgl');
+    gl = canvas.getContext('webgl', {alpha: false});
+    
+    // const displayWidth = canvas.clientWidth;
+    // const displayHeight = canvas.clientHeight;
+    
+    // const dpi = window.devicePixelRatio;
+    // canvas.width  = Math.floor(displayWidth  * dpi);
+    // canvas.height = Math.floor(displayHeight * dpi);
+    
+    // canvas.style.width = displayWidth + "px";
+    // canvas.style.height = displayHeight + "px";
 
     if (gl === null) {
       alert("Unable to initialize WebGL. Your browser or machine may not support it.");
@@ -40,8 +50,8 @@
     programInfo = initShaders(gl);
     vertexBuffer = gl.createBuffer();
     
-    blockTex = loadTexture(gl, 'textures/blocks-atlas-sdf.png');
-    fontTex = loadTexture(gl, 'textures/font-atlas.png');
+    blockTex = loadTexture(gl, 'textures/blocks-atlas-small-sdf.png');
+    fontTex = loadTexture(gl, 'textures/font-atlas-small.png');
     
     canvas.addEventListener('mousemove', function(e) {
       input.mouseP.x = e.offsetX;
@@ -70,21 +80,19 @@
       wheelTimeout = setTimeout(function() {
           input.wheelDelta.x = 0;
           input.wheelDelta.y = 0;
-      }, 250);
+      }, 0);
       
       e.preventDefault();
     });
     
     document.addEventListener('keydown', function(e) {
       if (e.which === 16) { // Shift key
-        console.log('down');
         input.commandDown = true;
       }
     });
     
     document.addEventListener('keyup', function(e) {
       if (e.which === 16) { // Shift key
-        console.log('up');
         input.commandDown = false;
       }
     });
@@ -147,7 +155,6 @@
         
         highp float opacity = smoothstep(edgeDistance - edgeWidth, edgeDistance + edgeWidth, dist);
         highp float outlineBlend = smoothstep(edgeDistance + (2.0 * outlineHalfWidth) - edgeWidth, edgeDistance + (2.0 * outlineHalfWidth) + edgeWidth, dist);
-        // highp float outlineBlend = 1.0;
         
         gl_FragColor = vec4(mix(vertOutline.rgb, vertColor.rgb, outlineBlend), opacity * vertColor.a);
       }

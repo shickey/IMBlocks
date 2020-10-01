@@ -26,7 +26,6 @@
     NSEventMask eventMask = NSEventMaskFlagsChanged;
     [NSEvent addLocalMonitorForEventsMatchingMask:eventMask handler:^NSEvent * _Nullable(NSEvent *event) {
         if (event.type == NSEventTypeFlagsChanged) {
-            NSLog(@"Command down: %d", event.modifierFlags & NSEventModifierFlagCommand ? 1 : 0);
             self->_input.commandDown = event.modifierFlags & NSEventModifierFlagCommand ? 1 : 0;
         }
         return event;

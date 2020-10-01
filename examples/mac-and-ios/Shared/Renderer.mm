@@ -177,19 +177,19 @@ void unloadLibBlocks() {
     
     // Load SDF block texture
     MTLTextureDescriptor *texDescriptor = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatR8Unorm 
-                                                                                             width:512 
-                                                                                            height:512 
+                                                                                             width:256 
+                                                                                            height:256 
                                                                                          mipmapped:false];
     blockSdfTexture = [_device newTextureWithDescriptor:texDescriptor];
     
-    NSData *texData = [NSData dataWithContentsOfURL:[NSBundle.mainBundle URLForResource:@"blocks-atlas" withExtension:@"dat"]];
-    [blockSdfTexture replaceRegion:MTLRegionMake2D(0, 0, 512, 512) mipmapLevel:0 withBytes:texData.bytes bytesPerRow:512];
+    NSData *texData = [NSData dataWithContentsOfURL:[NSBundle.mainBundle URLForResource:@"blocks-atlas-small" withExtension:@"dat"]];
+    [blockSdfTexture replaceRegion:MTLRegionMake2D(0, 0, 256, 256) mipmapLevel:0 withBytes:texData.bytes bytesPerRow:256];
     
     // Load font texture
     fontSdfTexture = [_device newTextureWithDescriptor:texDescriptor];
     
-    NSData *fontData = [NSData dataWithContentsOfURL:[NSBundle.mainBundle URLForResource:@"font-atlas" withExtension:@"dat"]];
-    [fontSdfTexture replaceRegion:MTLRegionMake2D(0, 0, 512, 512) mipmapLevel:0 withBytes:fontData.bytes bytesPerRow:512];
+    NSData *fontData = [NSData dataWithContentsOfURL:[NSBundle.mainBundle URLForResource:@"font-atlas-small" withExtension:@"dat"]];
+    [fontSdfTexture replaceRegion:MTLRegionMake2D(0, 0, 256, 256) mipmapLevel:0 withBytes:fontData.bytes bytesPerRow:256];
     
     // Load mipmapped textures
     MTLTextureDescriptor *mipTexDescriptor = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatR8Unorm 

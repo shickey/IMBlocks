@@ -11,9 +11,9 @@
 #import <stdint.h>
 #import <CoreText/CoreText.h>
 
-#define GENERATE_SDF 1
-#define GENERATE_MIPMAPS 1
-#define GENERATE_FONT 0
+#define GENERATE_SDF 0
+#define GENERATE_MIPMAPS 0
+#define GENERATE_FONT 1
 #define OUTPUT_SDF_IMAGE 1
 
 typedef uint8_t  u8;
@@ -183,8 +183,8 @@ void generateSdfTexture() {
 
     assert(inWidth == inHeight);
 
-    u32 outWidth = 512;
-    u32 outHeight = 512;
+    u32 outWidth = 256;
+    u32 outHeight = 256;
 
     CGImageRef image = [nsImage CGImageForProposedRect:nil context:nil hints:nil];
 
@@ -230,13 +230,13 @@ void generateSdfTexture() {
     }
 
     NSData *pixelData = [NSData dataWithBytes:outPixels length:outWidth * outHeight];
-    [pixelData writeToFile:@"/Users/seanhickey/Projects/IMBlocks/Shared/Textures/blocks-atlas.dat" atomically:YES];
+    [pixelData writeToFile:@"/Users/seanhickey/Projects/IMBlocks/Shared/Textures/blocks-atlas-small.dat" atomically:YES];
 
     #if OUTPUT_SDF_IMAGE
     CGContextRef outCtx = CGBitmapContextCreate(outPixels, outWidth, outHeight, 8, outWidth, colorSpace, kCGImageAlphaNone);
     CGImageRef outImage = CGBitmapContextCreateImage(outCtx);
 
-    CFURLRef url = (__bridge CFURLRef)[NSURL fileURLWithPath:@"/Users/seanhickey/Projects/IMBlocks/GenTextures/blocks-atlas-sdf.png"];
+    CFURLRef url = (__bridge CFURLRef)[NSURL fileURLWithPath:@"/Users/seanhickey/Projects/IMBlocks/GenTextures/blocks-atlas-small-sdf.png"];
     CGImageDestinationRef dest = CGImageDestinationCreateWithURL(url, kUTTypePNG, 1, nil);
     CGImageDestinationAddImage(dest, outImage, nil);
     CGImageDestinationFinalize(dest);

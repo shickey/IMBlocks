@@ -235,11 +235,11 @@ void generateStbFont() {
     stbtt_fontinfo fontInfo;
     stbtt_InitFont(&fontInfo, fontBytes, stbtt_GetFontOffsetForIndex(fontBytes, fontIdx));
     
-    f32 fontSize = 48.0;
+    f32 fontSize = 24.0;
     
     stbtt_pack_context packCtx;
-    const u32 TEX_WIDTH = 512;
-    const u32 TEX_HEIGHT = 512;
+    const u32 TEX_WIDTH = 256;
+    const u32 TEX_HEIGHT = 256;
     u8 *pixels = (u8 *)malloc(TEX_WIDTH * TEX_HEIGHT);
     stbtt_PackBegin(&packCtx, pixels, TEX_WIDTH, TEX_HEIGHT, TEX_WIDTH, 1, NULL);
     u32 numChars = 127 - 32;
@@ -250,7 +250,7 @@ void generateStbFont() {
     
     // Write out the image data
     NSData *pixelData = [NSData dataWithBytes:pixels length:TEX_WIDTH * TEX_HEIGHT];
-    [pixelData writeToFile:@"/Users/seanhickey/Projects/IMBlocks/Shared/Textures/font-atlas.dat" atomically:YES];
+    [pixelData writeToFile:@"/Users/seanhickey/Projects/IMBlocks/Shared/Textures/font-atlas-small.dat" atomically:YES];
     
 #if 1
     CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceGray();
@@ -258,7 +258,7 @@ void generateStbFont() {
     
     CGImageRef outImage = CGBitmapContextCreateImage(ctx);
 
-    CFURLRef url = (__bridge CFURLRef)[NSURL fileURLWithPath:@"/Users/seanhickey/Projects/IMBlocks/GenTextures/font-atlas.png"];
+    CFURLRef url = (__bridge CFURLRef)[NSURL fileURLWithPath:@"/Users/seanhickey/Projects/IMBlocks/GenTextures/font-atlas-small.png"];
     CGImageDestinationRef dest = CGImageDestinationCreateWithURL(url, kUTTypePNG, 1, nil);
     CGImageDestinationAddImage(dest, outImage, nil);
     CGImageDestinationFinalize(dest);
@@ -322,5 +322,5 @@ void generateStbFont() {
     }
     [fontCHeaderOut appendString:@"};\n\n"];
     
-    [fontCHeaderOut writeToFile:@"/Users/seanhickey/Projects/IMBlocks/Blocks/font-atlas.h" atomically:YES encoding:NSUTF8StringEncoding error:nil];
+    [fontCHeaderOut writeToFile:@"/Users/seanhickey/Projects/IMBlocks/Blocks/font-atlas-small.h" atomically:YES encoding:NSUTF8StringEncoding error:nil];
 }

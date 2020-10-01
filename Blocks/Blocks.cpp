@@ -1017,7 +1017,7 @@ void DrawGhostBlock(RenderGroup *renderGroup, BlockType blockType, Layout *layou
 
 
 extern "C" void InitBlocks(void *mem, u32 memSize) {
-    static const u32 VERTS_MEM_SIZE = 65535 * (8 * sizeof(f32));
+    static const u32 VERTS_MEM_SIZE = 65535 * VERTEX_SIZE;
     
     Assert(memSize >= sizeof(BlocksContext) + VERTS_MEM_SIZE);
     
@@ -1159,6 +1159,19 @@ extern "C" void InitBlocks(void *mem, u32 memSize) {
         Block *last = CreateBlock(BlockType_Command);
         Connect(outerLoop, last);
     }
+    
+    // {
+    //     // A script with a bunch of nested loops
+    //     Script *script = CreateScript(v2{0, -60});
+    //     Block *current = CreateBlock(BlockType_Loop);
+    //     script->topBlock = current;
+        
+    //     for (int i = 0; i < 10; ++i) {
+    //         Block *inner = CreateBlock(BlockType_Loop);
+    //         ConnectInner(current, inner);
+    //         current = inner;
+    //     }
+    // }
     
     
 }

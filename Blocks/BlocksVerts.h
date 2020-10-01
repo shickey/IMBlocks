@@ -8,7 +8,7 @@
 *
 **********************************************************/
 
-#include "font-atlas.h"
+#include "font-atlas-small.h"
 
 #define PushVerts(arena, v) PushData_(arena, (v), sizeof((v)))
 #define VERTEX_SIZE (12 * sizeof(f32))
@@ -180,8 +180,8 @@ void PushChar(Arena *arena, SdfFontChar character, f32 fontScale, v2 at, v4 colo
                                 at.y - (fontScale * (character.h + character.yOffset)), 
                                 (f32)character.w * fontScale, 
                                 (f32)character.h * fontScale };
-    v2 uv0 = v2{ (f32)character.x0 / 512.0f, (f32)character.y1 / 512.0f }; // Flip y
-    v2 uv1 = v2{ (f32)character.x1 / 512.0f, (f32)character.y0 / 512.0f };
+    v2 uv0 = v2{ (f32)character.x0 / 256.0f, (f32)character.y1 / 256.0f }; // Flip y
+    v2 uv1 = v2{ (f32)character.x1 / 256.0f, (f32)character.y0 / 256.0f };
     PushRect(arena, rect, uv0, uv1, color, outline);
 }
 
