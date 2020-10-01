@@ -50,8 +50,8 @@
     programInfo = initShaders(gl);
     vertexBuffer = gl.createBuffer();
     
-    blockTex = loadTexture(gl, 'textures/blocks-atlas-small-sdf.png');
-    fontTex = loadTexture(gl, 'textures/font-atlas-small.png');
+    blockTex = loadTexture(gl, 'textures/blocks-atlas-sdf.png');
+    fontTex = loadTexture(gl, 'textures/font-atlas.png');
     
     canvas.addEventListener('mousemove', function(e) {
       input.mouseP.x = e.offsetX;
